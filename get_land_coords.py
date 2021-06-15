@@ -12,9 +12,21 @@ import numpy as np
 import pandas as pd
 import pywinauto as pwa
 sys.path.append(r'C:\Users\trose\Documents\python_packages')
-from python_utils import windows_process_utils
+from python_utils import windows_process_utils, file_utils
 from copy import deepcopy
 from PIL import Image
+
+
+land_coords_digit_csv_dir='land_coords_digit_dir'
+land_coords_digit_csvs = file_utils.find(land_coords_digit_csv_dir, '*.csv')
+land_coords_digit_dct = {}
+for digit_csv in land_coords_digit_csvs:
+    digit_arr = np.array(file_utils.read_csv(digit_csv)).astype(np.int)
+    digit_fname = file_utils.fname_from_fpath(digit_csv)
+    if digit_fname == 'negative_sign':
+        land_coords_digit_dct['-'] = digit_arr
+    else:
+        land_coords_digit_dct[digit_fname] = digit_arr
 
 
 def get_swg_windows(swg_process_df):
@@ -34,6 +46,10 @@ def get_swg_windows(swg_process_df):
     -------
     Get the window object for each swg instance which can be used to manipulate
     and give focus to the window.
+    
+    Notes
+    -----
+    1. Windowed instances of swg should already be running.
     '''
     swg_windows = []
     for i, process_id in enumerate(swg_process_df['process_id']):
@@ -122,40 +138,62 @@ def calibrate_window_position(swg_windows,
                 width=desired_size_of_windows[0],
                 height=desired_size_of_windows[1])
             
-
-def take_screenshot(swg_windows):
-    for i, swg_window in enumerate(swg_windows):
-        with mss.mss() as sct:
-            # Activate the window
-            swg_window.set_focus()
-            time.sleep(1)
-            # The screen part to capture
-            rect = swg_window.rectangle()
-            top = rect.top + 166
-            left = rect.left + 867
-            width = 150
-            height = 8
-            region = {'top': top, 'left': left, 'width': width, 'height': height}
-            # Grab the data
-            start_time = time.time()
-            screenshot = sct.grab(region)
-            img_arr = deepcopy(np.asarray(screenshot))
-        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGRA2GRAY)
-        img_arr[img_arr < 200] = 0
-        img_arr[img_arr >= 200] = 1
-        x_coord_arr = img_arr[:, 6:44]
-        y_coord_arr = img_arr[:, 106:144]
         
-        break
-
+def get_number_from_arr(line_arr):
+    digits = ''
+    i = 0
+    while i < line_arr.shape[1]:
+        if np.sum(line_arr[:, i]) != 0:
+            j = deepcopy(i)
+            while np.sum(line_arr[:, j]) != 0:
+                j += 1
+            target_digit = line_arr[:, i : j].astype(np.int)
+            i += j - i
+            for digit_key, digit_arr in land_coords_digit_dct.items():
+                if digit_arr.shape != target_digit.shape:
+                    continue
+                if np.all(digit_arr == target_digit):
+                   digits += digit_key
+        i += 1
+                  
+    return int(digits)
+    
+        
+def get_land_coords(swg_window):
+    with mss.mss() as sct:
+        # Activate the window
+        swg_window.set_focus()
+        time.sleep(1)
+        start_time = time.time()
+        # The screen part to capture
+        rect = swg_window.rectangle()
+        top = rect.top + 166
+        left = rect.left + 867
+        width = 150
+        height = 8
+        region = {'top': top, 'left': left, 'width': width, 'height': height}
+        # Grab the data
+        start_time = time.time()
+        screenshot = sct.grab(region)
+        img_arr = deepcopy(np.asarray(screenshot))
+    img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGRA2GRAY)
+    img_arr[img_arr < 200] = 0
+    img_arr[img_arr >= 200] = 1
+    x_coord_arr = img_arr[:, 6:44]
+    y_coord_arr = img_arr[:, 106:144]
+    x_coord = get_number_from_arr(x_coord_arr)
+    y_coord = get_number_from_arr(y_coord_arr)
+    print(time.time() - start_time)
+    print([x_coord, y_coord])
+        
         
 def main():
     vars_df = windows_process_utils.get_vars_df(image_name='SwgClient_r.exe')
     swg_process_df = windows_process_utils.get_passing_df(vars_df)
     swg_process_df.sort_values(by='cpu_seconds', ascending=False, inplace=True)
     swg_windows = get_swg_windows(swg_process_df)
-    #calibrate_window_position(swg_windows)
-    take_screenshot(swg_windows)
+    calibrate_window_position(swg_windows)
+    get_land_coords(swg_windows[0])
     
     
 

@@ -6,10 +6,15 @@ Created on Mon Jun 14 10:30:21 2021
 """
 import sys
 import time
+import mss
+import cv2
 import numpy as np
+import pandas as pd
 import pywinauto as pwa
 sys.path.append(r'C:\Users\trose\Documents\python_packages')
 from python_utils import windows_process_utils
+from copy import deepcopy
+from PIL import Image
 
 
 def get_swg_windows(swg_process_df):
@@ -117,14 +122,41 @@ def calibrate_window_position(swg_windows,
                 width=desired_size_of_windows[0],
                 height=desired_size_of_windows[1])
             
-                
+
+def take_screenshot(swg_windows):
+    for i, swg_window in enumerate(swg_windows):
+        with mss.mss() as sct:
+            # Activate the window
+            swg_window.set_focus()
+            time.sleep(1)
+            # The screen part to capture
+            rect = swg_window.rectangle()
+            top = rect.top + 166
+            left = rect.left + 867
+            width = 150
+            height = 8
+            region = {'top': top, 'left': left, 'width': width, 'height': height}
+            # Grab the data
+            start_time = time.time()
+            screenshot = sct.grab(region)
+            img_arr = deepcopy(np.asarray(screenshot))
+        img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGRA2GRAY)
+        img_arr[img_arr < 200] = 0
+        img_arr[img_arr >= 200] = 1
+        x_coord_arr = img_arr[:, 6:44]
+        y_coord_arr = img_arr[:, 106:144]
+        
+        break
+
         
 def main():
     vars_df = windows_process_utils.get_vars_df(image_name='SwgClient_r.exe')
     swg_process_df = windows_process_utils.get_passing_df(vars_df)
     swg_process_df.sort_values(by='cpu_seconds', ascending=False, inplace=True)
     swg_windows = get_swg_windows(swg_process_df)
-    calibrate_window_position(swg_windows)
+    #calibrate_window_position(swg_windows)
+    take_screenshot(swg_windows)
+    
     
 
 if __name__ == '__main__':

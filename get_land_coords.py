@@ -73,6 +73,26 @@ for digit_csv in land_coords_digit_csvs:
 
 
 def north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv'):
+    '''
+    calibrated_north: 2D np.array
+    The matrix that is stored in the csv file for when the compass is facing north
+    
+    Returns
+    -------
+    None
+        
+    Purpose
+    -------
+    Rotate charater until facing north. Needed since w,s,q,e movements expect character to be facing north
+        
+    Notes
+    -----
+    1. atol may be large enough to get a false north reading, still calibrating
+    2. the location being looked at is the little green arrow on the compass when it is facing north
+    3. notice that 'a' is pressed after stopping rotating. this is because response time isnt fast enough to stop exactly at the top
+    '''
+    
+    
     calibrated_north = np.array(file_utils.read_csv(arrow_rect_csv_fpath)).astype(np.int)
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.

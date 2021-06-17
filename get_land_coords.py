@@ -11,6 +11,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import pywinauto as pwa
+import pydirectinput as pdi
 sys.path.append(r'C:\Users\trose\Documents\python_packages')
 from python_utils import windows_process_utils, file_utils
 from copy import deepcopy
@@ -71,8 +72,41 @@ for digit_csv in land_coords_digit_csvs:
         land_coords_digit_dct[digit_fname] = digit_arr
 
 
+def north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv'):
+    calibrated_north = np.array(file_utils.read_csv(arrow_rect_csv_fpath)).astype(np.int)
+    # Define the region of the matrix corresponding to the in-game 
+    # coordinates as shown in the minimap.
+    atol=30
+    rect = swg_window.rectangle()
+    top = rect.top + 37
+    left = rect.left + 940
+    width = 7
+    height = 3
+    region = {'top': top, 'left': left, 'width': width, 'height': height}
+    img_arr = take_screenshot_and_sharpen(swg_window, region=region, 
+            sharpen_threshold=200, scale_to=255, sharpen=False)
+    
+    if np.allclose(img_arr, calibrated_north, atol=atol):
+        return
+    pdi.keyDown('ctrl')
+    pdi.keyDown('shift')
+    pdi.press('s')
+    pdi.keyUp('shift')
+    pdi.keyUp('ctrl')
+    start_time = time.time()
+    while time.time() - start_time < 5 and not np.allclose(img_arr, calibrated_north, atol=atol):
+        img_arr = take_screenshot_and_sharpen(swg_window, region=region, 
+            sharpen_threshold=200, scale_to=255, sharpen=False)
+        
+    pdi.keyDown('ctrl')
+    pdi.keyDown('shift')
+    pdi.press('s')
+    pdi.keyUp('shift')
+    pdi.keyUp('ctrl')
+    pdi.press('a', presses=1)
+
 def take_screenshot_and_sharpen(window, region, sharpen_threshold=200,
-        scale_to=1, set_focus=True):
+        scale_to=1, set_focus=True, sharpen=True):
     '''
     window: pywinauto.application.WindowSpecification
         A window object for a particular application.
@@ -106,6 +140,9 @@ def take_screenshot_and_sharpen(window, region, sharpen_threshold=200,
         screenshot.
         False: Take the screenshot without assuring focus because by some other
             means, I know the window is visible.
+            
+    sharpen: bool
+        Whether to apply sharpen_threshold and scale_to.
 
     Returns
     -------
@@ -131,9 +168,10 @@ def take_screenshot_and_sharpen(window, region, sharpen_threshold=200,
         img_arr = deepcopy(np.asarray(screenshot))
     # Convert to Grayscale
     img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGRA2GRAY)
-    # Sharpen image
-    img_arr[img_arr < sharpen_threshold] = 0
-    img_arr[img_arr >= sharpen_threshold] = scale_to
+    if sharpen:
+        # Sharpen image
+        img_arr[img_arr < sharpen_threshold] = 0
+        img_arr[img_arr >= sharpen_threshold] = scale_to
     return img_arr
 
 
@@ -165,13 +203,13 @@ def determine_region_coords(swg_window, region_fpath='region.png',
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.
     rect = swg_window.rectangle()
-    top = rect.top + 166
-    left = rect.left + 867
-    width = 150
-    height = 8
+    top = rect.top + 37 # 29
+    left = rect.left + 940
+    width = 7
+    height = 3
     region = {'top': top, 'left': left, 'width': width, 'height': height}
     img_arr = take_screenshot_and_sharpen(swg_window, region=region, 
-            sharpen_threshold=200, scale_to=255)
+            sharpen_threshold=200, scale_to=255, sharpen=False)
     
     img = Image.fromarray(img_arr)
     img.save(region_fpath)
@@ -414,9 +452,14 @@ def get_land_coords(swg_window):
 def main():
     swg_windows = get_swg_windows()
     calibrate_window_position(swg_windows)
-    get_land_coords(swg_windows[0])
+    coords = get_land_coords(swg_windows[0])
+    print(coords)
     
     
 
 if __name__ == '__main__':
-    main()
+    #main()
+    swg_windows = get_swg_windows()
+    #determine_region_coords(swg_windows[0], region_fpath='arrow_region.png', 
+    #    csv_fpath='arrow_region.csv')
+    north_calibrate(swg_windows[0], arrow_rect_csv_fpath='arrow_rect.csv')

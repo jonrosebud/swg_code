@@ -69,9 +69,18 @@ def main():
     Sorting inventory
     Travelling to Junk Dealer or house (this is like a mission)
     '''
-    wp_lst = [[-3028, 10], [-2912, -90], [-2823, -119], [-3019, -181], [-2927, -239]]
+    #wp_lst = [[-3028, 10], [-2912, -90], [-2823, -119], [-3019, -181], [-2927, -239]]
+    #wp_lst = [[-2800, 1600], [-2800, 1700]]
+    starport_to_near_terminal = [
+        [-5400, -2202], [-5405, -2210], [-5395, -2215], [-5383, -2217], 
+        [-5375,-2222], [-5359,-2222], [-5350, -2226], [-5339, -2213]]
+
+    near_terminal_to_starport_entrance = [
+        [-5326, -2226], [-5321, -2222], [-5322, -2215], [-5319, -2212], [-5303, -2223]]
+    wp_lst = starport_to_near_terminal + near_terminal_to_starport_entrance
     swg_windows = glc.get_swg_windows()
     glc.calibrate_window_position(swg_windows)
+    glc.north_calibrate(swg_windows[0], arrow_rect_csv_fpath='arrow_rect.csv')
     position_actual = glc.get_land_coords(swg_windows[0])
     key_df = pd.DataFrame({'should_be_down':[False]*6, 'is_down':[False]*6}, index=['w','s','q','e','a','d'])
     tolerance = 0

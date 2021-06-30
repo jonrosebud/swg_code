@@ -10,7 +10,8 @@ import socket
 config_file_name = 'swg_config_file_for_' + socket.gethostname() + '.conf'
 config.read(config_file_name)
 import sys
-sys.path.append(r""+)
+python_utils_path = config.get('main', 'python_utils_path')
+sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils
 
 import keyboard

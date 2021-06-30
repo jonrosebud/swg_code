@@ -4,11 +4,17 @@ Created on Thu Jun 17 12:07:28 2021
 
 @author: rosebud
 """
+from configparser import ConfigParser
+config = ConfigParser()
+import socket
+config_file_name = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+config.read(config_file_name)
+import sys
+sys.path.append(r""+)
+from python_utils import file_utils
+
 import keyboard
 import pynput as pnp
-import sys
-sys.path.append(r"C:\Users\rosebud\Documents\python_packages\python_utils")
-from python_utils import file_utils
 import get_land_coords as glc
 import waypoint_path as wpp
 import os

@@ -4,7 +4,15 @@ Created on Mon Jun 14 10:30:21 2021
 
 @author: trose
 """
+from configparser import ConfigParser
+config = ConfigParser()
+import socket
+config_file_name = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+config.read(config_file_name)
 import sys
+sys.path.append(r""+)
+from python_utils import windows_process_utils, file_utils
+
 import time
 import mss
 import cv2
@@ -12,8 +20,6 @@ import numpy as np
 import pandas as pd
 import pywinauto as pwa
 import pydirectinput as pdi
-sys.path.append(r'C:\Users\trose\Documents\python_packages')
-from python_utils import windows_process_utils, file_utils
 from copy import deepcopy
 from PIL import Image
 

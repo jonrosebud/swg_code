@@ -11,7 +11,6 @@ import pydirectinput as pdi
 import get_land_coords as glc
 import pandas as pd
 import math
-import numpy as np
 
 
 def hold_down_keys(key_df):
@@ -79,7 +78,6 @@ def main():
     near_terminal_to_starport_entrance = [
         [-5326, -2226], [-5321, -2222], [-5322, -2215], [-5319, -2212], [-5303, -2223]]
     wp_lst = starport_to_near_terminal + near_terminal_to_starport_entrance
-
     swg_windows = glc.get_swg_windows()
     glc.calibrate_window_position(swg_windows)
     glc.north_calibrate(swg_windows[0], arrow_rect_csv_fpath='arrow_rect.csv')
@@ -87,23 +85,13 @@ def main():
     key_df = pd.DataFrame({'should_be_down':[False]*6, 'is_down':[False]*6}, index=['w','s','q','e','a','d'])
     tolerance = 0
     debugging = False
-    stuck_timeout_time = 40
-    stuck_start_time = time.time()
     for position_desired in wp_lst:
         if debugging:
             print(position_actual)
-            my_input = input('For next wp, press enter')
-            swg_windows[0].set_focus()
             
         while (not(math.isclose(position_desired[1], position_actual[1], abs_tol = tolerance) and math.isclose(position_desired[0], position_actual[0], abs_tol = tolerance))):
-            if time.time() - stuck_start_time > stuck_timeout_time:
-                raise Exception('You are stuck!')
-            
             # Update position_actual by taking a new screenshot
-            new_position_actual = glc.get_land_coords(swg_windows[0])
-            if not np.all(np.array(new_position_actual) == np.array(position_actual)):
-                stuck_start_time = time.time()
-            position_actual = new_position_actual
+            position_actual = glc.get_land_coords(swg_windows[0])
             # w
             key_df.loc['w']['should_be_down'] = (position_desired[1] > position_actual[1] and not math.isclose(position_desired[1], position_actual[1], abs_tol = tolerance))
             # s
@@ -115,6 +103,42 @@ def main():
             # hold down the appropriate keys
             key_df = hold_down_keys(key_df)
 
+
+def move_along(swg_window, waypoint_list):
+    '''
+    swg_window: pywinauto.application.WindowSpecification
+        A window object for a particular swg instance.
+        
+    waypoint_list: a list of list of integer
+        A list of waypoint(s) to go to. Includes x, y, and time delay parameters
+        Each sub-list has a format [x, y, t]
+        
+        t is the wait time, in seconds, AFTER reaching a particular waypoint
+    '''
+    
+    position_actual = glc.get_land_coords(swg_window)
+    key_df = pd.DataFrame({'should_be_down':[False]*6, 'is_down':[False]*6}, index=['w','s','q','e','a','d'])
+    for position_desired in waypoint_list:
+        while not(position_desired[1] == position_actual[1] and position_desired[0] == position_actual[0]):
+            # Update position_actual by taking a new screenshot
+            position_actual = glc.get_land_coords(swg_window)
+            # w
+            key_df.loc['w']['should_be_down'] = (position_desired[1] > position_actual[1])
+            # s
+            key_df.loc['s']['should_be_down'] = (position_desired[1] < position_actual[1])
+            # q                       
+            key_df.loc['q']['should_be_down'] = (position_desired[0] < position_actual[0])
+            # e
+            key_df.loc['e']['should_be_down'] = (position_desired[0] > position_actual[0])
+            # hold down the appropriate keys
+            key_df = hold_down_keys(key_df)
+        key_df.loc['w']['should_be_down'] = False
+        key_df.loc['s']['should_be_down'] = False
+        key_df.loc['q']['should_be_down'] = False
+        key_df.loc['e']['should_be_down'] = False
+        key_df = hold_down_keys(key_df)
+        time.sleep(position_desired[2])
+        
 
 if __name__ == '__main__':
     main()

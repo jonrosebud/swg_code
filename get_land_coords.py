@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jun 14 10:30:21 2021
-
 @author: trose
 """
 from configparser import ConfigParser
@@ -11,6 +10,10 @@ config_file_name = 'swg_config_file_for_' + socket.gethostname() + '.conf'
 config.read(config_file_name)
 import sys
 python_utils_path = config.get('main', 'python_utils_path')
+top_coord = int(config.get('main', 'top_coord'))
+left_coord = int(config.get('main', 'left_coord'))
+top_north = int(config.get('main', 'top_north'))
+left_north = int(config.get('main', 'left_north'))
 sys.path.append(r"" + python_utils_path)
 from python_utils import windows_process_utils, file_utils
 
@@ -23,6 +26,7 @@ import pywinauto as pwa
 import pydirectinput as pdi
 from copy import deepcopy
 from PIL import Image
+import swg_window_management as swm
 
 
 '''
@@ -105,8 +109,8 @@ def north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv'):
     # coordinates as shown in the minimap.
     atol=30
     rect = swg_window.rectangle()
-    top = rect.top + 37
-    left = rect.left + 940
+    top = rect.top + top_north #37
+    left = rect.left + left_north #940
     width = 7
     height = 3
     region = {'top': top, 'left': left, 'width': width, 'height': height}
@@ -170,14 +174,12 @@ def take_screenshot_and_sharpen(window, region, sharpen_threshold=200,
             
     sharpen: bool
         Whether to apply sharpen_threshold and scale_to.
-
     Returns
     -------
     img_arr: 2D np.array
         Matrix containing only values equal to 0 or scale_to which are the
         "sharpened" pixel values in matrix form of the screenshot taken in the
         given region.
-
     Purpose
     -------
     Take a screenshot of the provided region in the provided window, convert
@@ -214,11 +216,9 @@ def determine_region_coords(swg_window, region_fpath='region.png',
     csv_fpath: str
         Path where the matrix of the screenshot of region will be saved as a 
         csv file.
-
     Returns
     -------
     None.
-
     Purpose
     -------
     This is a helper function to use to help determine the coordinates of 
@@ -230,8 +230,13 @@ def determine_region_coords(swg_window, region_fpath='region.png',
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.
     rect = swg_window.rectangle()
-    top = rect.top + 37 # 29
-    left = rect.left + 940
+    
+    # top = rect.top + top_coord #37 # 29
+    # left = rect.left + left_coord #940
+    # width = 150
+    # height = 8
+    top = rect.top + top_north
+    left = rect.left + left_north
     width = 7
     height = 3
     region = {'top': top, 'left': left, 'width': width, 'height': height}
@@ -242,122 +247,6 @@ def determine_region_coords(swg_window, region_fpath='region.png',
     img.save(region_fpath)
     df = pd.DataFrame(img_arr)
     df.to_csv(csv_fpath)
-
-
-def get_swg_windows(swg_process_df=None):
-    '''
-    swg_process_df: pd.DataFrame or None
-        Dataframe only containing rows of swg instances. The important column
-        is 'process_id' which contains the Windows PID of the particular 
-        instance. This df is gotten by windows_process_utils.get_passing_df
-        so see that function for more info.
-        
-        If None, then swg_process_df is gotten automatically for you.
-        
-    Returns
-    -------
-    swg_windows: list of pywinauto.application.WindowSpecification
-        Each element is a window object for a particular swg instance.
-        
-    Purpose
-    -------
-    Get the window object for each swg instance which can be used to manipulate
-    and give focus to the window.
-    
-    Notes
-    -----
-    1. Windowed instances of swg should already be running.
-    '''
-    if swg_process_df is None:
-        vars_df = windows_process_utils.get_vars_df(image_name='SwgClient_r.exe')
-        swg_process_df = windows_process_utils.get_passing_df(vars_df)
-        swg_process_df.sort_values(by='cpu_seconds', ascending=False, inplace=True)
-    swg_windows = []
-    for i, process_id in enumerate(swg_process_df['process_id']):
-        # Initialize an Application object to be connected to the process_id
-        # of this swg instance.
-        app = pwa.application.Application().connect(process=int(process_id))
-        # Find the handle of the window for this swg instance.
-        handle = pwa.findwindows.find_windows(
-                title='Star Wars Galaxies', 
-                process=int(process_id))[0]
-        
-        # Finally, we have the window object.
-        window = app.window(handle=handle)
-        swg_windows.append(window)
-    return swg_windows
-    
-
-def calibrate_window_position(swg_windows, 
-        desired_position_of_windows=None,
-        desired_size_of_windows=None):
-    
-    '''
-    swg_windows: list of pywinauto.application.WindowSpecification
-        Each element is a window object for a particular swg instance.
-    
-    desired_position_of_windows: list of list of int with shape (n,2) or None
-        n is the number of simultaneous instances of swg. The position refers
-        to the top left corner of the window. Each row corresponds to a 
-        different window. The first element of each row is the desired x 
-        coordinate and the second element is the desired y coordinate.
-        
-        e.g. [[0, 0], [1030, 0], [2060, 0]]
-        would put them next to each other along the top of the screen.
-        
-        If None is passed, then the default scheme is used which is putting one
-        of the windows at (0,0) and then putting the next window's left side 
-        adjacent to the first window's right side and then putting the next
-        window adjacent to the right side of the second window.
-        
-    desired_size_of_windows: list of int with length 2, or None
-        The desired width and height that the window should be scaled to is
-        given by the first and second elements of desired_size_of_windows, 
-        respectively.
-        
-        e.g. [1030, 797]
-        would scale each swg window to be 1030 wide and 797 tall
-        
-        If None is passed then no change to the window's dimensions will be
-        made.
-        
-    Returns
-    -------
-    None
-        
-    Purpose
-    -------
-    Move and/or resize the swg windows so that their position is the same every
-    time so that constants passed into functions such as regions to get a
-    screenshot are correct.
-        
-    Notes
-    -----
-    1. Windowed instances of swg should already be running.
-    2. This function does not yet check for whether there is enough room to
-        carry out the default window positioning scheme.
-    '''
-    if desired_size_of_windows is None:
-        # By default, use the width and height of the first instance
-        rect = swg_windows[0].rectangle()
-        desired_size_of_windows = [rect.width(), rect.height()]
-    if desired_position_of_windows is None:
-        # By default, align the windows along the top of the screen and 
-        # adjacent to the previous window.
-        desired_position_of_windows = []
-        for i, swg_window in enumerate(swg_windows):
-            if i == 0:
-                desired_position_of_windows.append([0, 0])
-            else:
-                rect = swg_windows[i - 1].rectangle()
-                desired_position_of_windows.append([rect.right, rect.top])
-    # Move and resize the windows.
-    for i, swg_window in enumerate(swg_windows):
-        swg_window.move_window(
-                x=desired_position_of_windows[i][0], 
-                y=desired_position_of_windows[i][1], 
-                width=desired_size_of_windows[0],
-                height=desired_size_of_windows[1])
             
         
 def get_number_from_arr(line_arr):
@@ -457,8 +346,8 @@ def get_land_coords(swg_window):
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.
     rect = swg_window.rectangle()
-    top = rect.top + 166
-    left = rect.left + 867
+    top = rect.top + top_coord #166
+    left = rect.left + left_coord #867
     width = 150
     height = 8
     region = {'top': top, 'left': left, 'width': width, 'height': height}
@@ -477,16 +366,12 @@ def get_land_coords(swg_window):
         
         
 def main():
-    swg_windows = get_swg_windows()
-    calibrate_window_position(swg_windows)
-    coords = get_land_coords(swg_windows[0])
+    swm.calibrate_window_position(swm.swg_windows)
+    coords = get_land_coords(swm.swg_windows[2])
     print(coords)
-    
-    
+    # pass
+
 
 if __name__ == '__main__':
-    #main()
-    swg_windows = get_swg_windows()
-    #determine_region_coords(swg_windows[0], region_fpath='arrow_region.png', 
-    #    csv_fpath='arrow_region.csv')
-    north_calibrate(swg_windows[0], arrow_rect_csv_fpath='arrow_rect.csv')
+    main()
+    north_calibrate(swm.swg_windows[2], arrow_rect_csv_fpath='arrow_rect.csv')

@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jul  1 14:32:22 2021
-
 @author: trose
 """
+from configparser import ConfigParser
+config = ConfigParser()
+import socket
+config_file_name = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+config.read(config_file_name)
 import sys
+python_utils_path = config.get('main', 'python_utils_path')
+sys.path.append(r"" + python_utils_path)
 import pywinauto as pwa
-sys.path.append(r'C:\Users\trose\Documents\python_packages')
 from python_utils import windows_process_utils, file_utils, list_utils
 import mss
 from copy import deepcopy
@@ -138,13 +143,11 @@ def take_screenshot(region):
         'left': leftmost (x) coordinate
         'width': number of pixels wide
         'height': number of pixels tall
-
     Returns
     -------
     img_arr: 3D np.array
         Matrices containing BGR data. img_arr[:,:,0] is the matrix B, 
         img_arr[:,:,1] is the matrix G, and img_arr[:,:,2] is the matrix R.
-
     Purpose
     -------
     Take a screenshot of the provided region in the provided window, convert

@@ -90,7 +90,8 @@ def delete_file(waypoint_manager):
 def insert_waypoint(waypoint_manager):
     print('file_name: ',waypoint_manager.file_name)
     current_waypoint = glc.get_land_coords(swg_window)
-    waypoint_manager.waypoint_list.insert(waypoint_manager.index + 1, current_waypoint)
+    waypoint_manager.index += 1
+    waypoint_manager.waypoint_list.insert(waypoint_manager.index, current_waypoint)
     
     # print('current waypoint: ', current_waypoint)
     # print('waypoint list: ', waypoint_manager.waypoint_list)

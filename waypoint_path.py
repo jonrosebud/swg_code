@@ -115,6 +115,8 @@ def move_along(swg_window, waypoint_list):
         
         t is the wait time, in seconds, AFTER reaching a particular waypoint
     '''
+    # print('waypoint list:')
+    # print(waypoint_list)
     
     position_actual = glc.get_land_coords(swg_window)
     key_df = pd.DataFrame({'should_be_down':[False]*6, 'is_down':[False]*6}, index=['w','s','q','e','a','d'])
@@ -137,7 +139,13 @@ def move_along(swg_window, waypoint_list):
         key_df.loc['q']['should_be_down'] = False
         key_df.loc['e']['should_be_down'] = False
         key_df = hold_down_keys(key_df)
+        
+        #execute wait time in position_desired[2]
         time.sleep(position_desired[2])
+        
+        #execute whatever is in position_desired[3]
+        # if position_desired[3]:
+            # cool stuff here...
         
 
 if __name__ == '__main__':

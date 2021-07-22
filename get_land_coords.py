@@ -362,7 +362,7 @@ def get_land_coords(swg_window):
     # Parse the matrices for the numbers.
     x_coord = get_number_from_arr(x_coord_arr)
     y_coord = get_number_from_arr(y_coord_arr)
-    return [x_coord, y_coord]
+    return [x_coord, y_coord, 0, 0] # was [x_coord, y_coord]
         
         
 def main():

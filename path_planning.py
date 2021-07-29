@@ -30,7 +30,7 @@ class Waypoint_manager:
         self.waypoint_list = []
         self.current_waypoint = []
         self.wait_time = 0
-        self.index = 0
+        self.index = -1
     
 waypoint_manager = Waypoint_manager()
 
@@ -58,16 +58,39 @@ def selection(waypoint_manager):
     
 
 def create_file(waypoint_manager):
+    '''
+    input parameters:
+    waypoint_manager: Waypoint_manager
+        contains all the parameters required for making a waypoint path
+        
+    returns: none
+    
+    purpose: prompts user for name of file to be created. file type will be a csv
+    this file stores all the waypoint path information (waypoint_list)
+    after this, it will start listening for hotkeys
+    
+    notes:
+    file will be stored in the same path as path_planning.py
+    '''
     # ask user for file_name
-    waypoint_manager.file_name = input("Enter file_name to create: ")
+    waypoint_manager.file_name = input("Enter file_name to create: ") + '.csv'
     
     # begin editing
     path_plan(waypoint_manager)
     
     
 def edit_file(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: prompts the user for a name of file to be editted. reads in an existing waypoint_list
+    after this, it will start listening for hotkeys
+    
+    notes:
+    none
+    '''
     # ask user for file_name
-    waypoint_manager.file_name = input("Enter file_name to edit: ")    
+    waypoint_manager.file_name = input("Enter file_name to edit: ") + ".csv"    
     # waypoint_manager.waypoint_list = file_utils.read_csv(waypoint_manager.file_name)
     waypoint_manager.waypoint_list = list(map(list,np.array(file_utils.read_csv(waypoint_manager.file_name)).astype(np.int)))
     print('waypoint_list: ', waypoint_manager.waypoint_list)
@@ -77,8 +100,16 @@ def edit_file(waypoint_manager):
     
 
 def delete_file(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: prompts the user for a name of file to be deleted. deletes an existing waypoint_list
+    
+    notes:
+    none
+    '''
     # ask user for file_name
-    waypoint_manager.file_name = input("Enter file_name to delete: ")
+    waypoint_manager.file_name = input("Enter file_name to delete: ") + ".csv"
     
     # delete this csv
     if os.path.exists(waypoint_manager.file_name):
@@ -88,10 +119,19 @@ def delete_file(waypoint_manager):
       
 
 def insert_waypoint(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: inserts a new waypoint AFTER the current waypoint. if it is a new list, it will be the first waypoint.
+    
+    notes:
+    none
+    '''    
     print('file_name: ',waypoint_manager.file_name)
     current_waypoint = glc.get_land_coords(swg_window)
     waypoint_manager.index += 1
     waypoint_manager.waypoint_list.insert(waypoint_manager.index, current_waypoint)
+    
     
     # print('current waypoint: ', current_waypoint)
     # print('waypoint list: ', waypoint_manager.waypoint_list)
@@ -99,11 +139,27 @@ def insert_waypoint(waypoint_manager):
     
 
 def delete_waypoint(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: deletes current waypoint from waypoint_list
+    
+    notes:
+    none
+    '''    
     print('file_name: ',waypoint_manager.file_name)
     del waypoint_manager.waypoint_list[waypoint_manager.index]
     
     
 def run_waypoint_list_forward(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: runs all waypoints in waypoint_list from beginning of list
+    
+    notes:
+    none
+    '''  
     print('file_name: ',waypoint_manager.file_name)
     print('waypoint list: ', waypoint_manager.waypoint_list)
     print('index: ', waypoint_manager.index)
@@ -111,6 +167,14 @@ def run_waypoint_list_forward(waypoint_manager):
     
     
 def run_waypoint_list_backward(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: runs all waypoints in waypoint_list from the end of the list to the beginning
+    
+    notes:
+    none
+    ''' 
     print('file_name: ',waypoint_manager.file_name)
     print('waypoint list: ', waypoint_manager.waypoint_list)
     print('index: ', waypoint_manager.index)
@@ -118,6 +182,15 @@ def run_waypoint_list_backward(waypoint_manager):
 
 
 def step_next_waypoint(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: increment index by one and go to that waypoint.
+    
+    notes:
+    assumes you are still at the previous waypoint
+    assumes you are still oriented north
+    ''' 
     print('file_name: ',waypoint_manager.file_name)
     if(waypoint_manager.index + 1 < len(waypoint_manager.waypoint_list)):
         waypoint_manager.index += 1
@@ -128,6 +201,15 @@ def step_next_waypoint(waypoint_manager):
     
     
 def step_previous_waypoint(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: increment index by one and go to that waypoint.
+    
+    notes:
+    assumes you are still at the previous waypoint
+    assumes you are still oriented north
+    ''' 
     print('file_name: ',waypoint_manager.file_name)
     waypoint_manager.index -= 1
     # check if index was already 0
@@ -142,21 +224,64 @@ def step_previous_waypoint(waypoint_manager):
     
 
 def stop_listening(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: stops listening to keyboard inputs
+    
+    notes:
+    none
+    ''' 
     print('file_name: ',waypoint_manager.file_name)
     sys.exit()
 
 
-def add_wait_to_current_waypoint(waypoint_manager):    
+def add_wait_to_current_waypoint(waypoint_manager): 
+    '''
+    returns: none
+    
+    purpose: adds wait time to current waypoint. takes effect after travelling to waypoint
+    adds wait time in increments of 15 seconds
+    
+    notes:
+    must have at least 1 waypoint in list before using this function
+    ''' 
     print('file_name: ',waypoint_manager.file_name)
     waypoint_manager.waypoint_list[waypoint_manager.index][2] += 15
 
 
 def subtract_wait_from_current_waypoint(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: subtracts wait time from current waypoint. takes effect after travelling to waypoint
+    removes wait time in increments of 15 seconds
+    will not go negative
+    
+    notes:
+    must have at least 1 waypoint in list before using this function
+    ''' 
     print('file_name: ',waypoint_manager.file_name)
     waypoint_manager.waypoint_list[waypoint_manager.index][2] = max(waypoint_manager.waypoint_list[waypoint_manager.index][2] - 15, 0)
 
 
 def on_press(key):
+    '''
+    input parameters:
+    key:
+        for function keys: enum 'Key'
+        for letter keys: pynput.keyboard._win32.KeyCode
+        
+    returns: none
+    
+    purpose:
+    
+    notes:
+    see pynput documentation for more on key
+    ''' 
+    print(type(key))
+    print(key)
+    
     if hasattr(key, 'name'):
         name = key.name
     else:
@@ -208,6 +333,14 @@ def on_press(key):
   
     
 def path_plan(waypoint_manager):
+    '''
+    returns: none
+    
+    purpose: starts listening for hotkey commands
+    
+    notes:
+    none
+    ''' 
     # print hotkey list
     print(            
     '''

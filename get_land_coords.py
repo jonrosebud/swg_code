@@ -1,22 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jun 14 10:30:21 2021
+
 @author: trose
 """
-from configparser import ConfigParser
-config = ConfigParser()
-import socket
-config_file_name = 'swg_config_file_for_' + socket.gethostname() + '.conf'
-config.read(config_file_name)
 import sys
-python_utils_path = config.get('main', 'python_utils_path')
-top_coord = int(config.get('main', 'top_coord'))
-left_coord = int(config.get('main', 'left_coord'))
-top_north = int(config.get('main', 'top_north'))
-left_north = int(config.get('main', 'left_north'))
-sys.path.append(r"" + python_utils_path)
-from python_utils import windows_process_utils, file_utils
-
 import time
 import mss
 import cv2
@@ -24,6 +12,8 @@ import numpy as np
 import pandas as pd
 import pywinauto as pwa
 import pydirectinput as pdi
+sys.path.append(r'C:\Users\trose\Documents\python_packages')
+from python_utils import windows_process_utils, file_utils
 from copy import deepcopy
 from PIL import Image
 import swg_window_management as swm
@@ -85,32 +75,33 @@ for digit_csv in land_coords_digit_csvs:
 
 def north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv'):
     '''
-    calibrated_north: 2D np.array
-    The matrix that is stored in the csv file for when the compass is facing north
-    
+    Parameters
+    ----------
+    swg_window: pywinauto.application.WindowSpecification
+        A window object for a particular swg instance.
+        
+    arrow_rect_csv_fpath: str
+        File containing array of a portion of the arrow that is pointing north on
+        your in-game radar. It should be gotten with take_screenshot_and_sharpen with 
+        sharpen_threshold and scale_to set to what those settings are when getting
+        img_arr below.
+
     Returns
     -------
     None
-        
+    
     Purpose
     -------
-    Rotate charater until facing north. Needed since w,s,q,e movements expect character to be facing north
-        
-    Notes
-    -----
-    1. atol may be large enough to get a false north reading, still calibrating
-    2. the location being looked at is the little green arrow on the compass when it is facing north
-    3. notice that 'a' is pressed after stopping rotating. this is because response time isnt fast enough to stop exactly at the top
+    Rotate the toon to be facing North in-game. This allows the functions to work
+    that rely on knowing that strafing left means going west, for instance.
     '''
-    
-    
     calibrated_north = np.array(file_utils.read_csv(arrow_rect_csv_fpath)).astype(np.int)
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.
     atol=30
     rect = swg_window.rectangle()
-    top = rect.top + top_north #37
-    left = rect.left + left_north #940
+    top = rect.top + 37
+    left = rect.left + 940
     width = 7
     height = 3
     region = {'top': top, 'left': left, 'width': width, 'height': height}
@@ -174,12 +165,14 @@ def take_screenshot_and_sharpen(window, region, sharpen_threshold=200,
             
     sharpen: bool
         Whether to apply sharpen_threshold and scale_to.
+
     Returns
     -------
     img_arr: 2D np.array
         Matrix containing only values equal to 0 or scale_to which are the
         "sharpened" pixel values in matrix form of the screenshot taken in the
         given region.
+
     Purpose
     -------
     Take a screenshot of the provided region in the provided window, convert
@@ -216,9 +209,11 @@ def determine_region_coords(swg_window, region_fpath='region.png',
     csv_fpath: str
         Path where the matrix of the screenshot of region will be saved as a 
         csv file.
+
     Returns
     -------
     None.
+
     Purpose
     -------
     This is a helper function to use to help determine the coordinates of 
@@ -230,25 +225,24 @@ def determine_region_coords(swg_window, region_fpath='region.png',
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.
     rect = swg_window.rectangle()
-    
-    # top = rect.top + top_coord #37 # 29
-    # left = rect.left + left_coord #940
-    # width = 150
-    # height = 8
-    top = rect.top + top_north
-    left = rect.left + left_north
-    width = 7
-    height = 3
+    #top = rect.top + 37 # 29
+    #left = rect.left + 940
+    #width = 7
+    #height = 3
+    top = rect.top #+ 60
+    left = rect.left #+ 60
+    width = rect.width() #50
+    height = rect.height() #50
     region = {'top': top, 'left': left, 'width': width, 'height': height}
     img_arr = take_screenshot_and_sharpen(swg_window, region=region, 
-            sharpen_threshold=200, scale_to=255, sharpen=False)
+            sharpen_threshold=100, scale_to=255, sharpen=True)
     
     img = Image.fromarray(img_arr)
     img.save(region_fpath)
     df = pd.DataFrame(img_arr)
     df.to_csv(csv_fpath)
-            
-        
+
+
 def get_number_from_arr(line_arr):
     '''
     line_arr: 2D np.array
@@ -346,8 +340,8 @@ def get_land_coords(swg_window):
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.
     rect = swg_window.rectangle()
-    top = rect.top + top_coord #166
-    left = rect.left + left_coord #867
+    top = rect.top + 166
+    left = rect.left + 867
     width = 150
     height = 8
     region = {'top': top, 'left': left, 'width': width, 'height': height}
@@ -362,16 +356,18 @@ def get_land_coords(swg_window):
     # Parse the matrices for the numbers.
     x_coord = get_number_from_arr(x_coord_arr)
     y_coord = get_number_from_arr(y_coord_arr)
-    return [x_coord, y_coord, 0, 0] # was [x_coord, y_coord]
+    return [x_coord, y_coord]
         
         
 def main():
-    swm.calibrate_window_position(swm.swg_windows)
-    coords = get_land_coords(swm.swg_windows[2])
+    coords = get_land_coords(swm.swg_windows[0])
     print(coords)
-    # pass
-
+    
+    
 
 if __name__ == '__main__':
-    main()
-    north_calibrate(swm.swg_windows[2], arrow_rect_csv_fpath='arrow_rect.csv')
+    #main()
+    #swm.calibrate_window_position(swm.swg_windows)
+    determine_region_coords(swm.swg_windows[1], region_fpath='left_inventory_lines_region.png', 
+        csv_fpath='left_inventory_lines_region.csv')
+    #north_calibrate(swg_windows[0], arrow_rect_csv_fpath='arrow_rect.csv')

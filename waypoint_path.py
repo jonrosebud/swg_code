@@ -6,7 +6,6 @@ Created on Sun Jun 13 23:02:32 2021
 """
 
 import time
-#import pyautogui
 import pydirectinput as pdi
 import get_land_coords as glc
 import pandas as pd
@@ -54,70 +53,54 @@ def hold_down_keys(key_df):
     return key_df
 
 
-def main():
-    '''
-    1. Calibrate window positions
-    2. Figure out initial orientation and position
-    3. Iterate through the waypoints
-    4. Mission specifics things (including Junk Dealer or house)
-    5. Sorting inventory
-    
-    Initialize toon in an open area
-    Calibrate the direction you're facing (if the code assumes initially North)
-    Iterate through the waypoints, travelling from one to the next, to the next...
-    Mission specifics things
-    Sorting inventory
-    Travelling to Junk Dealer or house (this is like a mission)
-    '''
-    #wp_lst = [[-3028, 10], [-2912, -90], [-2823, -119], [-3019, -181], [-2927, -239]]
-    #wp_lst = [[-2800, 1600], [-2800, 1700]]
-    starport_to_near_terminal = [
-        [-5400, -2202], [-5405, -2210], [-5395, -2215], [-5383, -2217], 
-        [-5375,-2222], [-5359,-2222], [-5350, -2226], [-5339, -2213]]
-
-    near_terminal_to_starport_entrance = [
-        [-5326, -2226], [-5321, -2222], [-5322, -2215], [-5319, -2212], [-5303, -2223]]
-    wp_lst = starport_to_near_terminal + near_terminal_to_starport_entrance
-    swg_windows = glc.get_swg_windows()
-    glc.calibrate_window_position(swg_windows)
-    glc.north_calibrate(swg_windows[0], arrow_rect_csv_fpath='arrow_rect.csv')
-    position_actual = glc.get_land_coords(swg_windows[0])
-    key_df = pd.DataFrame({'should_be_down':[False]*6, 'is_down':[False]*6}, index=['w','s','q','e','a','d'])
-    tolerance = 0
-    debugging = False
-    for position_desired in wp_lst:
-        if debugging:
-            print(position_actual)
-            
-        while (not(math.isclose(position_desired[1], position_actual[1], abs_tol = tolerance) and math.isclose(position_desired[0], position_actual[0], abs_tol = tolerance))):
-            # Update position_actual by taking a new screenshot
-            position_actual = glc.get_land_coords(swg_windows[0])
-            # w
-            key_df.loc['w']['should_be_down'] = (position_desired[1] > position_actual[1] and not math.isclose(position_desired[1], position_actual[1], abs_tol = tolerance))
-            # s
-            key_df.loc['s']['should_be_down'] = (position_desired[1] < position_actual[1] and not math.isclose(position_desired[1], position_actual[1], abs_tol = tolerance))
-            # q                       
-            key_df.loc['q']['should_be_down'] = (position_desired[0] < position_actual[0] and not math.isclose(position_desired[0], position_actual[0], abs_tol = tolerance))
-            # e
-            key_df.loc['e']['should_be_down'] = (position_desired[0] > position_actual[0] and not math.isclose(position_desired[0], position_actual[0], abs_tol = tolerance))
-            # hold down the appropriate keys
-            key_df = hold_down_keys(key_df)
+def empty_function():
+    pass
 
 
-def move_along(swg_window, waypoint_list):
+def move_along(swg_window, waypoint_list, planning_mode=False, function_list=[empty_function]):
     '''
     swg_window: pywinauto.application.WindowSpecification
         A window object for a particular swg instance.
         
     waypoint_list: a list of list of integer
-        A list of waypoint(s) to go to. Includes x, y, and time delay parameters
-        Each sub-list has a format [x, y, t]
+        A list of waypoint(s) to go to. Includes x, y, (in-game planetary 
+        coordinates) time delay, and the index of function_list (allow you to
+        to call the function at that index) such that each sub-list has the 
+        format [x, y, t, f]
         
         t is the wait time, in seconds, AFTER reaching a particular waypoint
-    '''
-    # print('waypoint list:')
-    # print(waypoint_list)
+        and includes time spent executing the function f. 
+        
+        ex. #1 If you put 1 second for t and f takes 0.2 seconds, then the total 
+        time that you will wait after reaching the waypoint is 1 second.
+        
+        ex. #2 If you put 1 second for t and f takes 3 seconds, then the total
+        time that you will wait after reaching the waypoint is 3 seconds.
+        
+    planning_mode: bool
+        True: Do not sleep as prescribed in the t of the waypoint.
+        False: Sleep as prescribed in the t of the waypoint.
+        
+    function_list: list of callable
+        List of functions where the order of the functions is such that they 
+        correspond to the index number provided in the int f in [x, y, t, f].
+        This function will be called once you reach the desired waypoint given
+        by the x and y parts.
+        
+        The default value for f is 0 so the function at index 0 in function_list
+        is the default function which usually should be one that simply passes.
+        e.g.
+        def empty_function():
+            pass
+        
+    Returns
+    -------
+    None
     
+    Purpose
+    -------
+    Move the toon from waypoint to waypoint in the provided waypoint list.
+    '''
     position_actual = glc.get_land_coords(swg_window)
     key_df = pd.DataFrame({'should_be_down':[False]*6, 'is_down':[False]*6}, index=['w','s','q','e','a','d'])
     for position_desired in waypoint_list:
@@ -140,13 +123,10 @@ def move_along(swg_window, waypoint_list):
         key_df.loc['e']['should_be_down'] = False
         key_df = hold_down_keys(key_df)
         
-        #execute wait time in position_desired[2]
-        time.sleep(position_desired[2])
-        
-        #execute whatever is in position_desired[3]
-        # if position_desired[3]:
-            # cool stuff here...
-        
-
-if __name__ == '__main__':
-    main()
+        start_time = time.time()
+        # Execute the function indexed by position_desired[3]
+        function_list[position_desired[3]]()
+        if not planning_mode:
+            # Execute wait time in position_desired[2]. It includes the time 
+            # taken to run the function in function_list.
+            time.sleep(max(0, position_desired[2] - (time.time() - start_time)))

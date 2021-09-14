@@ -4,13 +4,14 @@ Created on Thu Jun 17 12:07:28 2021
 
 @author: rosebud
 """
-from configparser import ConfigParser
-config = ConfigParser()
+from config_utils import Instruct
 import socket
-config_file_name = 'swg_config_file_for_' + socket.gethostname() + '.conf'
-config.read(config_file_name)
+config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+config = Instruct(config_fpath)
+config.get_config_dct()
 import sys
-python_utils_path = config.get('main', 'python_utils_path')
+python_utils_path = config.config_dct['main']['python_utils_path']
+planning_mode = config.get_value('main', 'planning_mode', desired_type=bool, required_to_be_in_conf=False, default_value=True)
 sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils
 
@@ -24,6 +25,10 @@ import os
 import swg_window_management as swm
 
 
+def empty_function():
+    pass
+
+
 class Waypoint_manager:
     def __init__(self):
         self.file_name = 'undefined_path'
@@ -31,6 +36,7 @@ class Waypoint_manager:
         self.current_waypoint = []
         self.wait_time = 0
         self.index = -1
+        self.planning_mode = planning_mode
     
 waypoint_manager = Waypoint_manager()
 
@@ -127,11 +133,10 @@ def insert_waypoint(waypoint_manager):
     notes:
     none
     '''    
-    print('file_name: ',waypoint_manager.file_name)
     current_waypoint = glc.get_land_coords(swg_window)
     waypoint_manager.index += 1
     waypoint_manager.waypoint_list.insert(waypoint_manager.index, current_waypoint)
-    
+    print('inserted waypoint: ', waypoint_manager.waypoint_list[min([waypoint_manager.index, len(waypoint_manager.waypoint_list) - 1])])
     
     # print('current waypoint: ', current_waypoint)
     # print('waypoint list: ', waypoint_manager.waypoint_list)
@@ -147,7 +152,7 @@ def delete_waypoint(waypoint_manager):
     notes:
     none
     '''    
-    print('file_name: ',waypoint_manager.file_name)
+    print('deleted waypoint: ',waypoint_manager.waypoint_list[waypoint_manager.index])
     del waypoint_manager.waypoint_list[waypoint_manager.index]
     
     
@@ -163,7 +168,7 @@ def run_waypoint_list_forward(waypoint_manager):
     print('file_name: ',waypoint_manager.file_name)
     print('waypoint list: ', waypoint_manager.waypoint_list)
     print('index: ', waypoint_manager.index)
-    wpp.move_along(swg_window, waypoint_manager.waypoint_list)
+    wpp.move_along(swg_window, waypoint_manager.waypoint_list, planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
     
     
 def run_waypoint_list_backward(waypoint_manager):
@@ -178,7 +183,7 @@ def run_waypoint_list_backward(waypoint_manager):
     print('file_name: ',waypoint_manager.file_name)
     print('waypoint list: ', waypoint_manager.waypoint_list)
     print('index: ', waypoint_manager.index)
-    wpp.move_along(swg_window, waypoint_manager.waypoint_list[::-1])
+    wpp.move_along(swg_window, waypoint_manager.waypoint_list[::-1], planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
 
 
 def step_next_waypoint(waypoint_manager):
@@ -191,10 +196,10 @@ def step_next_waypoint(waypoint_manager):
     assumes you are still at the previous waypoint
     assumes you are still oriented north
     ''' 
-    print('file_name: ',waypoint_manager.file_name)
     if(waypoint_manager.index + 1 < len(waypoint_manager.waypoint_list)):
         waypoint_manager.index += 1
-        wpp.move_along(swg_window, [waypoint_manager.waypoint_list[waypoint_manager.index]])
+        print('moving to waypoint: ',waypoint_manager.waypoint_list[waypoint_manager.index])
+        wpp.move_along(swg_window, [waypoint_manager.waypoint_list[waypoint_manager.index]], planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
     
     print('waypoint list: ', waypoint_manager.waypoint_list)
     print('index: ', waypoint_manager.index)
@@ -210,13 +215,14 @@ def step_previous_waypoint(waypoint_manager):
     assumes you are still at the previous waypoint
     assumes you are still oriented north
     ''' 
-    print('file_name: ',waypoint_manager.file_name)
     waypoint_manager.index -= 1
+    print('current waypoint: ',waypoint_manager.waypoint_list[waypoint_manager.index])
     # check if index was already 0
     if(waypoint_manager.index < 0):
         waypoint_manager.index = 0
     else:
-        wpp.move_along(swg_window, [waypoint_manager.waypoint_list[waypoint_manager.index]])
+        print('moving to waypoint: ',waypoint_manager.waypoint_list[waypoint_manager.index])
+        wpp.move_along(swg_window, [waypoint_manager.waypoint_list[waypoint_manager.index]], planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
         return
     
     print('waypoint list: ', waypoint_manager.waypoint_list)
@@ -241,13 +247,13 @@ def add_wait_to_current_waypoint(waypoint_manager):
     returns: none
     
     purpose: adds wait time to current waypoint. takes effect after travelling to waypoint
-    adds wait time in increments of 15 seconds
+    adds wait time in increments of 5 seconds
     
     notes:
     must have at least 1 waypoint in list before using this function
     ''' 
-    print('file_name: ',waypoint_manager.file_name)
-    waypoint_manager.waypoint_list[waypoint_manager.index][2] += 15
+    waypoint_manager.waypoint_list[waypoint_manager.index][2] += 5
+    print('current waypoint after adding wait: ',waypoint_manager.waypoint_list[waypoint_manager.index])
 
 
 def subtract_wait_from_current_waypoint(waypoint_manager):
@@ -255,14 +261,33 @@ def subtract_wait_from_current_waypoint(waypoint_manager):
     returns: none
     
     purpose: subtracts wait time from current waypoint. takes effect after travelling to waypoint
-    removes wait time in increments of 15 seconds
+    removes wait time in increments of 5 seconds
     will not go negative
     
     notes:
     must have at least 1 waypoint in list before using this function
     ''' 
-    print('file_name: ',waypoint_manager.file_name)
-    waypoint_manager.waypoint_list[waypoint_manager.index][2] = max(waypoint_manager.waypoint_list[waypoint_manager.index][2] - 15, 0)
+    waypoint_manager.waypoint_list[waypoint_manager.index][2] = max(waypoint_manager.waypoint_list[waypoint_manager.index][2] - 5, 0)
+    print('current waypoint after subtracting wait: ',waypoint_manager.waypoint_list[waypoint_manager.index])
+    
+    
+def set_function_index(waypoint_manager):
+    '''
+    Returns
+    -------
+    None
+    
+    Purpose
+    -------
+    Input a integer corresponding to the index in function_list of the
+    function to run once you arrive at this waypoint. function_list is a
+    parameter in wpp.move_along.
+    
+    notes:
+    must have at least 1 waypoint in list before using this function
+    ''' 
+    waypoint_manager.waypoint_list[waypoint_manager.index][3] = int(input('Enter the index of the function_list specifying the function to execute at this waypoint: '))
+    print('current waypoint after adding function index: ',waypoint_manager.waypoint_list[waypoint_manager.index])
 
 
 def on_press(key):
@@ -279,9 +304,6 @@ def on_press(key):
     notes:
     see pynput documentation for more on key
     ''' 
-    print(type(key))
-    print(key)
-    
     if hasattr(key, 'name'):
         name = key.name
     else:
@@ -330,6 +352,9 @@ def on_press(key):
     if name == 'f11':
         print('f11 pressed')
         subtract_wait_from_current_waypoint(waypoint_manager)
+    #hotekey 12: Set the function index
+    if name == 'f12': 
+        set_function_index(waypoint_manager)
   
     
 def path_plan(waypoint_manager):
@@ -355,6 +380,7 @@ def path_plan(waypoint_manager):
     hotkey 8: select new list
     hotkey 10: add step wait
     hotkey 11: subtract step wait
+    hotkey 12: set function index
     '''
         )
     

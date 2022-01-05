@@ -8,6 +8,7 @@ Created on Fri Jul  2 15:55:17 2021
 import time
 import pyautogui as pag
 import swg_window_management as swm
+import swg_utils
 import os
 import pydirectinput as pdi
 import numpy as np
@@ -24,7 +25,7 @@ stat_names = ['agility', 'camouflage', 'constitution', 'luck', 'precision', 'sta
 stat_arr_dct = {stat_name : np.array(file_utils.read_csv(os.path.join(inventory_arr_dir, stat_name + '.csv'))).astype(np.int) for stat_name in stat_names}
 stats_to_keep = [23, 24, 25]
 stats_to_keep_arr_dct = {stat_to_keep : np.array(file_utils.read_csv(os.path.join(inventory_arr_dir, str(stat_to_keep) + '.csv'))).astype(np.int) for stat_to_keep in stats_to_keep}
-contents_for_backpack_csv = os.path.join(inventory_arr_dir, 'contents_for_backpack.csv')
+contents_for_backpack_csv = os.path.join(inventory_arr_dir, 'Contents.csv')
 contents_for_backpack_arr = np.array(file_utils.read_csv(contents_for_backpack_csv)).astype(np.int)
 
 
@@ -75,7 +76,7 @@ def press_destroy(item_to_destroy_coords,
         pdi.moveTo(item_to_destroy_coords[0], item_to_destroy_coords[1])
         pdi.mouseDown(button='right')
         pdi.mouseUp(button='right')
-        time.sleep(1)
+        time.sleep(0.5)
         pdi.press(destroy_key)
         
     if spin:
@@ -91,8 +92,8 @@ def press_destroy(item_to_destroy_coords,
 def find_top_left_of_corner_description(swg_window_region):
     # Inventory must be open already and the description section must
     # be visible.
-    img_arr = swm.take_screenshot(swg_window_region)
-    img_arr = swm.grayscale_and_sharpen(img_arr, sharpen_threshold=160,
+    img_arr = swg_utils.take_screenshot(swg_window_region)
+    img_arr = swg_utils.take_grayscale_screenshot(img_arr, sharpen_threshold=160,
             scale_to=255, sharpen=True)
 
     for j in range(img_arr.shape[1]):
@@ -131,6 +132,35 @@ def find_stats(img_arr, top_of_corner_description, left_of_corner_description):
 
 
 def get_coords_of_item(top_of_corner_description, left_of_corner_description, swg_window_region, item_inventory_position):
+    '''
+    Parameters
+    ----------
+    top_of_corner_description: int
+        row index of the img_arr of the swg_window for the top of the leftmost line bounding the item description area in the inventory.
+    
+    left_of_corner_description: int
+        col index of the img_arr of the swg_window for the leftmost line bounding the item description area in the inventory.
+        
+    swg_window_region: dict
+        region of the monitor used when getting the img_arr.
+        Keys: 'left', 'top', 'width', 'height'
+        
+    item_inventory_position: int
+        The index of the position of the item in the inventory to delete.
+        e.g. 0 means delete the first item in the inventory.
+
+    Returns
+    -------
+    top_of_item: int
+        y coordinate on monitor of the item located at item_inventory_position
+        
+    left_of_item: int
+        x coordinate on monitor of the item located at item_inventory_position
+
+    Purpose
+    -------
+    It might be easier to input the index in the inventory 
+    '''
     item_width = 64
     item_height = 65
     # top and left of the center of the item in row 0, column 0 in the inventory
@@ -151,17 +181,24 @@ def main():
     # Assumes that the inventory is open before running this program.
     
     # 0-indexed
-    my_backpack_inventory_positions = [19, 19, 19]
-    item_to_inspect_inventory_positions = [54, 45, 68]
-    last_item_inventory_positions = [89, 93, 79]
+    my_backpack_inventory_positions = [24, 13, 26]
+    item_to_inspect_inventory_positions = [73, 83, 94]
+    last_item_inventory_positions = [102, 95, 102]
+    outside=[False,False,True]
     swg_window_regions = [{'top': swg_window.rectangle().top, 'left': swg_window.rectangle().left, 'width': swg_window.rectangle().width(), 'height': swg_window.rectangle().height()} for swg_window in swm.swg_windows]
     i = 0
     while True:
         for j, swg_window in enumerate(swm.swg_windows):
+            if outside[j]:
+                destroy_keys=['5', '4', '3', '2']
+            else:
+                destroy_keys=['6', '4', '5', '3']
             top_of_corner_description = None
             while top_of_corner_description is None:
                 swg_window.set_focus()
-                time.sleep(3)
+                time.sleep(2)
+                pdi.press('r')
+                time.sleep(1)
                 pdi.press('esc', presses=2)
                 pdi.press('i')
                 time.sleep(8)
@@ -185,9 +222,9 @@ def main():
                     pdi.mouseUp(left_of_my_backpack, top_of_my_backpack)
                     pdi.moveTo(left_of_item_to_inspect, top_of_item_to_inspect)
                 else:
-                    press_destroy([left_of_item_to_inspect, top_of_item_to_inspect])
+                    press_destroy([left_of_item_to_inspect, top_of_item_to_inspect], destroy_keys=destroy_keys)
             else:
-                press_destroy([left_of_item_to_inspect, top_of_item_to_inspect])
+                press_destroy([left_of_item_to_inspect, top_of_item_to_inspect], destroy_keys=destroy_keys)
             time.sleep(1)
         i += 1
         

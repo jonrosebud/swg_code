@@ -4,7 +4,6 @@ Created on Mon Jun 14 10:30:21 2021
 
 @author: trose
 """
-import sys
 import time
 import mss
 import cv2
@@ -12,7 +11,14 @@ import numpy as np
 import pandas as pd
 import pywinauto as pwa
 import pydirectinput as pdi
-sys.path.append(r'C:\Users\trose\Documents\python_packages')
+from config_utils import Instruct
+import socket
+config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+config = Instruct(config_fpath)
+config.get_config_dct()
+import sys
+python_utils_path = config.config_dct['main']['python_utils_path']
+sys.path.append(r"" + python_utils_path)
 from python_utils import windows_process_utils, file_utils
 from copy import deepcopy
 from PIL import Image
@@ -360,7 +366,7 @@ def get_land_coords(swg_window):
         
         
 def main():
-    coords = get_land_coords(swm.swg_windows[0])
+    coords = get_land_coords(swm.swg_windows[2])
     print(coords)
     
     
@@ -370,4 +376,4 @@ if __name__ == '__main__':
     #swm.calibrate_window_position(swm.swg_windows)
     determine_region_coords(swm.swg_windows[1], region_fpath='left_inventory_lines_region.png', 
         csv_fpath='left_inventory_lines_region.csv')
-    #north_calibrate(swg_windows[0], arrow_rect_csv_fpath='arrow_rect.csv')
+    #north_calibrate(swg_windows[2], arrow_rect_csv_fpath='arrow_rect.csv')

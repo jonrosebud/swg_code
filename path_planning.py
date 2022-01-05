@@ -134,6 +134,8 @@ def insert_waypoint(waypoint_manager):
     none
     '''    
     current_waypoint = glc.get_land_coords(swg_window)
+    # Initialize wait time and function index to 0 by default.
+    current_waypoint += [0, 0]
     waypoint_manager.index += 1
     waypoint_manager.waypoint_list.insert(waypoint_manager.index, current_waypoint)
     print('inserted waypoint: ', waypoint_manager.waypoint_list[min([waypoint_manager.index, len(waypoint_manager.waypoint_list) - 1])])
@@ -247,12 +249,12 @@ def add_wait_to_current_waypoint(waypoint_manager):
     returns: none
     
     purpose: adds wait time to current waypoint. takes effect after travelling to waypoint
-    adds wait time in increments of 5 seconds
+    adds wait time in increments of 1 second
     
     notes:
     must have at least 1 waypoint in list before using this function
     ''' 
-    waypoint_manager.waypoint_list[waypoint_manager.index][2] += 5
+    waypoint_manager.waypoint_list[waypoint_manager.index][2] += 1
     print('current waypoint after adding wait: ',waypoint_manager.waypoint_list[waypoint_manager.index])
 
 
@@ -261,13 +263,13 @@ def subtract_wait_from_current_waypoint(waypoint_manager):
     returns: none
     
     purpose: subtracts wait time from current waypoint. takes effect after travelling to waypoint
-    removes wait time in increments of 5 seconds
+    removes wait time in increments of 1 second
     will not go negative
     
     notes:
     must have at least 1 waypoint in list before using this function
     ''' 
-    waypoint_manager.waypoint_list[waypoint_manager.index][2] = max(waypoint_manager.waypoint_list[waypoint_manager.index][2] - 5, 0)
+    waypoint_manager.waypoint_list[waypoint_manager.index][2] = max(waypoint_manager.waypoint_list[waypoint_manager.index][2] - 1, 0)
     print('current waypoint after subtracting wait: ',waypoint_manager.waypoint_list[waypoint_manager.index])
     
     
@@ -286,6 +288,7 @@ def set_function_index(waypoint_manager):
     notes:
     must have at least 1 waypoint in list before using this function
     ''' 
+    print('waypoint_manager.waypoint_list', waypoint_manager.waypoint_list)
     waypoint_manager.waypoint_list[waypoint_manager.index][3] = int(input('Enter the index of the function_list specifying the function to execute at this waypoint: '))
     print('current waypoint after adding function index: ',waypoint_manager.waypoint_list[waypoint_manager.index])
 

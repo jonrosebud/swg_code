@@ -115,13 +115,15 @@ def destroy_for_all_windows():
     num_items_to_destroy = [5,5,14]
     radial_option_delta_dct = {'6': [52, -106], '5': [70, -12], '4': [52, 81], '3': [-3, 104], '2': [-59, 81]}
     for i in range(len(swm.swg_windows)):
-        swg_utils.press(['alt', 'tab'], presses=1, return_delay=0.5)
-        swg_window = swm.swg_windows[i]
-        pdi.keyDown('alt')
-        swg_utils.press(['tab'], presses=3, return_delay=0.5)
-        pdi.keyUp('alt')
         if i != 2:
             continue
+        
+        #swg_utils.press(['alt', 'tab'], presses=1, return_delay=0.5)
+        swg_window = swm.swg_windows[i]
+        #pdi.keyDown('alt')
+        #swg_utils.press(['tab'], presses=3, return_delay=0.5)
+        #pdi.keyUp('alt')
+        
         rect = swg_window.rectangle()
         height_of_window_header = 26
         # The screen part to capture

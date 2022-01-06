@@ -183,7 +183,7 @@ def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1
             coords = [region['left'] + coords_idx[1], region['top'] + coords_idx[0]]
     if coords is not None:
         pdi.moveTo(coords[0], coords[1])
-    for _ in presses:
+    for _ in range(presses):
         pdi.mouseDown(button=button)
         pdi.mouseUp(button=button)
         time.sleep(interval_delay)

@@ -119,13 +119,13 @@ def take_grayscale_screenshot(window, region, sharpen_threshold=200,
     return img_arr
 
 
-def click(coords=None, button='left', start_delay=0.5, return_delay=1):
+def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1, interval_delay=0.0, window=None, region=None, coords_idx=None, activate_window=True):
     '''
     Parameters
     ----------
     coords: list of int or None
         [x,y] coordinates on the screen to click on.
-        If None, use current coordinates
+        If None, use current coordinates (unless coords_idx is not None, then use coords_idx for relative coordinates)
         
     button: str
         A string telling pdi.mouseDown which mouse button to click. The default is 'left'.
@@ -135,6 +135,31 @@ def click(coords=None, button='left', start_delay=0.5, return_delay=1):
         
     return_delay: float
         An amount of time to sleep after clicking.
+        
+    presses: int
+        Number of times to click the button.
+        
+    interval_delay: float
+        Time to delay in between clicks
+        
+    window: pywinauto.application.WindowSpecification
+        A window object. Use it in combination with coords_idx to click on.
+        
+    region: dict
+        Defines the area of the screen that will be screenshotted if img_arr is None.
+        Keys: 'top', 'left', 'width', 'height'
+        Values: int
+        'top': topmost (y) coordinate
+        'left': leftmost (x) coordinate
+        'width': number of pixels wide
+        'height': number of pixels tall
+        
+    coords_idx: list of int or None
+        [row, col] swg_window img_arr matrix indices of the location to click.
+        
+    activate_window: bool
+        True: if window is not None, call window.set_focus()
+        False: do nothing
 
     Returns
     -------
@@ -143,13 +168,26 @@ def click(coords=None, button='left', start_delay=0.5, return_delay=1):
     Purpose
     -------
     Simulate a mouse click on the provided coordinates. This function builds in an ability to sleep a certain amount of time before and after the click.
+    If window and coords_idx are provided, then the row, col of window will be used to determine the coords.
     '''
     time.sleep(start_delay)
+    if window is not None and activate_window:
+        window.set_focus()
+    if coords_idx is not None:
+        if window is not None and region is None:
+            rect = window.rectangle()
+            height_of_window_header = 26
+            # The screen part to capture
+            region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
+        if region is not None:
+            coords = [region['left'] + coords_idx[1], region['top'] + coords_idx[0]]
     if coords is not None:
         pdi.moveTo(coords[0], coords[1])
-    pdi.mouseDown(button=button)
-    pdi.mouseUp(button=button)
-    time.sleep(return_delay)
+    for _ in presses:
+        pdi.mouseDown(button=button)
+        pdi.mouseUp(button=button)
+        time.sleep(interval_delay)
+    time.sleep(max(0, return_delay - interval_delay))
     
     
 def press(keys, presses=1, start_delay=0.0, return_delay=0.0):

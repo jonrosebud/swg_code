@@ -87,7 +87,7 @@ def calibrate_window_position(swg_windows,
     desired_size_of_windows: list of int with length 2, or None
         The desired width and height that the window should be scaled to is
         given by the first and second elements of desired_size_of_windows, 
-        respectively.
+        respectively. See Notes for caveat.
         
         e.g. [1030, 797]
         would scale each swg window to be 1030 wide and 797 tall
@@ -110,6 +110,9 @@ def calibrate_window_position(swg_windows,
     1. Windowed instances of swg should already be running.
     2. This function does not yet check for whether there is enough room to
         carry out the default window positioning scheme.
+    3. While the size of the window will be made equal to the desired size,
+        the actual size did not change such that the original rectangle will
+        be the only interactable area.
     '''
     if desired_size_of_windows is None:
         # By default, use the width and height of the first instance
@@ -164,5 +167,12 @@ def main():
     calibrate_window_position(swg_windows)
     
 swg_windows = get_swg_windows()
+swg_window_regions = []
+for swg_window_i in range(len(swg_windows)):
+    rect = swg_windows[swg_window_i].rectangle()
+    height_of_window_header = 26
+    # The screen part to capture
+    region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
+    swg_window_regions.append(region)
 if __name__ == '__main__':
     main()

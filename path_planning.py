@@ -11,7 +11,7 @@ config = Instruct(config_fpath)
 config.get_config_dct()
 import sys
 python_utils_path = config.config_dct['main']['python_utils_path']
-planning_mode = config.get_value('main', 'planning_mode', desired_type=bool, required_to_be_in_conf=False, default_value=True)
+planning_mode = False#config.get_value('main', 'planning_mode', desired_type=bool, required_to_be_in_conf=False, default_value=True)
 sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils
 

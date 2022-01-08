@@ -167,6 +167,8 @@ def main():
     calibrate_window_position(swg_windows)
     
 swg_windows = get_swg_windows()
+if __name__ == '__main__':
+    main()
 swg_window_regions = []
 for swg_window_i in range(len(swg_windows)):
     rect = swg_windows[swg_window_i].rectangle()
@@ -174,5 +176,3 @@ for swg_window_i in range(len(swg_windows)):
     # The screen part to capture
     region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
     swg_window_regions.append(region)
-if __name__ == '__main__':
-    main()

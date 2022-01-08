@@ -50,19 +50,36 @@ def check_if_player_nearby(swg_window, letters_to_skip=[]):
         if letter in letters_to_skip:
             continue
         swg_utils.chat('/tar ' + letter, start_delay=0, return_delay=0.1, interval_delay=0.1)
-        img_arr = swg_utils.take_grayscale_screenshot_and_sharpen(swg_window, region, sharpen_threshold=255, scale_to=255, set_focus=False, sharpen=True)
+        img_arr = swg_utils.take_grayscale_screenshot(swg_window, region, sharpen_threshold=255, scale_to=255, set_focus=False, sharpen=True)
         if (np.all(img_arr[row_of_meters : row_of_meters + meters_m_arr.shape[0], col_of_single_digit_meters : col_of_single_digit_meters + meters_m_arr.shape[1]] == meters_m_arr) or 
             np.all(img_arr[row_of_meters : row_of_meters + meters_m_arr.shape[0], col_of_double_digit_meters : col_of_double_digit_meters + meters_m_arr.shape[1]] == meters_m_arr)):
             # We've targeted something within 100m away.
             # Determine whether the target is a plyaer or not.
             # If it's a player, the name will be cyan or purple which have grayscale colors of 145 and 80, respectively.
             # If the number of matches is greater than a threshold, then say it's a player
-            img_arr = swg_utils.take_grayscale_screenshot_and_sharpen(swg_window, region, sharpen_threshold=255, scale_to=255, set_focus=False, sharpen=False)
+            img_arr = swg_utils.take_grayscale_screenshot(swg_window, region, sharpen_threshold=255, scale_to=255, set_focus=False, sharpen=False)
             target_name_arr = img_arr[row_of_target_name : row_of_target_name + target_name_height, col_of_target_name : col_of_target_name + target_name_width]
             if len(np.where(target_name_arr == cyan_bw_shade)[0]) > 40 or len(np.where(target_name_arr == purple_bw_shade)[0]) > 40:
                 return True
     return False
 
+def check_if_player_nearby_2(swg_window, talus_idx):
+    # See how many pixels match player pixels. Cyan is B: 171, G: 161, R: 0
+    # There are 5 cyan pixels per player, which are located at
+    # 24 up, 12 right of Talus
+    # 23 up, 12 right of Talus
+    # 22 up, 12 right of Talus
+    # 23 up, 11 right of Talus
+    # 22 up, 11 right of Talus
+    # First find the 'Talus' phrase in order to calibrate the location of looking for players.
+    # Talus has B: 26, G: 226, R: 255 and is always on top and non-translucent.
+    
+    
+    # Find talus, then use the top left corner of the grayscale csv for talus as the starting point. (relative coordinates / search region)
+    # Search the 114 x DJ matrix for cyan and purple (with BGR) only where the grayscale talus was 0
+    # If you find even 1 pixel of cyan or purple in the allowed search region, say there's a player.
+    # Talus grayscale 212
+    pass
 
 def empty_function():
     pass
@@ -147,6 +164,9 @@ def destroy_for_all_windows():
         
 
 def main():
+    check_if_player_nearby_2(swg_window)
+    return
+    
     time.sleep(0.5)
     swg_window = swm.swg_windows[2]
     swg_window.set_focus()

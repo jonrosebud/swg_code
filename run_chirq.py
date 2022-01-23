@@ -26,11 +26,11 @@ import string
 import swg_utils
 os = file_utils.os
 
-spyder_window = windows_process_utils.get_windows('pythonw.exe', 'Spyder (Python 3.8)', process_df=None)[0]
-destroy_arr = np.array(file_utils.read_csv(os.path.join('words_dir', 'Destroy.csv'))).astype(np.int)
+destroy_arr = file_utils.read_csv(os.path.join('words_dir', 'Destroy.csv'), dtype=int)
+player_nearby_global = False
 
 def check_if_player_nearby(swg_window, letters_to_skip=[]):
-    meters_m_arr = np.array(file_utils.read_csv('meters_m.csv')).astype(np.int)
+    meters_m_arr = file_utils.read_csv('meters_m.csv', dtype=int)
     rect = swg_window.rectangle()
     height_of_window_header = 26
     # The screen part to capture
@@ -63,23 +63,45 @@ def check_if_player_nearby(swg_window, letters_to_skip=[]):
                 return True
     return False
 
-def check_if_player_nearby_2(swg_window, talus_idx):
-    # See how many pixels match player pixels. Cyan is B: 171, G: 161, R: 0
-    # There are 5 cyan pixels per player, which are located at
-    # 24 up, 12 right of Talus
-    # 23 up, 12 right of Talus
-    # 22 up, 12 right of Talus
-    # 23 up, 11 right of Talus
-    # 22 up, 11 right of Talus
-    # First find the 'Talus' phrase in order to calibrate the location of looking for players.
-    # Talus has B: 26, G: 226, R: 255 and is always on top and non-translucent.
-    
+def check_if_player_nearby_2():
+    global player_nearby_global
+    # Cyan is B: 171, G: 161, R: 0
+    # Purple is B: 198, G: 0, R: 132
     
     # Find talus, then use the top left corner of the grayscale csv for talus as the starting point. (relative coordinates / search region)
-    # Search the 114 x DJ matrix for cyan and purple (with BGR) only where the grayscale talus was 0
+    # Search the 114 x 114 matrix for cyan and purple (with BGR) only where the grayscale talus was 0
     # If you find even 1 pixel of cyan or purple in the allowed search region, say there's a player.
-    # Talus grayscale 212
-    pass
+    player_nearby = True
+    while player_nearby:
+        img_arr = swg_utils.take_screenshot(region=radar_region, set_focus=False)
+        swg_utils.save_BGR_to_csvs(img_arr, r'D:\python_scripts\swg', 'debug')
+        # Find all indices of cyan and purple
+        purple_set = swg_utils.find_pixels_on_BGR_arr(img_arr, b=198, g=0, r=132, return_as_set=True)
+        cyan_set = swg_utils.find_pixels_on_BGR_arr(img_arr, b=171, g=161, r=0, return_as_set=True)
+        player_set = purple_set.union(cyan_set)
+        player_nearby = len(radar_searchable_indices.intersection(player_set)) > 0
+        if player_nearby:
+            player_nearby_global = True
+    
+    
+def get_radar_region(swg_window, region, planet='Talus'):
+    planet_arr = swg_utils.get_search_arr(planet, dir_path='land_ui_dir', mask_int=0)
+    img_arr = swg_utils.take_grayscale_screenshot(swg_window, region, sharpen=False, sharpen_threshold=212)
+    # Assume radar is in upper right corner
+    planet_idx, _ = swg_utils.find_arr_on_region(planet_arr, region=region, img_arr=img_arr, iterate_row_then_col=True, start_row=0, start_col=int(img_arr.shape[1]/2), iterate_row_forwards=True, iterate_col_forwards=True, fail_gracefully=False)
+    # Talus on row 78 and col 43
+    radar_region = {'left': planet_idx[1] - 43 + region['left'], 'top': planet_idx[0] - 78 + region['top'], 'width': 114, 'height': 114}
+    return radar_region
+
+
+def get_radar_searchable_indices(planet='Talus'):
+    planet_radar_csv = os.path.join('land_ui_dir', planet + '_radar_grayscale.csv')
+    planet_radar_arr = file_utils.read_csv(planet_radar_csv, dtype=int)
+    where_arr = np.where(planet_radar_arr == 0)
+    searchable_indices = set(tuple(zip(where_arr[0], where_arr[1])))
+    return searchable_indices
+    
+
 
 def empty_function():
     pass
@@ -128,23 +150,19 @@ def attack():
 
 def destroy_for_all_windows():
     spin_toon = [True, True, False]
-    item_to_destroy_coord_list = [[769, 601], [1479, 668], [2700,533]]
-    num_items_to_destroy = [5,5,14]
+    item_to_destroy_coord_list = [[312, 653], [1476, 594], [2705, 534]]
+    num_items_to_destroy = [5,5,17]
     radial_option_delta_dct = {'6': [52, -106], '5': [70, -12], '4': [52, 81], '3': [-3, 104], '2': [-59, 81]}
     for i in range(len(swm.swg_windows)):
-        if i != 2:
-            continue
         
-        #swg_utils.press(['alt', 'tab'], presses=1, return_delay=0.5)
+        swg_utils.press(['alt', 'tab'], presses=1, return_delay=0.5)
         swg_window = swm.swg_windows[i]
-        #pdi.keyDown('alt')
-        #swg_utils.press(['tab'], presses=3, return_delay=0.5)
-        #pdi.keyUp('alt')
+        pdi.keyDown('alt')
+        swg_utils.press(['tab'], presses=3, return_delay=0.5)
+        pdi.keyUp('alt')
         
-        rect = swg_window.rectangle()
-        height_of_window_header = 26
-        # The screen part to capture
-        region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
+        region = swm.swg_window_regions[i]
+        
         time.sleep(0.8)
         pdi.press('esc', presses=2)
         pdi.press('i')
@@ -163,22 +181,25 @@ def destroy_for_all_windows():
         swg_utils.press('i', return_delay=0.1)
         
 
+swg_window = swm.swg_windows[2]
+region = swm.swg_window_regions[2]
+radar_searchable_indices = get_radar_searchable_indices(planet='Talus')
+radar_region = get_radar_region(swg_window, region)
 def main():
-    check_if_player_nearby_2(swg_window)
-    return
-    
+    global player_nearby_global
     time.sleep(0.5)
-    swg_window = swm.swg_windows[2]
     swg_window.set_focus()
     time.sleep(1)
-    waypoint_list = list(map(list, np.array(file_utils.read_csv('aclo_grenadier.csv')).astype(np.int)))
+    waypoint_list = list(map(list, np.array(file_utils.read_csv('aclo_grenadier.csv')).astype(int)))
     glc.north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv')
     for _ in range(2000):
-        wpp.move_along(swg_window, waypoint_list, function_list=[empty_function, attack, destroy_for_all_windows])
-        # Wait to start next iteration until no other player is within 100m
-        while check_if_player_nearby(swg_window, letters_to_skip=['o']):
-            time.sleep(60)
-    
+        wpp.move_along(swg_window, waypoint_list, function_list=[check_if_player_nearby_2, attack, destroy_for_all_windows])
+        if player_nearby_global:
+            while check_if_player_nearby(swg_window, letters_to_skip=['o']):
+                for _ in range(3):
+                    swg_utils.chat('/ui action untarget')
+                time.sleep(60)
+            player_nearby_global = False
     
 if __name__ == '__main__':
     main()

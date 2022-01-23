@@ -41,7 +41,7 @@ class Waypoint_manager:
 waypoint_manager = Waypoint_manager()
 
 swm.calibrate_window_position(swm.swg_windows)
-swg_window = swm.swg_windows[2]
+swg_window = swm.swg_windows[0]
 # glc.north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv')
 
 

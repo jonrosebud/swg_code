@@ -11,9 +11,64 @@ import mss
 import cv2
 import numpy as np
 from copy import deepcopy
+from config_utils import Instruct
+import socket
+config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+config = Instruct(config_fpath)
+config.get_config_dct()
+import sys
+python_utils_path = config.config_dct['main']['python_utils_path']
+sys.path.append(r"" + python_utils_path)
+from python_utils import file_utils
+os = file_utils.os
 
 
-def take_screenshot(window, region, set_focus=True):
+def get_int_from_line_arr(line_arr, digit_dct):
+    number = ''
+    col = 0
+    digit_found = True
+    while col < line_arr.shape[1] and digit_found:
+        for digit, digit_arr in digit_dct.items():
+            digit_found = np.all(line_arr[:,col : col + digit_arr.shape[1]] == digit_arr)
+            if digit_found:
+                number += str(digit)
+                col += digit_arr.shape[1] + 1
+                break
+    return int(number)
+            
+
+def save_to_csv(img_arr, output_dir, fname):
+    '''
+    img_arr: np.array, shape (>= 2, >= 1) or list of list
+        Matrix of RGB or grayscale values used to represent an image. Gotten
+        from the grab function in the mss library or similar screenshot function.
+        
+    output_dir: str
+        Path of the directory that the file will be output to.
+        
+    fname: str
+        File name (do not include extension).
+        
+    Returns
+    -------
+    None
+    
+    Purpose
+    -------
+    Save the img_arr matrix to a csv file.
+    '''
+    lst = list(map(list, img_arr))
+    csv_path = os.path.join(output_dir, fname + '.csv')
+    file_utils.write_rows_to_csv(csv_path, lst)
+    
+    
+def save_BGR_to_csvs(img_arr, output_dir, fname):
+    colors = ['B', 'G', 'R']
+    for i in range(3):
+        save_to_csv(img_arr[:,:,i], output_dir, fname + colors[i])
+
+
+def take_screenshot(window=None, region=None, set_focus=False):
     '''
     window: pywinauto.application.WindowSpecification
         A window object for a particular application.
@@ -57,7 +112,7 @@ def take_screenshot(window, region, set_focus=True):
     return img_arr
 
 
-def take_grayscale_screenshot(window, region, sharpen_threshold=200,
+def take_grayscale_screenshot(window=None, region=None, sharpen_threshold=200,
         scale_to=1, set_focus=True, sharpen=True):
     '''
     window: pywinauto.application.WindowSpecification
@@ -117,6 +172,73 @@ def take_grayscale_screenshot(window, region, sharpen_threshold=200,
         img_arr[img_arr < sharpen_threshold] = 0
         img_arr[img_arr >= sharpen_threshold] = scale_to
     return img_arr
+
+def find_pixels_on_BGR_arr(img_arr, b=None, g=None, r=None, 
+            b_lower_bound=0, b_upper_bound=255, g_lower_bound=0, 
+            g_upper_bound=255, r_lower_bound=0, r_upper_bound=255, start_row=0,
+            end_row=None, start_col=0, end_col=None, return_as_set=False):
+    
+    if end_row is None:
+        end_row = img_arr[:,:,0].shape[0]
+    if end_col is None:
+        end_col = img_arr[:,:,0].shape[1]
+    b_arr = img_arr[start_row : end_row, start_col : end_col, 0]
+    g_arr = img_arr[start_row : end_row, start_col : end_col, 1]
+    r_arr = img_arr[start_row : end_row, start_col : end_col, 2]
+    if b is None:
+        if g is None:
+            if r is None:
+                where_arr = np.where((b_arr >= b_lower_bound) &
+                                   (b_arr <= b_upper_bound) &
+                                   (g_arr >= g_lower_bound) & 
+                                   (g_arr <= g_upper_bound) &
+                                   (r_arr >= r_lower_bound) & 
+                                   (r_arr <= r_upper_bound))
+            else:
+                where_arr = np.where((b_arr >= b_lower_bound) &
+                                   (b_arr <= b_upper_bound) &
+                                   (g_arr >= g_lower_bound) & 
+                                   (g_arr <= g_upper_bound) &
+                                   (r_arr == r))
+        else:
+            if r is None:
+                where_arr = np.where((b_arr >= b_lower_bound) &
+                                   (b_arr <= b_upper_bound) &
+                                   (g_arr == g) &
+                                   (r_arr >= r_lower_bound) & 
+                                   (r_arr <= r_upper_bound))
+            else:
+                where_arr = np.where((b_arr >= b_lower_bound) &
+                                   (b_arr <= b_upper_bound) &
+                                   (g_arr == g) &
+                                   (r_arr == r))
+    else:
+        if g is None:
+            if r is None:
+                where_arr = np.where((b_arr == b) &
+                                   (g_arr >= g_lower_bound) & 
+                                   (g_arr <= g_upper_bound) &
+                                   (r_arr >= r_lower_bound) & 
+                                   (r_arr <= r_upper_bound))
+            else:
+                where_arr = np.where((b_arr == b) &
+                                   (g_arr >= g_lower_bound) & 
+                                   (g_arr <= g_upper_bound) &
+                                   (r_arr == r))
+        else:
+            if r is None:
+                where_arr = np.where((b_arr == b) &
+                                   (g_arr == g) &
+                                   (r_arr >= r_lower_bound) & 
+                                   (r_arr <= r_upper_bound))
+            else:
+                where_arr = np.where((b_arr == b) &
+                                   (g_arr == g) &
+                                   (r_arr == r))
+    if return_as_set:
+        return set(tuple(zip(where_arr[0], where_arr[1])))
+    else:
+        return where_arr
 
 
 def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1, interval_delay=0.0, window=None, region=None, coords_idx=None, activate_window=True):
@@ -182,7 +304,7 @@ def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1
         if region is not None:
             coords = [region['left'] + coords_idx[1], region['top'] + coords_idx[0]]
     if coords is not None:
-        pdi.moveTo(coords[0], coords[1])
+        pdi.moveTo(coords[0], coords[1], duration=0.2)
     for _ in range(presses):
         pdi.mouseDown(button=button)
         pdi.mouseUp(button=button)
@@ -240,7 +362,7 @@ def chat(string, start_delay=0.2, return_delay=0.1, interval_delay=0.1):
     time.sleep(return_delay)
     
     
-def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_col=True, start_row=0, start_col=0, iterate_row_forwards=True, iterate_col_forwards=True, fail_gracefully=False):
+def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_col=True, start_row=0, start_col=0, end_row=None, end_col=None, iterate_row_forwards=True, iterate_col_forwards=True, fail_gracefully=False, sharpen_threshold=130):
     '''
     Parameters
     ----------
@@ -257,7 +379,7 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
         'height': number of pixels tall
         
     img_arr: np.array, shape: (1030, 771) or None
-        Screenshot matrix of the swg_window (with top border removed) which has been Grayscaled and sharpened with the same cutoff as used in arr_dct.
+        Screenshot matrix of the swg_window (with top border removed) which has been Grayscaled and sharpened with the same cutoff as your search_arr
         If None, a new screenshot will be taken by this function.
         
     iterate_row_then_col: bool
@@ -269,6 +391,12 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
         
     start_col: int
         The column to start searching from. Columns before this one will not be searched.
+            
+    end_row: int
+        The row to end searching on. Rows after this one will not be searched.
+        
+    end_col: int
+        The column to end searching on. Columns after this one will not be searched.
         
     iterate_row_forwards: bool
         True: Search by iterating over rows sequentially ascending.
@@ -304,8 +432,8 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
     '''
     if img_arr is None:
         # sharpen_threshold of 130 is for inventory_dct
-        img_arr = take_grayscale_screenshot(region, sharpen_threshold=130,
-                scale_to=255, sharpen=True)
+        img_arr = take_grayscale_screenshot(region=region, sharpen_threshold=sharpen_threshold,
+                scale_to=255, sharpen=True, set_focus=False)
 
     if iterate_row_forwards:
         row_direction = 1
@@ -315,9 +443,17 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
         col_direction = 1
     else:
         col_direction = -1
+    if end_row is None:
+        end_row = img_arr.shape[0] - search_arr.shape[0] - 1
+    if end_col is None:
+        end_col = img_arr.shape[1] - search_arr.shape[1] - 1
+    end_row = min(img_arr.shape[0] - search_arr.shape[0] - 1, end_row)
+    end_col = min(img_arr.shape[1] - search_arr.shape[1] - 1, end_col)
+    end_row = max(end_row, 0)
+    end_col = max(end_col, 0)
     if iterate_row_then_col:
-        for i in range(start_row, img_arr.shape[0] - search_arr.shape[0])[::row_direction]:
-            for j in range(start_col, img_arr.shape[1] - search_arr.shape[1])[::col_direction]:
+        for i in range(start_row, end_row + 1)[::row_direction]:
+            for j in range(start_col, end_col + 1)[::col_direction]:
                 if np.all(img_arr[i : i + search_arr.shape[0], 
                         j : j + search_arr.shape[1]] ==
                         search_arr):
@@ -327,8 +463,8 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
             raise Exception('Could not find search_arr in img_arr')
         return None, None
     else:
-        for j in range(start_col, img_arr.shape[1] - search_arr.shape[1])[::col_direction]:
-            for i in range(start_row, img_arr.shape[0] + search_arr.shape[0])[::row_direction]:
+        for j in range(start_col, end_col + 1)[::col_direction]:
+            for i in range(start_row, end_row + 1)[::row_direction]:
                 if np.all(img_arr[i : i + search_arr.shape[0], 
                         j : j + search_arr.shape[1]] ==
                         search_arr):
@@ -337,3 +473,64 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
         if not fail_gracefully:
             raise Exception('Could not find search_arr in img_arr')
         return None, None
+    
+
+def get_search_arr(fname, dir_path='.', mask_int=None):
+    '''
+    Parameters
+    ----------
+    fname: str
+        File name without extension or folder prefix
+        
+    dir_path: str
+        Directory that the file can be found in. The default is '.'.
+        
+    mask_int: int or None
+        Int to use in a masked array. The default is None: do not mask the array.
+        e.g.
+        mask_int=0 then all 0's in the search array will be masked (not included in the search).
+
+    Returns
+    -------
+    search_arr: np.array or np.ma.array
+        Search array or masked search array.
+
+    Purpose
+    -------
+    Read in a csv file containing a search array and mask it if desired. Masking
+    is useful if something could appear behind the search array and thus making 
+    the match impossible without a masked search array.
+    '''
+    csv_fpath = os.path.join(dir_path, fname + '.csv')  
+    search_arr = file_utils.read_csv(csv_fpath, dtype=int)
+    if mask_int is not None:
+        return np.ma.masked_where(search_arr == mask_int, search_arr)
+    return search_arr
+
+
+def empty_function():
+    pass
+
+
+def run_recorded_key_presses(recorded_key_presses, function_list=[empty_function], reverse_function_list=[empty_function], round_trip=False):
+    '''
+    recorded_key_presses: list
+        [[key, duration, function_idx],...,[key, duration, function_idx]]
+
+    Returns
+    -------
+    None
+
+    Purpose
+    -------
+    Execute a list of recorded key presses. Hold each key down for as long
+    as specified in duration.
+    '''
+    for key, duration, function_idx in recorded_key_presses:
+        pdi.press_key_fast(key, duration=duration)
+        function_list[function_idx]()
+    if round_trip:
+        reverse_dct = {'a':'d','d':'a','q':'e','e':'q','w':'s','s':'w'}
+        for key, duration, function_idx in recorded_key_presses[::-1]:
+            pdi.press_key_fast(reverse_dct[key], duration=duration)
+            reverse_function_list[function_idx]()

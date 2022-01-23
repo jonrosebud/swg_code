@@ -24,7 +24,7 @@ def empty_function():
     pass
 
 
-def main(swg_window_idx, waypoint_csv_path, num_loops=1, function_list=[], arrow_rect_csv_fpath='arrow_rect.csv', calibrate_to_north=True):
+def main(swg_window_idx, waypoint_csv_path, num_loops=1, function_list=[], arrow_rect_csv_fpath='arrow_rect.csv', calibrate_to_north=True, relative_coords=False):
     '''
     Parameters
     ----------
@@ -46,6 +46,10 @@ def main(swg_window_idx, waypoint_csv_path, num_loops=1, function_list=[], arrow
     calibrate_to_north: bool
         True: run glc.north_calibrate
         False: skip north calibration.
+        
+    relative_coords: bool
+        True: Add the starting x to all x's in the coordinates waypoint_list and the starting y to all y's in the coordinates waypoint_list. The 'starting' x and y is where you are currently as displayed on the radar coordinates.
+        False: Use the coordinates waypoint_list as is.
 
     Returns
     -------
@@ -57,9 +61,14 @@ def main(swg_window_idx, waypoint_csv_path, num_loops=1, function_list=[], arrow
     '''
     swg_window = swg_windows[swg_window_idx]
     swg_window.set_focus()
-    waypoint_list = list(map(list, np.array(file_utils.read_csv(waypoint_csv_path)).astype(np.int)))
     if calibrate_to_north:
         glc.north_calibrate(swg_window, arrow_rect_csv_fpath=arrow_rect_csv_fpath)
-    function_list = [empty_function] + function_list
+    waypoint_arr = file_utils.read_csv(waypoint_csv_path, dtype=int)
+    if relative_coords:
+        starting_coords = np.array(glc.get_land_coords(swg_windows[swg_window_idx]))
+        waypoint_arr[:,:2] = waypoint_arr[:,:2] - waypoint_arr[0,:2] + starting_coords
+    waypoint_list = list(map(list, waypoint_arr))
+    if len(function_list) == 0:
+        function_list = [empty_function]
     for _ in range(num_loops):
         wpp.move_along(swg_window, waypoint_list, function_list=function_list)

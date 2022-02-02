@@ -430,11 +430,10 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
     Notes
     -----
     '''
-    scale_to = 255
     if img_arr is None:
         # sharpen_threshold of 130 is for inventory_dct
         img_arr = take_grayscale_screenshot(region=region, sharpen_threshold=sharpen_threshold,
-                scale_to=scale_to, sharpen=True, set_focus=False)
+                scale_to=255, sharpen=True, set_focus=False)
 
     if end_row is None:
         end_row = img_arr.shape[0] - search_arr.shape[0] - 1
@@ -448,7 +447,7 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
     offset_idx = search_where_mat.sum(axis=1).argmin()
     min_row, min_col = search_where_mat[offset_idx]
         
-    where_mat = list_utils.where_mat(img_arr == scale_to)
+    where_mat = list_utils.where_mat(img_arr != 0)
     where_mat[:,0] = where_mat[:,0] - min_row
     where_mat[:,1] = where_mat[:,1] - min_col
     # Negative rows or cols are invalid so remove those rows that have any negative numbers        

@@ -88,7 +88,7 @@ def get_radar_region(swg_window, region, planet='Talus'):
     planet_arr = swg_utils.get_search_arr(planet, dir_path='land_ui_dir', mask_int=0)
     img_arr = swg_utils.take_grayscale_screenshot(swg_window, region, sharpen=False, sharpen_threshold=212)
     # Assume radar is in upper right corner
-    planet_idx, _ = swg_utils.find_arr_on_region(planet_arr, region=region, img_arr=img_arr, iterate_row_then_col=True, start_row=0, start_col=int(img_arr.shape[1]/2), iterate_row_forwards=True, iterate_col_forwards=True, fail_gracefully=False)
+    planet_idx, _ = swg_utils.find_arr_on_region(planet_arr, region=region, img_arr=img_arr, start_col=int(img_arr.shape[1]/2), fail_gracefully=False)
     # Talus on row 78 and col 43
     radar_region = {'left': planet_idx[1] - 43 + region['left'], 'top': planet_idx[0] - 78 + region['top'], 'width': 114, 'height': 114}
     return radar_region
@@ -150,11 +150,12 @@ def attack():
 
 def destroy_for_all_windows():
     spin_toon = [True, True, False]
-    item_to_destroy_coord_list = [[312, 653], [1476, 594], [2705, 534]]
-    num_items_to_destroy = [5,5,17]
+    item_to_destroy_coord_list = [[312, 656], [1410, 595], [2899, 533]]
+    num_items_to_destroy = [4,4,17]
     radial_option_delta_dct = {'6': [52, -106], '5': [70, -12], '4': [52, 81], '3': [-3, 104], '2': [-59, 81]}
     for i in range(len(swm.swg_windows)):
-        
+        #if i != 2:
+        #    continue
         swg_utils.press(['alt', 'tab'], presses=1, return_delay=0.5)
         swg_window = swm.swg_windows[i]
         pdi.keyDown('alt')

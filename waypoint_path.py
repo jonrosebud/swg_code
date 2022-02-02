@@ -10,6 +10,7 @@ import pydirectinput as pdi
 import get_land_coords as glc
 import pandas as pd
 import math
+from copy import deepcopy
 
 
 def hold_down_keys(key_df):
@@ -104,7 +105,10 @@ def move_along(swg_window, waypoint_list, planning_mode=False, function_list=[em
     position_actual = glc.get_land_coords(swg_window)
     key_df = pd.DataFrame({'should_be_down':[False]*6, 'is_down':[False]*6}, index=['w','s','q','e','a','d'])
     for position_desired in waypoint_list:
-        while not(position_desired[1] == position_actual[1] and position_desired[0] == position_actual[0]):
+        start_time = time.time()
+        prev_position = [0, 0]
+        stuck_timeout = 5
+        while (not (position_desired[1] == position_actual[1] and position_desired[0] == position_actual[0])) and time.time() - start_time < stuck_timeout:
             # Update position_actual by taking a new screenshot
             position_actual = glc.get_land_coords(swg_window)
             # w
@@ -117,6 +121,11 @@ def move_along(swg_window, waypoint_list, planning_mode=False, function_list=[em
             key_df.loc['e']['should_be_down'] = (position_desired[0] > position_actual[0])
             # hold down the appropriate keys
             key_df = hold_down_keys(key_df)
+            if not (prev_position[0] == position_actual[0] and prev_position[1] == position_actual[1]):
+                start_time = time.time()
+                prev_position = deepcopy(position_actual)
+        if time.time() - start_time >= stuck_timeout:
+            raise Exception('Toon got stuck, timed out.')
         key_df.loc['w']['should_be_down'] = False
         key_df.loc['s']['should_be_down'] = False
         key_df.loc['q']['should_be_down'] = False

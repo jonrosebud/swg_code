@@ -3,19 +3,53 @@
 Created on Thu Jul  1 14:32:22 2021
 @author: trose
 """
-from configparser import ConfigParser
-config = ConfigParser()
+from config_utils import Instruct
 import socket
-config_file_name = 'swg_config_file_for_' + socket.gethostname() + '.conf'
-config.read(config_file_name)
+config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+config = Instruct(config_fpath)
+config.get_config_dct()
+import socket
 import sys
-python_utils_path = config.get('main', 'python_utils_path')
+python_utils_path = config.get_value('main', 'python_utils_path', desired_type=str, required_to_be_in_conf=False, default_value='.')
+autoit_path = config.get_value('main', 'autoit_path', desired_type=str, required_to_be_in_conf=False, default_value='.')
 sys.path.append(r"" + python_utils_path)
-import pywinauto as pwa
+try:
+    import pywinauto as pwa
+except:
+    import pywinauto as pwa
 from python_utils import windows_process_utils, file_utils, list_utils
+os = file_utils.os
 import mss
 from copy import deepcopy
 import numpy as np
+import subprocess
+git_path = config.get_value('main', 'git_path', desired_type=str, required_to_be_in_conf=False, default_value='.')
+sys.path.append(r"" + git_path)
+import time
+
+
+def wait_until_window_active(window, interval=3.5, return_delay=3.5):
+    while not window.is_active():
+        time.sleep(interval)
+    time.sleep(return_delay)
+
+
+def activate_window(swg_window_i, swg_window=None):
+    # Note that current implementation of activate_swg_windows.exe will not activate a window until the number in window_to_activate.txt changes (except at the very beginning of activate_swg_windows.exe)
+    # which means it's possible swg_window_i will not be activated if you use some other method to activate or switch between windows other than this function.
+    output_path = os.path.join(git_path, 'window_to_activate.txt')
+    basename = 'activate_swg_windows.exe'
+    autoit_activate_window_exe_path = os.path.abspath(os.path.join(autoit_path, basename))
+    vars_df = windows_process_utils.get_vars_df(image_name=basename)
+    autoit_process_df = windows_process_utils.get_passing_df(vars_df)
+    if autoit_process_df is None:
+        result = subprocess.Popen(autoit_activate_window_exe_path, shell=True,
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+    file_utils.write_to_file(output_path, str(swg_window_i), mode='w')
+    if swg_window is not None:
+        wait_until_window_active(swg_window)
+        
 
 def get_swg_windows(swg_process_df=None):
     '''
@@ -167,8 +201,6 @@ def main():
     calibrate_window_position(swg_windows)
     
 swg_windows = get_swg_windows()
-if __name__ == '__main__':
-    main()
 swg_window_regions = []
 for swg_window_i in range(len(swg_windows)):
     rect = swg_windows[swg_window_i].rectangle()
@@ -176,3 +208,5 @@ for swg_window_i in range(len(swg_windows)):
     # The screen part to capture
     region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
     swg_window_regions.append(region)
+if __name__ == '__main__':
+    main()

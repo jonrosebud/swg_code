@@ -1,0 +1,2818 @@
+{
+    "armor": {
+        "1": {
+            "Armor": {
+                "Avg": 168.8,
+                "Modifier": 0.39,
+                "mean": 201.71600000000004,
+                "stdev": 32.916000000000004
+            },
+            "Mass": {
+                "Avg": 585.0,
+                "Modifier": 0.0001,
+                "mean": 585.02925,
+                "stdev": 0.02925
+            }
+        },
+        "2": {
+            "Armor": {
+                "Avg": 211.0,
+                "Modifier": 0.39,
+                "mean": 252.145,
+                "stdev": 41.145
+            },
+            "Mass": {
+                "Avg": 1214.325,
+                "Modifier": 0.25,
+                "mean": 1366.1156250000001,
+                "stdev": 151.790625
+            }
+        },
+        "3": {
+            "Armor": {
+                "Avg": 388.24,
+                "Modifier": 0.39,
+                "mean": 463.94680000000005,
+                "stdev": 75.7068
+            },
+            "Mass": {
+                "Avg": 1757.25,
+                "Modifier": 0.318,
+                "mean": 2036.65275,
+                "stdev": 279.40275
+            }
+        },
+        "4": {
+            "Armor": {
+                "Avg": 485.3,
+                "Modifier": 0.39,
+                "mean": 579.9335000000001,
+                "stdev": 94.63350000000001
+            },
+            "Mass": {
+                "Avg": 2047.5,
+                "Modifier": 0.0001,
+                "mean": 2047.6023750000002,
+                "stdev": 0.10237500000000001
+            }
+        },
+        "5": {
+            "Armor": {
+                "Avg": 714.362,
+                "Modifier": 0.39,
+                "mean": 853.66259,
+                "stdev": 139.30059
+            },
+            "Mass": {
+                "Avg": 4955.625,
+                "Modifier": 0.375,
+                "mean": 5884.8046875,
+                "stdev": 929.1796875
+            }
+        },
+        "6": {
+            "Armor": {
+                "Avg": 1269.6,
+                "Modifier": 0.0001,
+                "mean": 1269.66348,
+                "stdev": 0.06348
+            },
+            "Mass": {
+                "Avg": 7679.182,
+                "Modifier": 0.375,
+                "mean": 9119.028624999999,
+                "stdev": 1439.846625
+            }
+        },
+        "7": {
+            "Armor": {
+                "Avg": 1051.54,
+                "Modifier": 0.39,
+                "mean": 1256.5903,
+                "stdev": 205.0503
+            },
+            "Mass": {
+                "Avg": 12369.24,
+                "Modifier": 0.433,
+                "mean": 15047.18046,
+                "stdev": 2677.94046
+            }
+        },
+        "8": {
+            "Armor": {
+                "Avg": 1920.0,
+                "Modifier": 0.0001,
+                "mean": 1920.0960000000002,
+                "stdev": 0.096
+            },
+            "Mass": {
+                "Avg": 19189.17,
+                "Modifier": 0.4,
+                "mean": 23027.003999999997,
+                "stdev": 3837.834
+            }
+        },
+        "9": {
+            "Armor": {
+                "Avg": 1540.529,
+                "Modifier": 0.38,
+                "mean": 1833.22951,
+                "stdev": 292.70051
+            },
+            "Mass": {
+                "Avg": 27413.1,
+                "Modifier": 0.483,
+                "mean": 34033.36365,
+                "stdev": 6620.26365
+            }
+        },
+        "10": {
+            "Armor": {
+                "Avg": 1833.963,
+                "Modifier": 0.3,
+                "mean": 2109.05745,
+                "stdev": 275.09445
+            },
+            "Mass": {
+                "Avg": 33036.3,
+                "Modifier": 0.483,
+                "mean": 41014.566450000006,
+                "stdev": 7978.26645
+            }
+        }
+    },
+    "booster": {
+        "1": {
+            "Armor": {
+                "Avg": 75.0,
+                "Modifier": 0.05,
+                "mean": 76.875,
+                "stdev": 1.875
+            },
+            "Mass": {
+                "Avg": 800.0,
+                "Modifier": 0.15,
+                "mean": 860.0,
+                "stdev": 60.0
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.15,
+                "mean": 537.5,
+                "stdev": 37.5
+            },
+            "Booster_Energy": {
+                "Avg": 1000.0,
+                "Modifier": 0.1,
+                "mean": 1000.0,
+                "stdev": 0.05773502691896258
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 25.0,
+                "Modifier": 0.1,
+                "mean": 26.25,
+                "stdev": 1.25
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 100.0,
+                "Modifier": 0.1,
+                "mean": 105.0,
+                "stdev": 5.0
+            },
+            "Acceleration": {
+                "Avg": 20.0,
+                "Modifier": 0.04,
+                "mean": 20.4,
+                "stdev": 0.4
+            },
+            "Top_Booster_Speed": {
+                "Avg": 15.0,
+                "Modifier": 0.03,
+                "mean": 15.224999999999998,
+                "stdev": 0.22499999999999998
+            }
+        },
+        "2": {
+            "Armor": {
+                "Avg": 112.5,
+                "Modifier": 0.05,
+                "mean": 115.31249999999999,
+                "stdev": 2.8125
+            },
+            "Mass": {
+                "Avg": 1400.0,
+                "Modifier": 0.15,
+                "mean": 1505.0,
+                "stdev": 105.0
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.15,
+                "mean": 537.5,
+                "stdev": 37.5
+            },
+            "Booster_Energy": {
+                "Avg": 1500.0,
+                "Modifier": 0.1,
+                "mean": 1500.0,
+                "stdev": 0.05773502691896258
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 37.5,
+                "Modifier": 0.1,
+                "mean": 39.375,
+                "stdev": 1.875
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 150.0,
+                "Modifier": 0.1,
+                "mean": 157.5,
+                "stdev": 7.5
+            },
+            "Acceleration": {
+                "Avg": 30.0,
+                "Modifier": 0.04,
+                "mean": 30.6,
+                "stdev": 0.6
+            },
+            "Top_Booster_Speed": {
+                "Avg": 22.5,
+                "Modifier": 0.03,
+                "mean": 22.8375,
+                "stdev": 0.33749999999999997
+            }
+        },
+        "3": {
+            "Armor": {
+                "Avg": 172.5,
+                "Modifier": 0.05,
+                "mean": 176.81249999999997,
+                "stdev": 4.3125
+            },
+            "Mass": {
+                "Avg": 2100.0,
+                "Modifier": 0.15,
+                "mean": 2257.5,
+                "stdev": 157.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 525.0,
+                "Modifier": 0.15,
+                "mean": 564.375,
+                "stdev": 39.375
+            },
+            "Booster_Energy": {
+                "Avg": 1100.0,
+                "Modifier": 0.1,
+                "mean": 1100.0,
+                "stdev": 0.05773502691896258
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 27.5,
+                "Modifier": 0.1,
+                "mean": 28.875,
+                "stdev": 1.375
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 110.0,
+                "Modifier": 0.1,
+                "mean": 115.5,
+                "stdev": 5.5
+            },
+            "Acceleration": {
+                "Avg": 22.0,
+                "Modifier": 0.04,
+                "mean": 22.44,
+                "stdev": 0.44
+            },
+            "Top_Booster_Speed": {
+                "Avg": 16.65,
+                "Modifier": 0.03,
+                "mean": 16.899749999999997,
+                "stdev": 0.24974999999999997
+            }
+        },
+        "4": {
+            "Armor": {
+                "Avg": 336.375,
+                "Modifier": 0.0001,
+                "mean": 336.39181875,
+                "stdev": 0.01681875
+            },
+            "Mass": {
+                "Avg": 3150.0,
+                "Modifier": 0.0001,
+                "mean": 3150.1575000000003,
+                "stdev": 0.1575
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 450.0,
+                "Modifier": 0.0001,
+                "mean": 450.02250000000004,
+                "stdev": 0.022500000000000003
+            },
+            "Booster_Energy": {
+                "Avg": 1980.0,
+                "Modifier": 0.0001,
+                "mean": 1980.0,
+                "stdev": 5.7735026918962585e-05
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 49.5,
+                "Modifier": 0.0001,
+                "mean": 49.502475000000004,
+                "stdev": 0.002475
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 165.0,
+                "Modifier": 0.1,
+                "mean": 173.25,
+                "stdev": 8.25
+            },
+            "Acceleration": {
+                "Avg": 36.3,
+                "Modifier": 0.0001,
+                "mean": 36.301815,
+                "stdev": 0.001815
+            },
+            "Top_Booster_Speed": {
+                "Avg": 24.975,
+                "Modifier": 0.03,
+                "mean": 25.349625,
+                "stdev": 0.374625
+            }
+        },
+        "5": {
+            "Armor": {
+                "Avg": 317.4,
+                "Modifier": 0.05,
+                "mean": 325.3349999999999,
+                "stdev": 7.935
+            },
+            "Mass": {
+                "Avg": 5500.0,
+                "Modifier": 0.15,
+                "mean": 5912.5,
+                "stdev": 412.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 550.0,
+                "Modifier": 0.15,
+                "mean": 591.25,
+                "stdev": 41.25
+            },
+            "Booster_Energy": {
+                "Avg": 1210.0,
+                "Modifier": 0.1,
+                "mean": 1210.0,
+                "stdev": 0.05773502691896258
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 30.25,
+                "Modifier": 0.1,
+                "mean": 31.762500000000003,
+                "stdev": 1.5125000000000002
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 121.0,
+                "Modifier": 0.1,
+                "mean": 127.05000000000001,
+                "stdev": 6.050000000000001
+            },
+            "Acceleration": {
+                "Avg": 24.2,
+                "Modifier": 0.04,
+                "mean": 24.684,
+                "stdev": 0.484
+            },
+            "Top_Booster_Speed": {
+                "Avg": 18.48,
+                "Modifier": 0.03,
+                "mean": 18.757199999999997,
+                "stdev": 0.2772
+            }
+        },
+        "6": {
+            "Armor": {
+                "Avg": 476.1,
+                "Modifier": 0.05,
+                "mean": 488.0025,
+                "stdev": 11.902500000000002
+            },
+            "Mass": {
+                "Avg": 9614.0,
+                "Modifier": 0.15,
+                "mean": 10335.05,
+                "stdev": 721.05
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 550.0,
+                "Modifier": 0.15,
+                "mean": 591.25,
+                "stdev": 41.25
+            },
+            "Booster_Energy": {
+                "Avg": 1815.0,
+                "Modifier": 0.1,
+                "mean": 1815.0,
+                "stdev": 0.05773502691896258
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 45.375,
+                "Modifier": 0.1,
+                "mean": 47.643750000000004,
+                "stdev": 2.2687500000000003
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 181.5,
+                "Modifier": 0.1,
+                "mean": 190.57500000000002,
+                "stdev": 9.075000000000001
+            },
+            "Acceleration": {
+                "Avg": 36.3,
+                "Modifier": 0.04,
+                "mean": 37.025999999999996,
+                "stdev": 0.726
+            },
+            "Top_Booster_Speed": {
+                "Avg": 27.72,
+                "Modifier": 0.03,
+                "mean": 28.135799999999996,
+                "stdev": 0.41579999999999995
+            }
+        },
+        "7": {
+            "Armor": {
+                "Avg": 467.215,
+                "Modifier": 0.05,
+                "mean": 478.89537499999994,
+                "stdev": 11.680375
+            },
+            "Mass": {
+                "Avg": 14352.0,
+                "Modifier": 0.15,
+                "mean": 15428.4,
+                "stdev": 1076.3999999999999
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 575.0,
+                "Modifier": 0.15,
+                "mean": 618.125,
+                "stdev": 43.125
+            },
+            "Booster_Energy": {
+                "Avg": 1331.0,
+                "Modifier": 0.1,
+                "mean": 1331.0,
+                "stdev": 0.05773502691896258
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 33.28,
+                "Modifier": 0.1,
+                "mean": 34.944,
+                "stdev": 1.6640000000000001
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 133.1,
+                "Modifier": 0.1,
+                "mean": 139.755,
+                "stdev": 6.655
+            },
+            "Acceleration": {
+                "Avg": 26.62,
+                "Modifier": 0.04,
+                "mean": 27.1524,
+                "stdev": 0.5324
+            },
+            "Top_Booster_Speed": {
+                "Avg": 20.51,
+                "Modifier": 0.03,
+                "mean": 20.81765,
+                "stdev": 0.30765000000000003
+            }
+        },
+        "8": {
+            "Armor": {
+                "Avg": 840.987,
+                "Modifier": 0.0001,
+                "mean": 841.02904935,
+                "stdev": 0.04204935
+            },
+            "Mass": {
+                "Avg": 25116.0,
+                "Modifier": 0.15,
+                "mean": 26999.699999999997,
+                "stdev": 1883.6999999999998
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 575.0,
+                "Modifier": 0.15,
+                "mean": 618.125,
+                "stdev": 43.125
+            },
+            "Booster_Energy": {
+                "Avg": 2395.8,
+                "Modifier": 0.0001,
+                "mean": 2395.8,
+                "stdev": 5.7735026918962585e-05
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 59.904,
+                "Modifier": 0.0001,
+                "mean": 59.90699520000001,
+                "stdev": 0.0029952000000000004
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 199.65,
+                "Modifier": 0.1,
+                "mean": 209.63250000000002,
+                "stdev": 9.982500000000002
+            },
+            "Acceleration": {
+                "Avg": 43.923,
+                "Modifier": 0.0001,
+                "mean": 43.925196150000005,
+                "stdev": 0.00219615
+            },
+            "Top_Booster_Speed": {
+                "Avg": 30.765,
+                "Modifier": 0.03,
+                "mean": 31.226474999999997,
+                "stdev": 0.46147499999999997
+            }
+        },
+        "9": {
+            "Armor": {
+                "Avg": 550.19,
+                "Modifier": 0.05,
+                "mean": 563.94475,
+                "stdev": 13.754750000000001
+            },
+            "Mass": {
+                "Avg": 37440.0,
+                "Modifier": 0.15,
+                "mean": 40248.0,
+                "stdev": 2808.0
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 600.0,
+                "Modifier": 0.15,
+                "mean": 645.0,
+                "stdev": 45.0
+            },
+            "Booster_Energy": {
+                "Avg": 1464.1,
+                "Modifier": 0.1,
+                "mean": 1464.1,
+                "stdev": 0.05773502691896258
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 36.6,
+                "Modifier": 0.1,
+                "mean": 38.43,
+                "stdev": 1.83
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 146.41,
+                "Modifier": 0.1,
+                "mean": 153.7305,
+                "stdev": 7.3205
+            },
+            "Acceleration": {
+                "Avg": 29.28,
+                "Modifier": 0.04,
+                "mean": 29.8656,
+                "stdev": 0.5856
+            },
+            "Top_Booster_Speed": {
+                "Avg": 22.77,
+                "Modifier": 0.03,
+                "mean": 23.111549999999998,
+                "stdev": 0.34154999999999996
+            }
+        },
+        "10": {
+            "Armor": {
+                "Avg": 825.285,
+                "Modifier": 0.05,
+                "mean": 845.9171249999999,
+                "stdev": 20.632125000000002
+            },
+            "Mass": {
+                "Avg": 45120.0,
+                "Modifier": 0.15,
+                "mean": 48504.0,
+                "stdev": 3384.0
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 600.0,
+                "Modifier": 0.15,
+                "mean": 645.0,
+                "stdev": 45.0
+            },
+            "Booster_Energy": {
+                "Avg": 2196.15,
+                "Modifier": 0.1,
+                "mean": 2196.15,
+                "stdev": 0.05773502691896258
+            },
+            "Booster_Recharge_Rate": {
+                "Avg": 54.9,
+                "Modifier": 0.1,
+                "mean": 57.645,
+                "stdev": 2.745
+            },
+            "Booster_Energy_Consumption_Rate": {
+                "Avg": 219.615,
+                "Modifier": 0.1,
+                "mean": 230.59575,
+                "stdev": 10.98075
+            },
+            "Acceleration": {
+                "Avg": 43.92,
+                "Modifier": 0.04,
+                "mean": 44.7984,
+                "stdev": 0.8784000000000001
+            },
+            "Top_Booster_Speed": {
+                "Avg": 34.155,
+                "Modifier": 0.03,
+                "mean": 34.667325,
+                "stdev": 0.512325
+            }
+        }
+    },
+    "capacitor": {
+        "1": {
+            "Armor": {
+                "Avg": 82.5,
+                "Modifier": 0.05,
+                "mean": 84.56249999999999,
+                "stdev": 2.0625
+            },
+            "Mass": {
+                "Avg": 700.0,
+                "Modifier": 0.13,
+                "mean": 745.5,
+                "stdev": 45.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 700.0,
+                "Modifier": 0.22,
+                "mean": 777.0000000000001,
+                "stdev": 77.0
+            },
+            "Capacitor_Energy": {
+                "Avg": 600.0,
+                "Modifier": 0.23,
+                "mean": 669.0,
+                "stdev": 69.0
+            },
+            "Recharge_Rate": {
+                "Avg": 24.0,
+                "Modifier": 0.1,
+                "mean": 25.200000000000003,
+                "stdev": 1.2000000000000002
+            }
+        },
+        "2": {
+            "Armor": {
+                "Avg": 118.125,
+                "Modifier": 0.05,
+                "mean": 121.07812499999999,
+                "stdev": 2.953125
+            },
+            "Mass": {
+                "Avg": 1225.0,
+                "Modifier": 0.13,
+                "mean": 1304.625,
+                "stdev": 79.625
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 700.0,
+                "Modifier": 0.22,
+                "mean": 777.0000000000001,
+                "stdev": 77.0
+            },
+            "Capacitor_Energy": {
+                "Avg": 900.0,
+                "Modifier": 0.23,
+                "mean": 1003.5,
+                "stdev": 103.5
+            },
+            "Recharge_Rate": {
+                "Avg": 36.0,
+                "Modifier": 0.1,
+                "mean": 37.800000000000004,
+                "stdev": 1.8
+            }
+        },
+        "3": {
+            "Armor": {
+                "Avg": 189.75,
+                "Modifier": 0.05,
+                "mean": 194.49374999999998,
+                "stdev": 4.74375
+            },
+            "Mass": {
+                "Avg": 2125.0,
+                "Modifier": 0.13,
+                "mean": 2263.125,
+                "stdev": 138.125
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 950.0,
+                "Modifier": 0.22,
+                "mean": 1054.5,
+                "stdev": 104.5
+            },
+            "Capacitor_Energy": {
+                "Avg": 660.0,
+                "Modifier": 0.23,
+                "mean": 735.9,
+                "stdev": 75.9
+            },
+            "Recharge_Rate": {
+                "Avg": 26.4,
+                "Modifier": 0.1,
+                "mean": 27.72,
+                "stdev": 1.32
+            }
+        },
+        "4": {
+            "Armor": {
+                "Avg": 284.625,
+                "Modifier": 0.05,
+                "mean": 291.74062499999997,
+                "stdev": 7.1156250000000005
+            },
+            "Mass": {
+                "Avg": 3281.25,
+                "Modifier": 0.13,
+                "mean": 3494.53125,
+                "stdev": 213.28125
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 750.0,
+                "Modifier": 0.22,
+                "mean": 832.5000000000001,
+                "stdev": 82.5
+            },
+            "Capacitor_Energy": {
+                "Avg": 990.0,
+                "Modifier": 0.23,
+                "mean": 1103.85,
+                "stdev": 113.85000000000001
+            },
+            "Recharge_Rate": {
+                "Avg": 39.6,
+                "Modifier": 0.1,
+                "mean": 41.580000000000005,
+                "stdev": 1.9800000000000002
+            }
+        },
+        "5": {
+            "Armor": {
+                "Avg": 349.14,
+                "Modifier": 0.05,
+                "mean": 357.8685,
+                "stdev": 8.7285
+            },
+            "Mass": {
+                "Avg": 5000.0,
+                "Modifier": 0.13,
+                "mean": 5325.0,
+                "stdev": 325.0
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 800.0,
+                "Modifier": 0.22,
+                "mean": 888.0000000000001,
+                "stdev": 88.0
+            },
+            "Capacitor_Energy": {
+                "Avg": 635.25,
+                "Modifier": 0.23,
+                "mean": 708.30375,
+                "stdev": 73.05375000000001
+            },
+            "Recharge_Rate": {
+                "Avg": 25.41,
+                "Modifier": 0.2,
+                "mean": 27.951000000000004,
+                "stdev": 2.5410000000000004
+            }
+        },
+        "6": {
+            "Armor": {
+                "Avg": 523.71,
+                "Modifier": 0.05,
+                "mean": 536.80275,
+                "stdev": 13.092750000000002
+            },
+            "Mass": {
+                "Avg": 8740.0,
+                "Modifier": 0.13,
+                "mean": 9308.1,
+                "stdev": 568.1
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 800.0,
+                "Modifier": 0.22,
+                "mean": 888.0000000000001,
+                "stdev": 88.0
+            },
+            "Capacitor_Energy": {
+                "Avg": 1089.0,
+                "Modifier": 0.23,
+                "mean": 1214.235,
+                "stdev": 125.235
+            },
+            "Recharge_Rate": {
+                "Avg": 43.56,
+                "Modifier": 0.1,
+                "mean": 45.73800000000001,
+                "stdev": 2.1780000000000004
+            }
+        },
+        "7": {
+            "Armor": {
+                "Avg": 490.5755,
+                "Modifier": 0.05,
+                "mean": 502.8398874999999,
+                "stdev": 12.2643875
+            },
+            "Mass": {
+                "Avg": 13260.0,
+                "Modifier": 0.13,
+                "mean": 14121.9,
+                "stdev": 861.9
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 850.0,
+                "Modifier": 0.22,
+                "mean": 943.5000000000001,
+                "stdev": 93.5
+            },
+            "Capacitor_Energy": {
+                "Avg": 798.6,
+                "Modifier": 0.23,
+                "mean": 890.439,
+                "stdev": 91.83900000000001
+            },
+            "Recharge_Rate": {
+                "Avg": 31.944,
+                "Modifier": 0.1,
+                "mean": 33.5412,
+                "stdev": 1.5972
+            }
+        },
+        "8": {
+            "Armor": {
+                "Avg": 770.905,
+                "Modifier": 0.05,
+                "mean": 790.1776249999999,
+                "stdev": 19.272625
+            },
+            "Mass": {
+                "Avg": 28665.0,
+                "Modifier": 0.13,
+                "mean": 30528.225,
+                "stdev": 1863.2250000000001
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1000.0,
+                "Modifier": 0.22,
+                "mean": 1110.0,
+                "stdev": 110.0
+            },
+            "Capacitor_Energy": {
+                "Avg": 1048.162,
+                "Modifier": 0.23,
+                "mean": 1168.70063,
+                "stdev": 120.53863000000001
+            },
+            "Recharge_Rate": {
+                "Avg": 41.927,
+                "Modifier": 0.2,
+                "mean": 46.1197,
+                "stdev": 4.1927
+            }
+        },
+        "9": {
+            "Armor": {
+                "Avg": 605.209,
+                "Modifier": 0.05,
+                "mean": 620.3392249999999,
+                "stdev": 15.130225
+            },
+            "Mass": {
+                "Avg": 35100.0,
+                "Modifier": 0.13,
+                "mean": 37381.5,
+                "stdev": 2281.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 900.0,
+                "Modifier": 0.22,
+                "mean": 999.0000000000001,
+                "stdev": 99.0
+            },
+            "Capacitor_Energy": {
+                "Avg": 878.46,
+                "Modifier": 0.23,
+                "mean": 979.4829000000001,
+                "stdev": 101.0229
+            },
+            "Recharge_Rate": {
+                "Avg": 35.136,
+                "Modifier": 0.1,
+                "mean": 36.8928,
+                "stdev": 1.7568000000000001
+            }
+        },
+        "10": {
+            "Armor": {
+                "Avg": 907.8135,
+                "Modifier": 0.05,
+                "mean": 930.5088374999999,
+                "stdev": 22.6953375
+            },
+            "Mass": {
+                "Avg": 42300.0,
+                "Modifier": 0.13,
+                "mean": 45049.5,
+                "stdev": 2749.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 900.0,
+                "Modifier": 0.22,
+                "mean": 999.0000000000001,
+                "stdev": 99.0
+            },
+            "Capacitor_Energy": {
+                "Avg": 1317.69,
+                "Modifier": 0.23,
+                "mean": 1469.22435,
+                "stdev": 151.53435000000002
+            },
+            "Recharge_Rate": {
+                "Avg": 52.704,
+                "Modifier": 0.1,
+                "mean": 55.339200000000005,
+                "stdev": 2.6352
+            }
+        }
+    },
+    "droid_interface": {
+        "1": {
+            "Armor": {
+                "Avg": 75.0,
+                "Modifier": 0.05,
+                "mean": 76.875,
+                "stdev": 1.875
+            },
+            "Mass": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 34.5,
+                "Modifier": 0.05,
+                "mean": 35.3625,
+                "stdev": 0.8625
+            }
+        },
+        "2": {
+            "Armor": {
+                "Avg": 112.5,
+                "Modifier": 0.05,
+                "mean": 115.31249999999999,
+                "stdev": 2.8125
+            },
+            "Mass": {
+                "Avg": 875.0,
+                "Modifier": 0.05,
+                "mean": 896.8749999999999,
+                "stdev": 21.875
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 33.75,
+                "Modifier": 0.05,
+                "mean": 34.59375,
+                "stdev": 0.84375
+            }
+        },
+        "3": {
+            "Armor": {
+                "Avg": 172.5,
+                "Modifier": 0.05,
+                "mean": 176.81249999999997,
+                "stdev": 4.3125
+            },
+            "Mass": {
+                "Avg": 1250.0,
+                "Modifier": 0.05,
+                "mean": 1281.25,
+                "stdev": 31.25
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 30.0,
+                "Modifier": 0.05,
+                "mean": 30.749999999999996,
+                "stdev": 0.75
+            }
+        },
+        "4": {
+            "Armor": {
+                "Avg": 310.5,
+                "Modifier": 0.0001,
+                "mean": 310.515525,
+                "stdev": 0.015525
+            },
+            "Mass": {
+                "Avg": 2187.5,
+                "Modifier": 0.05,
+                "mean": 2242.1875,
+                "stdev": 54.6875
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 27.0,
+                "Modifier": 0.0001,
+                "mean": 27.001350000000002,
+                "stdev": 0.00135
+            }
+        },
+        "5": {
+            "Armor": {
+                "Avg": 317.4,
+                "Modifier": 0.05,
+                "mean": 325.3349999999999,
+                "stdev": 7.935
+            },
+            "Mass": {
+                "Avg": 3125.0,
+                "Modifier": 0.05,
+                "mean": 3203.1249999999995,
+                "stdev": 78.125
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 24.0,
+                "Modifier": 0.05,
+                "mean": 24.599999999999998,
+                "stdev": 0.6000000000000001
+            }
+        },
+        "6": {
+            "Armor": {
+                "Avg": 571.32,
+                "Modifier": 0.0001,
+                "mean": 571.3485660000001,
+                "stdev": 0.028566000000000005
+            },
+            "Mass": {
+                "Avg": 5462.5,
+                "Modifier": 0.05,
+                "mean": 5599.062499999999,
+                "stdev": 136.5625
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 19.125,
+                "Modifier": 0.05,
+                "mean": 19.603125,
+                "stdev": 0.478125
+            }
+        },
+        "7": {
+            "Armor": {
+                "Avg": 467.215,
+                "Modifier": 0.05,
+                "mean": 478.89537499999994,
+                "stdev": 11.680375
+            },
+            "Mass": {
+                "Avg": 7800.0,
+                "Modifier": 0.05,
+                "mean": 7994.999999999999,
+                "stdev": 195.0
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 16.5,
+                "Modifier": 0.05,
+                "mean": 16.912499999999998,
+                "stdev": 0.41250000000000003
+            }
+        },
+        "8": {
+            "Armor": {
+                "Avg": 840.987,
+                "Modifier": 0.0001,
+                "mean": 841.02904935,
+                "stdev": 0.04204935
+            },
+            "Mass": {
+                "Avg": 13650.0,
+                "Modifier": 0.05,
+                "mean": 13991.249999999998,
+                "stdev": 341.25
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 13.5,
+                "Modifier": 0.05,
+                "mean": 13.837499999999999,
+                "stdev": 0.3375
+            }
+        },
+        "9": {
+            "Armor": {
+                "Avg": 550.19,
+                "Modifier": 0.05,
+                "mean": 563.94475,
+                "stdev": 13.754750000000001
+            },
+            "Mass": {
+                "Avg": 19500.0,
+                "Modifier": 0.05,
+                "mean": 19987.5,
+                "stdev": 487.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 13.5,
+                "Modifier": 0.05,
+                "mean": 13.837499999999999,
+                "stdev": 0.3375
+            }
+        },
+        "10": {
+            "Armor": {
+                "Avg": 825.285,
+                "Modifier": 0.05,
+                "mean": 845.9171249999999,
+                "stdev": 20.632125000000002
+            },
+            "Mass": {
+                "Avg": 23500.0,
+                "Modifier": 0.05,
+                "mean": 24087.499999999996,
+                "stdev": 587.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 500.0,
+                "Modifier": 0.05,
+                "mean": 512.5,
+                "stdev": 12.5
+            },
+            "Droid_Command_Speed": {
+                "Avg": 10.125,
+                "Modifier": 0.05,
+                "mean": 10.378124999999999,
+                "stdev": 0.253125
+            }
+        }
+    },
+    "engine": {
+        "1": {
+            "Armor": {
+                "Avg": 82.5,
+                "Modifier": 0.05,
+                "mean": 84.56249999999999,
+                "stdev": 2.0625
+            },
+            "Mass": {
+                "Avg": 765.0,
+                "Modifier": 0.14,
+                "mean": 818.5500000000001,
+                "stdev": 53.550000000000004
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1200.0,
+                "Modifier": 0.14,
+                "mean": 1284.0,
+                "stdev": 84.00000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 47.25,
+                "Modifier": 0.07,
+                "mean": 48.903749999999995,
+                "stdev": 1.65375
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 47.25,
+                "Modifier": 0.07,
+                "mean": 48.903749999999995,
+                "stdev": 1.65375
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 47.25,
+                "Modifier": 0.07,
+                "mean": 48.903749999999995,
+                "stdev": 1.65375
+            },
+            "Engine_Top_Speed": {
+                "Avg": 46.2,
+                "Modifier": 0.1,
+                "mean": 48.510000000000005,
+                "stdev": 2.31
+            }
+        },
+        "2": {
+            "Armor": {
+                "Avg": 103.125,
+                "Modifier": 0.05,
+                "mean": 105.70312499999999,
+                "stdev": 2.578125
+            },
+            "Mass": {
+                "Avg": 1496.25,
+                "Modifier": 0.14,
+                "mean": 1600.9875000000002,
+                "stdev": 104.73750000000001
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1425.0,
+                "Modifier": 0.14,
+                "mean": 1524.75,
+                "stdev": 99.75000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 56.25,
+                "Modifier": 0.07,
+                "mean": 58.21874999999999,
+                "stdev": 1.9687500000000002
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 56.25,
+                "Modifier": 0.07,
+                "mean": 58.21874999999999,
+                "stdev": 1.9687500000000002
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 56.25,
+                "Modifier": 0.07,
+                "mean": 58.21874999999999,
+                "stdev": 1.9687500000000002
+            },
+            "Engine_Top_Speed": {
+                "Avg": 55.125,
+                "Modifier": 0.1,
+                "mean": 57.88125,
+                "stdev": 2.75625
+            }
+        },
+        "3": {
+            "Armor": {
+                "Avg": 181.125,
+                "Modifier": 0.05,
+                "mean": 185.653125,
+                "stdev": 4.528125
+            },
+            "Mass": {
+                "Avg": 2025.0,
+                "Modifier": 0.14,
+                "mean": 2166.75,
+                "stdev": 141.75
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1275.0,
+                "Modifier": 0.14,
+                "mean": 1364.25,
+                "stdev": 89.25000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 50.085,
+                "Modifier": 0.06,
+                "mean": 51.58755,
+                "stdev": 1.50255
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 50.085,
+                "Modifier": 0.06,
+                "mean": 51.58755,
+                "stdev": 1.50255
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 50.085,
+                "Modifier": 0.06,
+                "mean": 51.58755,
+                "stdev": 1.50255
+            },
+            "Engine_Top_Speed": {
+                "Avg": 51.744,
+                "Modifier": 0.1,
+                "mean": 54.3312,
+                "stdev": 2.5872
+            }
+        },
+        "4": {
+            "Armor": {
+                "Avg": 237.1875,
+                "Modifier": 0.05,
+                "mean": 243.11718749999997,
+                "stdev": 5.9296875
+            },
+            "Mass": {
+                "Avg": 3937.5,
+                "Modifier": 0.14,
+                "mean": 4213.125,
+                "stdev": 275.625
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1500.0,
+                "Modifier": 0.14,
+                "mean": 1605.0,
+                "stdev": 105.00000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 59.625,
+                "Modifier": 0.07,
+                "mean": 61.71187499999999,
+                "stdev": 2.086875
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 59.625,
+                "Modifier": 0.07,
+                "mean": 61.71187499999999,
+                "stdev": 2.086875
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 59.625,
+                "Modifier": 0.07,
+                "mean": 61.71187499999999,
+                "stdev": 2.086875
+            },
+            "Engine_Top_Speed": {
+                "Avg": 61.74,
+                "Modifier": 0.1,
+                "mean": 64.827,
+                "stdev": 3.087
+            }
+        },
+        "5": {
+            "Armor": {
+                "Avg": 333.27,
+                "Modifier": 0.05,
+                "mean": 341.6017499999999,
+                "stdev": 8.33175
+            },
+            "Mass": {
+                "Avg": 5343.75,
+                "Modifier": 0.14,
+                "mean": 5717.8125,
+                "stdev": 374.06250000000006
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1350.0,
+                "Modifier": 0.14,
+                "mean": 1444.5,
+                "stdev": 94.50000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 53.088,
+                "Modifier": 0.06,
+                "mean": 54.680640000000004,
+                "stdev": 1.59264
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 53.088,
+                "Modifier": 0.06,
+                "mean": 54.680640000000004,
+                "stdev": 1.59264
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 53.088,
+                "Modifier": 0.06,
+                "mean": 54.680640000000004,
+                "stdev": 1.59264
+            },
+            "Engine_Top_Speed": {
+                "Avg": 57.948,
+                "Modifier": 0.1,
+                "mean": 60.845400000000005,
+                "stdev": 2.8974
+            }
+        },
+        "6": {
+            "Armor": {
+                "Avg": 555.45,
+                "Modifier": 0.0001,
+                "mean": 555.4777725000001,
+                "stdev": 0.027772500000000002
+            },
+            "Mass": {
+                "Avg": 10324.125,
+                "Modifier": 0.14,
+                "mean": 11046.813750000001,
+                "stdev": 722.68875
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1575.0,
+                "Modifier": 0.14,
+                "mean": 1685.25,
+                "stdev": 110.25000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 63.2,
+                "Modifier": 0.07,
+                "mean": 65.41199999999999,
+                "stdev": 2.212
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 63.2,
+                "Modifier": 0.07,
+                "mean": 65.41199999999999,
+                "stdev": 2.212
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 63.2,
+                "Modifier": 0.07,
+                "mean": 65.41199999999999,
+                "stdev": 2.212
+            },
+            "Engine_Top_Speed": {
+                "Avg": 82.0,
+                "Modifier": 0.13,
+                "mean": 87.33,
+                "stdev": 5.33
+            }
+        },
+        "7": {
+            "Armor": {
+                "Avg": 490.57575,
+                "Modifier": 0.05,
+                "mean": 502.84014375,
+                "stdev": 12.264393750000002
+            },
+            "Mass": {
+                "Avg": 14040.0,
+                "Modifier": 0.14,
+                "mean": 15022.800000000001,
+                "stdev": 982.8000000000001
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1425.0,
+                "Modifier": 0.14,
+                "mean": 1524.75,
+                "stdev": 99.75000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 56.28,
+                "Modifier": 0.07,
+                "mean": 58.24979999999999,
+                "stdev": 1.9698000000000002
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 56.28,
+                "Modifier": 0.07,
+                "mean": 58.24979999999999,
+                "stdev": 1.9698000000000002
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 56.28,
+                "Modifier": 0.07,
+                "mean": 58.24979999999999,
+                "stdev": 1.9698000000000002
+            },
+            "Engine_Top_Speed": {
+                "Avg": 64.911,
+                "Modifier": 0.1,
+                "mean": 68.15655000000001,
+                "stdev": 3.24555
+            }
+        },
+        "8": {
+            "Armor": {
+                "Avg": 817.62625,
+                "Modifier": 0.0001,
+                "mean": 817.6671313125001,
+                "stdev": 0.0408813125
+            },
+            "Mass": {
+                "Avg": 27027.0,
+                "Modifier": 0.14,
+                "mean": 28918.890000000003,
+                "stdev": 1891.89
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1650.0,
+                "Modifier": 0.14,
+                "mean": 1765.5,
+                "stdev": 115.50000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 67.0,
+                "Modifier": 0.07,
+                "mean": 69.345,
+                "stdev": 2.345
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 67.0,
+                "Modifier": 0.07,
+                "mean": 69.345,
+                "stdev": 2.345
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 67.0,
+                "Modifier": 0.07,
+                "mean": 69.345,
+                "stdev": 2.345
+            },
+            "Engine_Top_Speed": {
+                "Avg": 92.0,
+                "Modifier": 0.1,
+                "mean": 96.60000000000001,
+                "stdev": 4.6000000000000005
+            }
+        },
+        "9": {
+            "Armor": {
+                "Avg": 577.6995,
+                "Modifier": 0.05,
+                "mean": 592.1419874999999,
+                "stdev": 14.442487499999999
+            },
+            "Mass": {
+                "Avg": 36855.0,
+                "Modifier": 0.14,
+                "mean": 39434.850000000006,
+                "stdev": 2579.8500000000004
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1500.0,
+                "Modifier": 0.14,
+                "mean": 1605.0,
+                "stdev": 105.00000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 59.6505,
+                "Modifier": 0.07,
+                "mean": 61.7382675,
+                "stdev": 2.0877675000000004
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 59.6505,
+                "Modifier": 0.07,
+                "mean": 61.7382675,
+                "stdev": 2.0877675000000004
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 59.6505,
+                "Modifier": 0.07,
+                "mean": 61.7382675,
+                "stdev": 2.0877675000000004
+            },
+            "Engine_Top_Speed": {
+                "Avg": 72.699,
+                "Modifier": 0.1,
+                "mean": 76.33395,
+                "stdev": 3.63495
+            }
+        },
+        "10": {
+            "Armor": {
+                "Avg": 756.51125,
+                "Modifier": 0.05,
+                "mean": 775.42403125,
+                "stdev": 18.912781250000002
+            },
+            "Mass": {
+                "Avg": 48645.0,
+                "Modifier": 0.14,
+                "mean": 52050.15,
+                "stdev": 3405.1500000000005
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1500.0,
+                "Modifier": 0.14,
+                "mean": 1605.0,
+                "stdev": 105.00000000000001
+            },
+            "Pitch_Rate_Maximum": {
+                "Avg": 74.563125,
+                "Modifier": 0.07,
+                "mean": 77.172834375,
+                "stdev": 2.6097093750000004
+            },
+            "Yaw_Rate_Maximum": {
+                "Avg": 74.563125,
+                "Modifier": 0.07,
+                "mean": 77.172834375,
+                "stdev": 2.6097093750000004
+            },
+            "Roll_Rate_Maximum": {
+                "Avg": 74.563125,
+                "Modifier": 0.07,
+                "mean": 77.172834375,
+                "stdev": 2.6097093750000004
+            },
+            "Engine_Top_Speed": {
+                "Avg": 96.0,
+                "Modifier": 0.1,
+                "mean": 100.80000000000001,
+                "stdev": 4.800000000000001
+            }
+        }
+    },
+    "reactor": {
+        "1": {
+            "Armor": {
+                "Avg": 82.5,
+                "Modifier": 0.05,
+                "mean": 84.56249999999999,
+                "stdev": 2.0625
+            },
+            "Mass": {
+                "Avg": 1320.0,
+                "Modifier": 0.3,
+                "mean": 1517.9999999999998,
+                "stdev": 198.0
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 10500.0,
+                "Modifier": 0.2,
+                "mean": 11550.000000000002,
+                "stdev": 1050.0
+            }
+        },
+        "2": {
+            "Armor": {
+                "Avg": 123.75,
+                "Modifier": 0.05,
+                "mean": 126.84374999999999,
+                "stdev": 3.09375
+            },
+            "Mass": {
+                "Avg": 2310.0,
+                "Modifier": 0.3,
+                "mean": 2656.5,
+                "stdev": 346.5
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 10500.0,
+                "Modifier": 0.2,
+                "mean": 11550.000000000002,
+                "stdev": 1050.0
+            }
+        },
+        "3": {
+            "Armor": {
+                "Avg": 189.75,
+                "Modifier": 0.05,
+                "mean": 194.49374999999998,
+                "stdev": 4.74375
+            },
+            "Mass": {
+                "Avg": 3300.0,
+                "Modifier": 0.3,
+                "mean": 3794.9999999999995,
+                "stdev": 495.0
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 11500.0,
+                "Modifier": 0.2,
+                "mean": 12650.000000000002,
+                "stdev": 1150.0
+            }
+        },
+        "4": {
+            "Armor": {
+                "Avg": 284.625,
+                "Modifier": 0.05,
+                "mean": 291.74062499999997,
+                "stdev": 7.1156250000000005
+            },
+            "Mass": {
+                "Avg": 5775.0,
+                "Modifier": 0.3,
+                "mean": 6641.249999999999,
+                "stdev": 866.25
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 13500.0,
+                "Modifier": 0.2,
+                "mean": 14850.000000000002,
+                "stdev": 1350.0
+            }
+        },
+        "5": {
+            "Armor": {
+                "Avg": 349.14,
+                "Modifier": 0.05,
+                "mean": 357.8685,
+                "stdev": 8.7285
+            },
+            "Mass": {
+                "Avg": 8250.0,
+                "Modifier": 0.3,
+                "mean": 9487.5,
+                "stdev": 1237.5
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 16100.0,
+                "Modifier": 0.175,
+                "mean": 17508.75,
+                "stdev": 1408.75
+            }
+        },
+        "6": {
+            "Armor": {
+                "Avg": 618.93,
+                "Modifier": 0.0001,
+                "mean": 618.9609465,
+                "stdev": 0.0309465
+            },
+            "Mass": {
+                "Avg": 14421.0,
+                "Modifier": 0.3,
+                "mean": 16584.149999999998,
+                "stdev": 2163.15
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 21500.0,
+                "Modifier": 0.175,
+                "mean": 23381.249999999996,
+                "stdev": 1881.2499999999998
+            }
+        },
+        "7": {
+            "Armor": {
+                "Avg": 513.9365,
+                "Modifier": 0.06,
+                "mean": 529.354595,
+                "stdev": 15.418095000000001
+            },
+            "Mass": {
+                "Avg": 20592.0,
+                "Modifier": 0.3,
+                "mean": 23680.8,
+                "stdev": 3088.7999999999997
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 25750.0,
+                "Modifier": 0.186,
+                "mean": 28144.75,
+                "stdev": 2394.75
+            }
+        },
+        "8": {
+            "Armor": {
+                "Avg": 911.0695,
+                "Modifier": 0.0001,
+                "mean": 911.1150534750001,
+                "stdev": 0.045553475
+            },
+            "Mass": {
+                "Avg": 36036.0,
+                "Modifier": 0.3,
+                "mean": 41441.399999999994,
+                "stdev": 5405.4
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 26550.0,
+                "Modifier": 0.176,
+                "mean": 28886.4,
+                "stdev": 2336.4
+            }
+        },
+        "9": {
+            "Armor": {
+                "Avg": 770.266,
+                "Modifier": 0.05,
+                "mean": 789.5226499999999,
+                "stdev": 19.25665
+            },
+            "Mass": {
+                "Avg": 51480.0,
+                "Modifier": 0.3,
+                "mean": 59201.99999999999,
+                "stdev": 7722.0
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 27650.0,
+                "Modifier": 0.182,
+                "mean": 30166.149999999998,
+                "stdev": 2516.15
+            }
+        },
+        "10": {
+            "Armor": {
+                "Avg": 1155.399,
+                "Modifier": 0.05,
+                "mean": 1184.2839749999998,
+                "stdev": 28.884974999999997
+            },
+            "Mass": {
+                "Avg": 62040.0,
+                "Modifier": 0.3,
+                "mean": 71346.0,
+                "stdev": 9306.0
+            },
+            "Reactor_Generation_Rate": {
+                "Avg": 32000.0,
+                "Modifier": 0.2,
+                "mean": 35200.0,
+                "stdev": 3200.0
+            }
+        }
+    },
+    "shield": {
+        "1": {
+            "Armor": {
+                "Avg": 97.5,
+                "Modifier": 0.07,
+                "mean": 100.9125,
+                "stdev": 3.4125000000000005
+            },
+            "Mass": {
+                "Avg": 1100.0,
+                "Modifier": 0.2,
+                "mean": 1210.0,
+                "stdev": 110.0
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2556.0,
+                "Modifier": 0.3,
+                "mean": 2939.3999999999996,
+                "stdev": 383.4
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 225.0,
+                "Modifier": 0.2,
+                "mean": 247.50000000000003,
+                "stdev": 22.5
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 225.0,
+                "Modifier": 0.2,
+                "mean": 247.50000000000003,
+                "stdev": 22.5
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 1.66,
+                "Modifier": 0.26,
+                "mean": 1.8757999999999997,
+                "stdev": 0.2158
+            }
+        },
+        "2": {
+            "Armor": {
+                "Avg": 93.75,
+                "Modifier": 0.05,
+                "mean": 96.09374999999999,
+                "stdev": 2.34375
+            },
+            "Mass": {
+                "Avg": 1925.0,
+                "Modifier": 0.2,
+                "mean": 2117.5,
+                "stdev": 192.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2556.0,
+                "Modifier": 0.3,
+                "mean": 2939.3999999999996,
+                "stdev": 383.4
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 250.0,
+                "Modifier": 0.345,
+                "mean": 293.12499999999994,
+                "stdev": 43.125
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 250.0,
+                "Modifier": 0.345,
+                "mean": 293.12499999999994,
+                "stdev": 43.125
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 2.05,
+                "Modifier": 0.15,
+                "mean": 2.20375,
+                "stdev": 0.15374999999999997
+            }
+        },
+        "3": {
+            "Armor": {
+                "Avg": 172.5,
+                "Modifier": 0.05,
+                "mean": 176.81249999999997,
+                "stdev": 4.3125
+            },
+            "Mass": {
+                "Avg": 2887.5,
+                "Modifier": 0.1,
+                "mean": 3031.875,
+                "stdev": 144.375
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2681.0,
+                "Modifier": 0.3,
+                "mean": 3083.1499999999996,
+                "stdev": 402.15
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 517.5,
+                "Modifier": 0.2,
+                "mean": 569.25,
+                "stdev": 51.75
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 517.5,
+                "Modifier": 0.2,
+                "mean": 569.25,
+                "stdev": 51.75
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 3.772,
+                "Modifier": 0.15,
+                "mean": 4.0549,
+                "stdev": 0.2829
+            }
+        },
+        "4": {
+            "Armor": {
+                "Avg": 280.3125,
+                "Modifier": 0.07,
+                "mean": 290.12343749999997,
+                "stdev": 9.810937500000001
+            },
+            "Mass": {
+                "Avg": 5053.125,
+                "Modifier": 0.2,
+                "mean": 5558.4375,
+                "stdev": 505.3125
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2681.0,
+                "Modifier": 0.3,
+                "mean": 3083.1499999999996,
+                "stdev": 402.15
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 898.438,
+                "Modifier": 0.0001,
+                "mean": 898.4829219000001,
+                "stdev": 0.0449219
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 898.438,
+                "Modifier": 0.0001,
+                "mean": 898.4829219000001,
+                "stdev": 0.0449219
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 4.887,
+                "Modifier": 0.26,
+                "mean": 5.522309999999999,
+                "stdev": 0.6353099999999999
+            }
+        },
+        "5": {
+            "Armor": {
+                "Avg": 412.62,
+                "Modifier": 0.07,
+                "mean": 427.0617,
+                "stdev": 14.4417
+            },
+            "Mass": {
+                "Avg": 7562.5,
+                "Modifier": 0.2,
+                "mean": 8318.75,
+                "stdev": 756.25
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2806.0,
+                "Modifier": 0.2,
+                "mean": 3086.6000000000004,
+                "stdev": 280.6
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 952.2,
+                "Modifier": 0.2,
+                "mean": 1047.42,
+                "stdev": 95.22000000000001
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 952.2,
+                "Modifier": 0.2,
+                "mean": 1047.42,
+                "stdev": 95.22000000000001
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 7.191,
+                "Modifier": 0.26,
+                "mean": 8.125829999999999,
+                "stdev": 0.93483
+            }
+        },
+        "6": {
+            "Armor": {
+                "Avg": 515.775,
+                "Modifier": 0.07,
+                "mean": 533.8271249999999,
+                "stdev": 18.052125
+            },
+            "Mass": {
+                "Avg": 13219.25,
+                "Modifier": 0.1,
+                "mean": 13880.212500000001,
+                "stdev": 660.9625000000001
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2806.0,
+                "Modifier": 0.3,
+                "mean": 3226.8999999999996,
+                "stdev": 420.9
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 1325.0,
+                "Modifier": 0.25,
+                "mean": 1490.625,
+                "stdev": 165.625
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 1325.0,
+                "Modifier": 0.25,
+                "mean": 1490.625,
+                "stdev": 165.625
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 8.672,
+                "Modifier": 0.15,
+                "mean": 9.3224,
+                "stdev": 0.6504
+            }
+        },
+        "7": {
+            "Armor": {
+                "Avg": 584.0185,
+                "Modifier": 0.05,
+                "mean": 598.6189625,
+                "stdev": 14.6004625
+            },
+            "Mass": {
+                "Avg": 19734.0,
+                "Modifier": 0.1,
+                "mean": 20720.7,
+                "stdev": 986.7
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2931.0,
+                "Modifier": 0.3,
+                "mean": 3370.6499999999996,
+                "stdev": 439.65
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 1752.053,
+                "Modifier": 0.2,
+                "mean": 1927.2583000000002,
+                "stdev": 175.20530000000002
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 1752.053,
+                "Modifier": 0.2,
+                "mean": 1927.2583000000002,
+                "stdev": 175.20530000000002
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 11.837,
+                "Modifier": 0.26,
+                "mean": 13.375809999999998,
+                "stdev": 1.53881
+            }
+        },
+        "8": {
+            "Armor": {
+                "Avg": 759.2245,
+                "Modifier": 0.07,
+                "mean": 785.7973575,
+                "stdev": 26.572857500000005
+            },
+            "Mass": {
+                "Avg": 34534.5,
+                "Modifier": 0.1,
+                "mean": 36261.225,
+                "stdev": 1726.7250000000001
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2931.0,
+                "Modifier": 0.3,
+                "mean": 3370.6499999999996,
+                "stdev": 439.65
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 2433.406,
+                "Modifier": 0.0001,
+                "mean": 2433.5276703000004,
+                "stdev": 0.12167030000000001
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 2433.406,
+                "Modifier": 0.0001,
+                "mean": 2433.5276703000004,
+                "stdev": 0.12167030000000001
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 13.239,
+                "Modifier": 0.26,
+                "mean": 14.96007,
+                "stdev": 1.72107
+            }
+        },
+        "9": {
+            "Armor": {
+                "Avg": 715.247,
+                "Modifier": 0.07,
+                "mean": 740.2806449999999,
+                "stdev": 25.033645
+            },
+            "Mass": {
+                "Avg": 51480.0,
+                "Modifier": 0.2,
+                "mean": 56628.00000000001,
+                "stdev": 5148.0
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 3000.0,
+                "Modifier": 0.3,
+                "mean": 3449.9999999999995,
+                "stdev": 450.0
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 1650.573,
+                "Modifier": 0.2,
+                "mean": 1815.6303000000003,
+                "stdev": 165.05730000000003
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 1650.573,
+                "Modifier": 0.2,
+                "mean": 1815.6303000000003,
+                "stdev": 165.05730000000003
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 12.47,
+                "Modifier": 0.26,
+                "mean": 14.091099999999999,
+                "stdev": 1.6211000000000002
+            }
+        },
+        "10": {
+            "Armor": {
+                "Avg": 894.059,
+                "Modifier": 0.07,
+                "mean": 925.351065,
+                "stdev": 31.292065
+            },
+            "Mass": {
+                "Avg": 59455.0,
+                "Modifier": 0.2,
+                "mean": 65400.50000000001,
+                "stdev": 5945.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 3000.0,
+                "Modifier": 0.3,
+                "mean": 3449.9999999999995,
+                "stdev": 450.0
+            },
+            "Front_Shield_Hitpoints": {
+                "Avg": 2300.0,
+                "Modifier": 0.3,
+                "mean": 2645.0,
+                "stdev": 345.0
+            },
+            "Back_Shield_Hitpoints": {
+                "Avg": 2300.0,
+                "Modifier": 0.3,
+                "mean": 2645.0,
+                "stdev": 345.0
+            },
+            "Shield_Recharge_Rate": {
+                "Avg": 15.037,
+                "Modifier": 0.15,
+                "mean": 16.164775,
+                "stdev": 1.127775
+            }
+        }
+    },
+    "weapon": {
+        "1": {
+            "Armor": {
+                "Avg": 90.0,
+                "Modifier": 0.05,
+                "mean": 92.24999999999999,
+                "stdev": 2.25
+            },
+            "Mass": {
+                "Avg": 900.0,
+                "Modifier": 0.17,
+                "mean": 976.5,
+                "stdev": 76.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1800.0,
+                "Modifier": 0.17,
+                "mean": 1953.0,
+                "stdev": 153.0
+            },
+            "Min_Damage": {
+                "Avg": 348.0,
+                "Modifier": 0.0001,
+                "mean": 348.0174,
+                "stdev": 0.017400000000000002
+            },
+            "Max_Damage": {
+                "Avg": 468.0,
+                "Modifier": 0.0001,
+                "mean": 468.02340000000004,
+                "stdev": 0.0234
+            },
+            "Vs_Shields": {
+                "Avg": 0.7,
+                "Modifier": 0.05,
+                "mean": 0.7174999999999999,
+                "stdev": 0.017499999999999998
+            },
+            "Vs_Armor": {
+                "Avg": 0.7,
+                "Modifier": 0.05,
+                "mean": 0.7174999999999999,
+                "stdev": 0.017499999999999998
+            },
+            "Energy_Per_Shot": {
+                "Avg": 20.4,
+                "Modifier": 0.17,
+                "mean": 22.133999999999997,
+                "stdev": 1.734
+            },
+            "Refire_Rate": {
+                "Avg": 0.34,
+                "Modifier": 0.05,
+                "mean": 0.3485,
+                "stdev": 0.0085
+            }
+        },
+        "2": {
+            "Armor": {
+                "Avg": 112.5,
+                "Modifier": 0.05,
+                "mean": 115.31249999999999,
+                "stdev": 2.8125
+            },
+            "Mass": {
+                "Avg": 1575.0,
+                "Modifier": 0.17,
+                "mean": 1708.875,
+                "stdev": 133.875
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1800.0,
+                "Modifier": 0.17,
+                "mean": 1953.0,
+                "stdev": 153.0
+            },
+            "Min_Damage": {
+                "Avg": 373.375,
+                "Modifier": 0.11,
+                "mean": 393.910625,
+                "stdev": 20.535625
+            },
+            "Max_Damage": {
+                "Avg": 502.125,
+                "Modifier": 0.11,
+                "mean": 529.7418749999999,
+                "stdev": 27.616875
+            },
+            "Vs_Shields": {
+                "Avg": 0.875,
+                "Modifier": 0.05,
+                "mean": 0.8968749999999999,
+                "stdev": 0.021875000000000002
+            },
+            "Vs_Armor": {
+                "Avg": 0.875,
+                "Modifier": 0.05,
+                "mean": 0.8968749999999999,
+                "stdev": 0.021875000000000002
+            },
+            "Energy_Per_Shot": {
+                "Avg": 25.5,
+                "Modifier": 0.17,
+                "mean": 27.6675,
+                "stdev": 2.1675
+            },
+            "Refire_Rate": {
+                "Avg": 0.425,
+                "Modifier": 0.05,
+                "mean": 0.43562499999999993,
+                "stdev": 0.010625
+            }
+        },
+        "3": {
+            "Armor": {
+                "Avg": 189.75,
+                "Modifier": 0.05,
+                "mean": 194.49374999999998,
+                "stdev": 4.74375
+            },
+            "Mass": {
+                "Avg": 2375.0,
+                "Modifier": 0.17,
+                "mean": 2576.875,
+                "stdev": 201.87500000000003
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1900.0,
+                "Modifier": 0.17,
+                "mean": 2061.5,
+                "stdev": 161.5
+            },
+            "Min_Damage": {
+                "Avg": 627.27,
+                "Modifier": 0.14,
+                "mean": 671.1789,
+                "stdev": 43.9089
+            },
+            "Max_Damage": {
+                "Avg": 883.74,
+                "Modifier": 0.14,
+                "mean": 945.6018,
+                "stdev": 61.86180000000001
+            },
+            "Vs_Shields": {
+                "Avg": 0.7,
+                "Modifier": 0.05,
+                "mean": 0.7174999999999999,
+                "stdev": 0.017499999999999998
+            },
+            "Vs_Armor": {
+                "Avg": 0.7,
+                "Modifier": 0.05,
+                "mean": 0.7174999999999999,
+                "stdev": 0.017499999999999998
+            },
+            "Energy_Per_Shot": {
+                "Avg": 22.44,
+                "Modifier": 0.17,
+                "mean": 24.3474,
+                "stdev": 1.9074000000000002
+            },
+            "Refire_Rate": {
+                "Avg": 0.34,
+                "Modifier": 0.05,
+                "mean": 0.3485,
+                "stdev": 0.0085
+            }
+        },
+        "4": {
+            "Armor": {
+                "Avg": 258.75,
+                "Modifier": 0.05,
+                "mean": 265.21875,
+                "stdev": 6.46875
+            },
+            "Mass": {
+                "Avg": 4156.25,
+                "Modifier": 0.17,
+                "mean": 4509.53125,
+                "stdev": 353.28125
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 1900.0,
+                "Modifier": 0.17,
+                "mean": 2061.5,
+                "stdev": 161.5
+            },
+            "Min_Damage": {
+                "Avg": 913.5,
+                "Modifier": 0.0001,
+                "mean": 913.5456750000001,
+                "stdev": 0.045675
+            },
+            "Max_Damage": {
+                "Avg": 1287.0,
+                "Modifier": 0.0001,
+                "mean": 1287.06435,
+                "stdev": 0.06435
+            },
+            "Vs_Shields": {
+                "Avg": 0.625,
+                "Modifier": 0.05,
+                "mean": 0.640625,
+                "stdev": 0.015625
+            },
+            "Vs_Armor": {
+                "Avg": 0.625,
+                "Modifier": 0.05,
+                "mean": 0.640625,
+                "stdev": 0.015625
+            },
+            "Energy_Per_Shot": {
+                "Avg": 28.05,
+                "Modifier": 0.17,
+                "mean": 30.43425,
+                "stdev": 2.38425
+            },
+            "Refire_Rate": {
+                "Avg": 0.408,
+                "Modifier": 0.05,
+                "mean": 0.41819999999999996,
+                "stdev": 0.0102
+            }
+        },
+        "5": {
+            "Armor": {
+                "Avg": 349.14,
+                "Modifier": 0.05,
+                "mean": 357.8685,
+                "stdev": 8.7285
+            },
+            "Mass": {
+                "Avg": 6250.0,
+                "Modifier": 0.17,
+                "mean": 6781.25,
+                "stdev": 531.25
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2000.0,
+                "Modifier": 0.17,
+                "mean": 2170.0,
+                "stdev": 170.0
+            },
+            "Min_Damage": {
+                "Avg": 1106.508,
+                "Modifier": 0.14,
+                "mean": 1183.9635600000001,
+                "stdev": 77.45556
+            },
+            "Max_Damage": {
+                "Avg": 1633.147,
+                "Modifier": 0.14,
+                "mean": 1747.46729,
+                "stdev": 114.32029
+            },
+            "Vs_Shields": {
+                "Avg": 0.65,
+                "Modifier": 0.05,
+                "mean": 0.66625,
+                "stdev": 0.01625
+            },
+            "Vs_Armor": {
+                "Avg": 0.65,
+                "Modifier": 0.05,
+                "mean": 0.66625,
+                "stdev": 0.01625
+            },
+            "Energy_Per_Shot": {
+                "Avg": 24.684,
+                "Modifier": 0.17,
+                "mean": 26.782140000000002,
+                "stdev": 2.0981400000000003
+            },
+            "Refire_Rate": {
+                "Avg": 0.34,
+                "Modifier": 0.05,
+                "mean": 0.3485,
+                "stdev": 0.0085
+            }
+        },
+        "6": {
+            "Armor": {
+                "Avg": 436.425,
+                "Modifier": 0.05,
+                "mean": 447.335625,
+                "stdev": 10.910625000000001
+            },
+            "Mass": {
+                "Avg": 10925.0,
+                "Modifier": 0.17,
+                "mean": 11853.625,
+                "stdev": 928.6250000000001
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2000.0,
+                "Modifier": 0.17,
+                "mean": 2170.0,
+                "stdev": 170.0
+            },
+            "Min_Damage": {
+                "Avg": 1678.563,
+                "Modifier": 0.12,
+                "mean": 1779.2767800000001,
+                "stdev": 100.71378
+            },
+            "Max_Damage": {
+                "Avg": 2477.469,
+                "Modifier": 0.12,
+                "mean": 2626.1171400000003,
+                "stdev": 148.64813999999998
+            },
+            "Vs_Shields": {
+                "Avg": 0.625,
+                "Modifier": 0.05,
+                "mean": 0.640625,
+                "stdev": 0.015625
+            },
+            "Vs_Armor": {
+                "Avg": 0.625,
+                "Modifier": 0.05,
+                "mean": 0.640625,
+                "stdev": 0.015625
+            },
+            "Energy_Per_Shot": {
+                "Avg": 30.855,
+                "Modifier": 0.17,
+                "mean": 33.477675,
+                "stdev": 2.622675
+            },
+            "Refire_Rate": {
+                "Avg": 0.408,
+                "Modifier": 0.05,
+                "mean": 0.41819999999999996,
+                "stdev": 0.0102
+            }
+        },
+        "7": {
+            "Armor": {
+                "Avg": 560.658,
+                "Modifier": 0.0001,
+                "mean": 560.6860329000001,
+                "stdev": 0.028032900000000003
+            },
+            "Mass": {
+                "Avg": 16380.0,
+                "Modifier": 0.17,
+                "mean": 17772.3,
+                "stdev": 1392.3000000000002
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2100.0,
+                "Modifier": 0.17,
+                "mean": 2278.5,
+                "stdev": 178.5
+            },
+            "Min_Damage": {
+                "Avg": 1910.184,
+                "Modifier": 0.0001,
+                "mean": 1910.2795092000001,
+                "stdev": 0.0955092
+            },
+            "Max_Damage": {
+                "Avg": 2953.596,
+                "Modifier": 0.0001,
+                "mean": 2953.7436798000003,
+                "stdev": 0.1476798
+            },
+            "Vs_Shields": {
+                "Avg": 0.6,
+                "Modifier": 0.05,
+                "mean": 0.6149999999999999,
+                "stdev": 0.015
+            },
+            "Vs_Armor": {
+                "Avg": 0.6,
+                "Modifier": 0.05,
+                "mean": 0.6149999999999999,
+                "stdev": 0.015
+            },
+            "Energy_Per_Shot": {
+                "Avg": 27.156,
+                "Modifier": 0.17,
+                "mean": 29.46426,
+                "stdev": 2.30826
+            },
+            "Refire_Rate": {
+                "Avg": 0.34,
+                "Modifier": 0.05,
+                "mean": 0.3485,
+                "stdev": 0.0085
+            }
+        },
+        "8": {
+            "Armor": {
+                "Avg": 700.8225,
+                "Modifier": 0.0001,
+                "mean": 700.857541125,
+                "stdev": 0.035041125
+            },
+            "Mass": {
+                "Avg": 28665.0,
+                "Modifier": 0.17,
+                "mean": 31101.524999999998,
+                "stdev": 2436.525
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2100.0,
+                "Modifier": 0.17,
+                "mean": 2278.5,
+                "stdev": 178.5
+            },
+            "Min_Damage": {
+                "Avg": 2387.73,
+                "Modifier": 0.0001,
+                "mean": 2387.8493865000005,
+                "stdev": 0.1193865
+            },
+            "Max_Damage": {
+                "Avg": 3691.995,
+                "Modifier": 0.0001,
+                "mean": 3692.1795997500003,
+                "stdev": 0.18459975
+            },
+            "Vs_Shields": {
+                "Avg": 0.625,
+                "Modifier": 0.05,
+                "mean": 0.640625,
+                "stdev": 0.015625
+            },
+            "Vs_Armor": {
+                "Avg": 0.625,
+                "Modifier": 0.05,
+                "mean": 0.640625,
+                "stdev": 0.015625
+            },
+            "Energy_Per_Shot": {
+                "Avg": 14.144,
+                "Modifier": 0.0001,
+                "mean": 14.144707200000001,
+                "stdev": 0.0007072000000000001
+            },
+            "Refire_Rate": {
+                "Avg": 0.408,
+                "Modifier": 0.05,
+                "mean": 0.41819999999999996,
+                "stdev": 0.0102
+            }
+        },
+        "9": {
+            "Armor": {
+                "Avg": 605.209,
+                "Modifier": 0.05,
+                "mean": 620.3392249999999,
+                "stdev": 15.130225
+            },
+            "Mass": {
+                "Avg": 42900.0,
+                "Modifier": 0.17,
+                "mean": 46546.5,
+                "stdev": 3646.5000000000005
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2200.0,
+                "Modifier": 0.17,
+                "mean": 2387.0,
+                "stdev": 187.0
+            },
+            "Min_Damage": {
+                "Avg": 2040.739,
+                "Modifier": 0.14,
+                "mean": 2183.5907300000003,
+                "stdev": 142.85173
+            },
+            "Max_Damage": {
+                "Avg": 3305.733,
+                "Modifier": 0.14,
+                "mean": 3537.1343100000004,
+                "stdev": 231.40131000000002
+            },
+            "Vs_Shields": {
+                "Avg": 0.6,
+                "Modifier": 0.05,
+                "mean": 0.6149999999999999,
+                "stdev": 0.015
+            },
+            "Vs_Armor": {
+                "Avg": 0.6,
+                "Modifier": 0.05,
+                "mean": 0.6149999999999999,
+                "stdev": 0.015
+            },
+            "Energy_Per_Shot": {
+                "Avg": 29.868,
+                "Modifier": 0.17,
+                "mean": 32.40678,
+                "stdev": 2.53878
+            },
+            "Refire_Rate": {
+                "Avg": 0.34,
+                "Modifier": 0.05,
+                "mean": 0.3485,
+                "stdev": 0.0085
+            }
+        },
+        "10": {
+            "Armor": {
+                "Avg": 756.5115,
+                "Modifier": 0.05,
+                "mean": 775.4242874999999,
+                "stdev": 18.9127875
+            },
+            "Mass": {
+                "Avg": 51700.0,
+                "Modifier": 0.17,
+                "mean": 56094.5,
+                "stdev": 4394.5
+            },
+            "Reactor_Energy_Drain": {
+                "Avg": 2200.0,
+                "Modifier": 0.17,
+                "mean": 2387.0,
+                "stdev": 187.0
+            },
+            "Min_Damage": {
+                "Avg": 2550.924,
+                "Modifier": 0.14,
+                "mean": 2729.48868,
+                "stdev": 178.56468
+            },
+            "Max_Damage": {
+                "Avg": 4132.167,
+                "Modifier": 0.14,
+                "mean": 4421.41869,
+                "stdev": 289.25169000000005
+            },
+            "Vs_Shields": {
+                "Avg": 0.75,
+                "Modifier": 0.05,
+                "mean": 0.7687499999999999,
+                "stdev": 0.018750000000000003
+            },
+            "Vs_Armor": {
+                "Avg": 0.75,
+                "Modifier": 0.05,
+                "mean": 0.7687499999999999,
+                "stdev": 0.018750000000000003
+            },
+            "Energy_Per_Shot": {
+                "Avg": 37.335,
+                "Modifier": 0.17,
+                "mean": 40.508475,
+                "stdev": 3.1734750000000003
+            },
+            "Refire_Rate": {
+                "Avg": 0.40375,
+                "Modifier": 0.05,
+                "mean": 0.41384374999999995,
+                "stdev": 0.01009375
+            }
+        }
+    }
+}

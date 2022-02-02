@@ -289,6 +289,7 @@ def set_function_index(waypoint_manager):
     must have at least 1 waypoint in list before using this function
     ''' 
     print('waypoint_manager.waypoint_list', waypoint_manager.waypoint_list)
+    print('waypoint_manager.index', waypoint_manager.index)
     waypoint_manager.waypoint_list[waypoint_manager.index][3] = int(input('Enter the index of the function_list specifying the function to execute at this waypoint: '))
     print('current waypoint after adding function index: ',waypoint_manager.waypoint_list[waypoint_manager.index])
 

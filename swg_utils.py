@@ -19,7 +19,7 @@ config.get_config_dct()
 import sys
 python_utils_path = config.config_dct['main']['python_utils_path']
 sys.path.append(r"" + python_utils_path)
-from python_utils import file_utils
+from python_utils import file_utils, list_utils
 os = file_utils.os
 
 
@@ -241,7 +241,7 @@ def find_pixels_on_BGR_arr(img_arr, b=None, g=None, r=None,
         return where_arr
 
 
-def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1, interval_delay=0.0, window=None, region=None, coords_idx=None, activate_window=True):
+def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1, interval_delay=0.02, move_duration=0.1, duration=0.02, window=None, region=None, coords_idx=None, activate_window=True):
     '''
     Parameters
     ----------
@@ -292,6 +292,8 @@ def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1
     Simulate a mouse click on the provided coordinates. This function builds in an ability to sleep a certain amount of time before and after the click.
     If window and coords_idx are provided, then the row, col of window will be used to determine the coords.
     '''
+    if coords is None:
+        coords = [None, None]
     time.sleep(start_delay)
     if window is not None and activate_window:
         window.set_focus()
@@ -303,13 +305,24 @@ def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1
             region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
         if region is not None:
             coords = [region['left'] + coords_idx[1], region['top'] + coords_idx[0]]
-    if coords is not None:
-        pdi.moveTo(coords[0], coords[1], duration=0.2)
-    for _ in range(presses):
-        pdi.mouseDown(button=button)
-        pdi.mouseUp(button=button)
-        time.sleep(interval_delay)
-    time.sleep(max(0, return_delay - interval_delay))
+    pdi.click_fast(x=coords[0], y=coords[1], clicks=presses, interval=interval_delay, move_duration=move_duration, duration=duration, button=button)
+    time.sleep(max(0, return_delay - interval_delay * presses - move_duration))
+    
+    
+def moveTo(coords=None, start_delay=0.0, return_delay=0.0, move_duration=0.1, window=None, region=None, coords_idx=None):
+    if coords is None:
+        coords = [None, None]
+    time.sleep(start_delay)
+    if coords_idx is not None:
+        if window is not None and region is None:
+            rect = window.rectangle()
+            height_of_window_header = 26
+            # The screen part to capture
+            region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
+        if region is not None:
+            coords = [region['left'] + coords_idx[1], region['top'] + coords_idx[0]]
+    pdi.moveTo_fast(x=coords[0], y=coords[1], move_duration=move_duration)
+    time.sleep(max(0, return_delay - move_duration))
     
     
 def press(keys, presses=1, start_delay=0.0, return_delay=0.0):
@@ -362,7 +375,7 @@ def chat(string, start_delay=0.2, return_delay=0.1, interval_delay=0.1):
     time.sleep(return_delay)
     
     
-def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_col=True, start_row=0, start_col=0, end_row=None, end_col=None, iterate_row_forwards=True, iterate_col_forwards=True, fail_gracefully=False, sharpen_threshold=130):
+def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start_col=0, end_row=None, end_col=None, fail_gracefully=False, sharpen_threshold=130):
     '''
     Parameters
     ----------
@@ -382,10 +395,6 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
         Screenshot matrix of the swg_window (with top border removed) which has been Grayscaled and sharpened with the same cutoff as your search_arr
         If None, a new screenshot will be taken by this function.
         
-    iterate_row_then_col: bool
-        True: Search through img_arr for search_arr by doing the following: for each row, sweep over all columns
-        False: Search through img_arr for search_arr by doing the following: for each column, sweep over all rows
-        
     start_row: int
         The row to start searching from. Rows before this one will not be searched.
         
@@ -398,18 +407,10 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
     end_col: int
         The column to end searching on. Columns after this one will not be searched.
         
-    iterate_row_forwards: bool
-        True: Search by iterating over rows sequentially ascending.
-        False: Search by iterating over rows sequentially descending.
-        
-    iterate_col_forwards: bool
-        True: Search by iterating over cols sequentially ascending.
-        False: Search by iterating over cols sequentially descending.
-        
     fail_gracefully: bool
         True: If the desired matrix is not found, return None, None
         False: If the desired matrix is not found, raise an Exception stating this.
-
+        
     Returns
     -------
     found_idx, img_arr
@@ -428,21 +429,13 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
 
     Notes
     -----
-    1. Inventory must be open already, and the description section must be visible.
     '''
+    scale_to = 255
     if img_arr is None:
         # sharpen_threshold of 130 is for inventory_dct
         img_arr = take_grayscale_screenshot(region=region, sharpen_threshold=sharpen_threshold,
-                scale_to=255, sharpen=True, set_focus=False)
+                scale_to=scale_to, sharpen=True, set_focus=False)
 
-    if iterate_row_forwards:
-        row_direction = 1
-    else:
-        row_direction = -1
-    if iterate_col_forwards:
-        col_direction = 1
-    else:
-        col_direction = -1
     if end_row is None:
         end_row = img_arr.shape[0] - search_arr.shape[0] - 1
     if end_col is None:
@@ -451,29 +444,30 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, iterate_row_then_c
     end_col = min(img_arr.shape[1] - search_arr.shape[1] - 1, end_col)
     end_row = max(end_row, 0)
     end_col = max(end_col, 0)
-    if iterate_row_then_col:
-        for i in range(start_row, end_row + 1)[::row_direction]:
-            for j in range(start_col, end_col + 1)[::col_direction]:
-                if np.all(img_arr[i : i + search_arr.shape[0], 
-                        j : j + search_arr.shape[1]] ==
-                        search_arr):
-                    
-                    return [i, j], img_arr
-        if not fail_gracefully:
-            raise Exception('Could not find search_arr in img_arr')
-        return None, None
-    else:
-        for j in range(start_col, end_col + 1)[::col_direction]:
-            for i in range(start_row, end_row + 1)[::row_direction]:
-                if np.all(img_arr[i : i + search_arr.shape[0], 
-                        j : j + search_arr.shape[1]] ==
-                        search_arr):
-                    
-                    return [i, j], img_arr
-        if not fail_gracefully:
-            raise Exception('Could not find search_arr in img_arr')
-        return None, None
-    
+    search_where_mat = list_utils.where_mat(search_arr != 0)
+    offset_idx = search_where_mat.sum(axis=1).argmin()
+    min_row, min_col = search_where_mat[offset_idx]
+        
+    where_mat = list_utils.where_mat(img_arr == scale_to)
+    where_mat[:,0] = where_mat[:,0] - min_row
+    where_mat[:,1] = where_mat[:,1] - min_col
+    # Negative rows or cols are invalid so remove those rows that have any negative numbers        
+    where_mat = where_mat[(where_mat >= 0).all(axis=1),:]
+    # remove rows and cols that are not in between start_row, end_row; start_col, end_col
+    where_mat = where_mat[(
+            (where_mat[:,0] >= start_row) & (where_mat[:,0] <= end_row) &
+            (where_mat[:,1] >= start_col) & (where_mat[:,1] <= end_col)),:]
+    # We now have a set of valid indices to start our search from.
+    for i, j in where_mat:
+        if np.all(img_arr[i : i + search_arr.shape[0], 
+                j : j + search_arr.shape[1]] ==
+                search_arr):
+            
+            return [i, j], img_arr
+    if not fail_gracefully:
+        raise Exception('Could not find search_arr in img_arr')
+    return None, None
+
 
 def get_search_arr(fname, dir_path='.', mask_int=None):
     '''

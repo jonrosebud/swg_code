@@ -121,8 +121,7 @@ def north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv'):
     pdi.press('s')
     pdi.keyUp('shift')
     pdi.keyUp('ctrl')
-    start_time = time.time()
-    while time.time() - start_time < 80 and not np.allclose(img_arr, calibrated_north, atol=atol):
+    while not np.allclose(img_arr, calibrated_north, atol=atol):
         img_arr = take_screenshot_and_sharpen(swg_window, region=region, 
             sharpen_threshold=200, scale_to=255, sharpen=False)
         

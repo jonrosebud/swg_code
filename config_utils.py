@@ -127,7 +127,7 @@ class Instruct(ConfigParser):
         for section in self.sections():
             section_dct = {}
             for option in self.options(section):
-                value = self.get(section, option)
+                value = self.get_value(section, option)
                 if value.lower() == 'true':
                     section_dct[option] = True
                     continue

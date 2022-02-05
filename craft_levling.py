@@ -24,8 +24,12 @@ import swg_utils
 import pandas as pd
 import pydirectinput_tmr as pdi
 os = file_utils.os
-swg_window = swm.swg_windows[2]
-swg_region = swm.swg_window_regions[2]
+swg_window_i = config.config_dct['main']['swg_window_i']
+if swg_window_i is None:
+    # Set custom value here
+    swg_window_i = 2
+swg_window = swm.swg_windows[swg_window_i]
+swg_region = swm.swg_window_regions[swg_window_i]
 
 # 2671504 initial iron
 # 2470320 left at level 70

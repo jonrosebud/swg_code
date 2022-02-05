@@ -10,7 +10,6 @@ import cv2
 import numpy as np
 import pandas as pd
 import pywinauto as pwa
-import pydirectinput as pdi
 from config_utils import Instruct
 import socket
 config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
@@ -19,6 +18,7 @@ config.get_config_dct()
 import sys
 python_utils_path = config.config_dct['main']['python_utils_path']
 sys.path.append(r"" + python_utils_path)
+import pydirectinput_tmr as pdi
 from python_utils import windows_process_utils, file_utils
 from copy import deepcopy
 from PIL import Image

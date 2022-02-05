@@ -6,7 +6,7 @@ Created on Sun Jun 13 23:02:32 2021
 """
 
 import time
-import pydirectinput as pdi
+import pydirectinput_tmr as pdi
 import get_land_coords as glc
 import pandas as pd
 import math

@@ -11,8 +11,6 @@ import pandas as pd
 import numpy as np
 import math
 import pyautogui as pag
-import pydirectinput as pdi
-from drag_mouse import drag_mouse
 import time
 from config_utils import Instruct
 import socket
@@ -26,7 +24,9 @@ from python_utils import file_utils
 os = file_utils.os
 git_path = config.config_dct['main']['git_path']
 sys.path.append(r"" + git_path)
+import pydirectinput_tmr as pdi
 import swg_utils
+ait = swg_utils.ait
 import swg_window_management as swm
 import go_to_chassis_dealer
 '''
@@ -849,7 +849,7 @@ class Ship_Component:
             # activate inventory window
             swg_utils.click(inventory_activation_coords, button='left', start_delay=0.1, return_delay=0.1)
         # Drag item from inventory to the hopper.
-        drag_mouse(autoit_dir, start_coords=item_coords, end_coords=into_hopper_coords, num_drags=1, delay_return=0.75)
+        swg_utils.click_drag(start_coords=item_coords, end_coords=into_hopper_coords, num_drags=1, return_delay=0.75)
         
         
     def get_max_loot_percentile_value_stc(self):
@@ -1495,7 +1495,7 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
                         generic_component.store_loot_in_hopper(item_coords, 'non_components')
                         # Activate the inventory
                         pdi.press('i', presses=2)
-                        drag_mouse(autoit_dir, start_coords=item_coords, end_coords=into_hopper_coords, num_drags=1, delay_return=0.75)
+                        swg_utils.click_drag(start_coords=item_coords, end_coords=into_hopper_coords, num_drags=1, return_delay=0.75)
                         # Activate non-space component hopper and close it.
                         close_hopper()
                 else:
@@ -1820,7 +1820,7 @@ def put_junk_into_caravan(backpack_coords=None):
         item_coords = get_item_coords(corner_description_idx, region, 0)
         for i in range(num_items_to_move_from_hopper_to_caravan):
             # Move items into caravan
-            drag_mouse(autoit_dir, start_coords=item_coords, end_coords=into_inventory_coords, num_drags=1, delay_return=0.5)
+            swg_utils.click_drag(start_coords=item_coords, end_coords=into_inventory_coords, num_drags=1, return_delay=0.5)
         # Close hopper
         pdi.press('esc')
         # If number of items in junk hopper was the number to move, then the caravan had at least enough space or more. Thus all items in
@@ -1999,15 +1999,16 @@ def orient():
     pdi.press(str(pit_droid_pane))
     pdi.keyUp('ctrl')
     # Scroll (zoom) all the way in
-    for _ in range(50):
-        pag.scroll(100)
+    swg_utils.zoom(direction='in')
     # Get to free-moving mouse mode
     time.sleep(1.5)
     pdi.press('alt', presses=3)
     time.sleep(1.5)
-    pdi.moveTo(x=int(region['left'] + region['width'] / 2), y=region['top'] + region['height'])
+    mid_x = int(region['left'] + region['width'] / 2)
+    bottom_y = region['top'] + region['height']
+    pdi.moveTo(x=mid_x, y=bottom_y)
     time.sleep(1.5)
-    os.system(r'D:\autoit\swg\swg_window_0_pan_down_50.exe')
+    ait.mouse_move(mid_x, bottom_y + 100)
     time.sleep(1.5)
     pdi.press('alt')
     time.sleep(1.5)
@@ -2135,9 +2136,6 @@ non_components_hopper_i: int
 backpack_inventory_position:
     Position in the inventory (0-indexed) of the equipped backpack.
     
-autoit_dir: str
-    Path of the directory containing drag_mouse.exe which is an autoit program for dragging the mouse.
-    
 Constants
 ---------
 digit_height: int
@@ -2203,7 +2201,6 @@ droid_interface_hopper_i = 0
 non_components_hopper_i = 0
 collection_hopper_i = 0
 backpack_inventory_position = 0
-autoit_dir=r'D:\autoit\swg\REing'
 # Constants
 digit_height = 7
 num_cols_from_left_side_to_first_indentation_level = 7
@@ -2237,7 +2234,7 @@ if __name__ == '__main__':
     #pdi.press('alt')
     #orient()
     sorting_desires_dct = {
-'inventory': True, 'backpack': True, 'crates': False, 'droids': False
+'inventory': True, 'backpack': False, 'crates': False, 'droids': False
     }
     roundtrip_i = 0
     while not all_done:

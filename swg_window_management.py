@@ -11,7 +11,6 @@ config.get_config_dct()
 import socket
 import sys
 python_utils_path = config.get_value('main', 'python_utils_path', desired_type=str, required_to_be_in_conf=False, default_value='.')
-autoit_path = config.get_value('main', 'autoit_path', desired_type=str, required_to_be_in_conf=False, default_value='.')
 sys.path.append(r"" + python_utils_path)
 try:
     import pywinauto as pwa
@@ -29,26 +28,25 @@ import time
 
 
 def wait_until_window_active(window, interval=3.5, return_delay=3.5):
+    '''
+    Parameters
+    ----------
+    window: pywinauto.application.WindowSpecification
+        Window object
+        
+    interval: float
+        Amount of time to sleep in between checks of whether window is active yet.
+        
+    return_delay: float
+        Amount of time to sleep after window is active and before returning.
+
+    Purpose    
+    -------
+    Wait until a window becomes active to continue.
+    '''
     while not window.is_active():
         time.sleep(interval)
     time.sleep(return_delay)
-
-
-def activate_window(swg_window_i, swg_window=None):
-    # Note that current implementation of activate_swg_windows.exe will not activate a window until the number in window_to_activate.txt changes (except at the very beginning of activate_swg_windows.exe)
-    # which means it's possible swg_window_i will not be activated if you use some other method to activate or switch between windows other than this function.
-    output_path = os.path.join(git_path, 'window_to_activate.txt')
-    basename = 'activate_swg_windows.exe'
-    autoit_activate_window_exe_path = os.path.abspath(os.path.join(autoit_path, basename))
-    vars_df = windows_process_utils.get_vars_df(image_name=basename)
-    autoit_process_df = windows_process_utils.get_passing_df(vars_df)
-    if autoit_process_df is None:
-        result = subprocess.Popen(autoit_activate_window_exe_path, shell=True,
-                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
-    file_utils.write_to_file(output_path, str(swg_window_i), mode='w')
-    if swg_window is not None:
-        wait_until_window_active(swg_window)
         
 
 def get_swg_windows(swg_process_df=None):

@@ -2,6 +2,7 @@ import ctypes
 import functools
 import inspect
 import time
+import autoit as ait
 
 SendInput = ctypes.windll.user32.SendInput
 MapVirtualKey = ctypes.windll.user32.MapVirtualKeyW
@@ -395,9 +396,9 @@ def click(x=None, y=None, clicks=1, interval=0.0, button=PRIMARY, duration=None,
         time.sleep(interval)
         
         
-def click_fast(x=None, y=None, clicks=1, interval=0.0, button=PRIMARY, move_duration=0.0, duration=0.0):
+def click_fast(x=None, y=None, clicks=1, interval=0.0, button=PRIMARY, move_speed=0.0, duration=0.0):
     if not x is None or not y is None:
-        moveTo_fast(x, y, move_duration=move_duration)
+        ait.mouse_move(x, y, move_speed)
 
     for i in range(clicks):
         mouseDown_fast(button=button)
@@ -449,7 +450,7 @@ def moveTo(x=None, y=None, duration=None, tween=None, logScreenshot=False, _paus
         moveRel(x - currentX, y - currentY, relative=True)
 
 
-def moveTo_fast(x=None, y=None, move_duration=None):
+def moveTo_fast(x=None, y=None):
     x, y = position(x, y)  # if only x or y is provided, will keep the current position for the other axis
     x, y = _to_windows_coordinates(x, y)
     extra = ctypes.c_ulong(0)

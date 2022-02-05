@@ -16,18 +16,19 @@ sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils
 import time
 import numpy as np
-import pydirectinput as pdi
 git_path = config.config_dct['main']['git_path']
 sys.path.append(r"" + git_path)
 import swg_window_management as swm
 import run_waypoint_path as rwp
 import swg_utils
 import pandas as pd
+import pydirectinput_tmr as pdi
 os = file_utils.os
 swg_window = swm.swg_windows[2]
 swg_region = swm.swg_window_regions[2]
 
 # 2671504 initial iron
+# 2470320 left at level 70
 def manual():
     swg_window.set_focus()
     time.sleep(0.5)

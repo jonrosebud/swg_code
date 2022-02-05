@@ -14,9 +14,11 @@ import sys
 python_utils_path = config.config_dct['main']['python_utils_path']
 sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils, windows_process_utils
+git_path = config.config_dct['main']['git_path']
+sys.path.append(r"" + git_path)
 import time
 import numpy as np
-import pydirectinput as pdi
+import pydirectinput_tmr as pdi
 import get_land_coords as glc
 import waypoint_path as wpp
 import swg_window_management as swm
@@ -150,7 +152,7 @@ def attack():
 
 def destroy_for_all_windows():
     spin_toon = [True, True, False]
-    item_to_destroy_coord_list = [[312, 656], [1410, 595], [2899, 533]]
+    item_to_destroy_coord_list = [[448, 669], [1865, 600], [2711, 533]]
     num_items_to_destroy = [4,4,17]
     radial_option_delta_dct = {'6': [52, -106], '5': [70, -12], '4': [52, 81], '3': [-3, 104], '2': [-59, 81]}
     for i in range(len(swm.swg_windows)):

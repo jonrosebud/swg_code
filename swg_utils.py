@@ -4,7 +4,7 @@ Created on Tue Oct 26 21:09:28 2021
 
 @author: trose
 """
-import pydirectinput as pdi
+
 import time
 import pyautogui as pag
 import mss
@@ -21,6 +21,10 @@ python_utils_path = config.config_dct['main']['python_utils_path']
 sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils, list_utils
 os = file_utils.os
+import autoit as ait
+git_path = config.config_dct['main']['git_path']
+sys.path.append(r"" + git_path)
+import pydirectinput_tmr as pdi
 
 
 def get_int_from_line_arr(line_arr, digit_dct):
@@ -241,7 +245,7 @@ def find_pixels_on_BGR_arr(img_arr, b=None, g=None, r=None,
         return where_arr
 
 
-def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1, interval_delay=0.02, move_duration=0.1, duration=0.02, window=None, region=None, coords_idx=None, activate_window=True):
+def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1, interval_delay=0.02, move_speed=5, duration=0.02, window=None, region=None, coords_idx=None, activate_window=True):
     '''
     Parameters
     ----------
@@ -305,11 +309,11 @@ def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1
             region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
         if region is not None:
             coords = [region['left'] + coords_idx[1], region['top'] + coords_idx[0]]
-    pdi.click_fast(x=coords[0], y=coords[1], clicks=presses, interval=interval_delay, move_duration=move_duration, duration=duration, button=button)
-    time.sleep(max(0, return_delay - interval_delay * presses - move_duration))
+    pdi.click_fast(x=coords[0], y=coords[1], clicks=presses, interval=interval_delay, move_speed=move_speed, duration=duration, button=button)
+    time.sleep(return_delay)
     
     
-def moveTo(coords=None, start_delay=0.0, return_delay=0.0, move_duration=0.1, window=None, region=None, coords_idx=None):
+def moveTo(coords=None, start_delay=0.0, return_delay=0.0, move_speed=5, window=None, region=None, coords_idx=None):
     if coords is None:
         coords = [None, None]
     time.sleep(start_delay)
@@ -321,8 +325,8 @@ def moveTo(coords=None, start_delay=0.0, return_delay=0.0, move_duration=0.1, wi
             region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
         if region is not None:
             coords = [region['left'] + coords_idx[1], region['top'] + coords_idx[0]]
-    pdi.moveTo_fast(x=coords[0], y=coords[1], move_duration=move_duration)
-    time.sleep(max(0, return_delay - move_duration))
+    ait.mouse_move(x=coords[0], y=coords[1], speed=move_speed)
+    time.sleep(return_delay)
     
     
 def press(keys, presses=1, start_delay=0.0, return_delay=0.0):
@@ -433,7 +437,7 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
     if img_arr is None:
         # sharpen_threshold of 130 is for inventory_dct
         img_arr = take_grayscale_screenshot(region=region, sharpen_threshold=sharpen_threshold,
-                scale_to=255, sharpen=True, set_focus=False)
+                scale_to=255, sharpen=sharpen_threshold is not None, set_focus=False)
 
     if end_row is None:
         end_row = img_arr.shape[0] - search_arr.shape[0] - 1
@@ -443,11 +447,11 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
     end_col = min(img_arr.shape[1] - search_arr.shape[1] - 1, end_col)
     end_row = max(end_row, 0)
     end_col = max(end_col, 0)
-    search_where_mat = list_utils.where_mat(search_arr != 0)
+    search_where_mat = list_utils.where_mat(search_arr > 0)
     offset_idx = search_where_mat.sum(axis=1).argmin()
     min_row, min_col = search_where_mat[offset_idx]
         
-    where_mat = list_utils.where_mat(img_arr != 0)
+    where_mat = list_utils.where_mat(img_arr > 0)
     where_mat[:,0] = where_mat[:,0] - min_row
     where_mat[:,1] = where_mat[:,1] - min_col
     # Negative rows or cols are invalid so remove those rows that have any negative numbers        
@@ -527,3 +531,75 @@ def run_recorded_key_presses(recorded_key_presses, function_list=[empty_function
         for key, duration, function_idx in recorded_key_presses[::-1]:
             pdi.press_key_fast(reverse_dct[key], duration=duration)
             reverse_function_list[function_idx]()
+            
+            
+def click_drag(start_coords, end_coords, num_drags=1, start_delay=0.0, return_delay=0.0):
+    time.sleep(start_delay)
+    for i in range(num_drags):
+        if i != 0:
+            time.sleep(0.1)
+        ait.mouse_move(start_coords[0], start_coords[1], speed=-1)
+        ait.mouse_down()
+        time.sleep(0.1)
+        ait.mouse_move(end_coords[0], end_coords[1], speed=-1)
+        ait.mouse_up()
+    time.sleep(return_delay)
+    
+    
+def find_via_moving_mouse(search_arr_csv_fname, dir_path, swg_region, sharpen_threshold=255, start_row=0, start_col=0, end_row=None, end_col=None, row_chunk_size='search_arr', col_chunk_size='search_arr', fast_move_speed=10, slow_move_speed=40, fail_gracefully=False):
+    # You must have Show All Object Names option turned off.
+    search_arr = get_search_arr(search_arr_csv_fname, dir_path=dir_path, mask_int=0)
+    if row_chunk_size == 'search_arr':
+        row_chunk_size = search_arr.shape[0]
+    if col_chunk_size == 'search_arr':
+        col_chunk_size = search_arr.shape[1]
+    # Get into free-moving mouse mode
+    pdi.press('alt')
+    found_idx = None
+    row_buffer = 10 + search_arr.shape[0]
+    col_buffer = 10 + search_arr.shape[1]
+    start_row = max(row_buffer, start_row)
+    start_col = max(col_buffer, start_col)
+    if end_row is None:
+        end_row = swg_region['height'] - row_buffer
+    end_row = min(end_row, swg_region['height'] - row_buffer)
+    if end_col is None:
+        end_col = swg_region['width'] - col_buffer
+    end_col = min(end_col, swg_region['width'] - col_buffer)
+    for row in range(start_row, end_row, row_chunk_size):
+        moveTo(coords_idx=[row, start_col], region=swg_region, return_delay=0.02, move_speed=0)
+        moveTo(coords_idx=[row, end_col], region=swg_region, return_delay=0.02, move_speed=fast_move_speed)
+        found_idx, _ = find_arr_on_region(search_arr, region=swg_region, fail_gracefully=True, sharpen_threshold=sharpen_threshold)
+        if found_idx is not None:
+            # The object title will disappear after 1 second if the cursor is no longer over the object.
+            time.sleep(1)
+            found_idx, _ = find_arr_on_region(search_arr, region=swg_region, fail_gracefully=True, sharpen_threshold=sharpen_threshold)
+            if found_idx is not None:
+                return found_idx
+            # Move along this row more slowly/carefully to see when it pops up again
+            moveTo(coords_idx=[row, start_col], region=swg_region, return_delay=0.02, move_speed=0)
+            for col in range(start_col, end_col, col_chunk_size):
+                moveTo(coords_idx=[row, col], region=swg_region, return_delay=0.15, move_speed=slow_move_speed)
+                found_idx, _ = find_arr_on_region(search_arr, region=swg_region, fail_gracefully=True, sharpen_threshold=sharpen_threshold)
+                if found_idx is not None:
+                    return found_idx
+    if fail_gracefully:
+        return None
+    else:
+        raise Exception('Could not find', search_arr_csv_fname)
+    
+        
+def zoom(direction='in'):
+    '''
+    Parameters
+    ----------
+    direction: str
+        Zoom in if 'in' or out if 'out'
+
+    Purpose
+    -------
+    Zoom in or out by scrolling the mouse wheel
+    '''
+    direction_dct = {'in': 1, 'out': -1}
+    for _ in range(50):
+        pag.scroll(direction_dct[direction] * 100)

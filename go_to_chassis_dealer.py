@@ -18,15 +18,16 @@ np = file_utils.np
 git_path = config.config_dct['main']['git_path']
 sys.path.append(r"" + git_path)
 import run_waypoint_path as rwp
-import pydirectinput as pdi
+import pydirectinput_tmr as pdi
 import swg_window_management as swm
 import swg_utils
 import time
 import get_land_coords as glc
 
 
-swg_window = swm.swg_windows[0]
-region = swm.swg_window_regions[0]
+swg_window_i = 2
+swg_window = swm.swg_windows[swg_window_i]
+region = swm.swg_window_regions[swg_window_i]
 
 
 def find_travel_button():
@@ -80,6 +81,10 @@ def open_ship_details_window():
     
     
 def space_travel():
+    swg_utils.zoom(direction='out')
+    # Find Starship Terminal
+    chassis_dealer_idx, _ = swg_utils.find_via_moving_mouse('Starship_255', os.path.join(git_path, 'land_ui_dir'), region, sharpen_threshold=255, start_row=200, start_col=200, end_row=700, end_col=900, row_chunk_size=10, col_chunk_size=10, slow_move_speed=40, fast_move_speed=10, fail_gracefully=False)
+    swg_utils.click(return_delay=3)
     open_ship_details_window()
     _ = click_on_travel_button(return_delay=3)
     travel_button_idx = find_travel_button()
@@ -87,12 +92,9 @@ def space_travel():
     swg_utils.click(button='left', start_delay=0, return_delay=1, interval_delay=0, window=None, region=region, coords_idx=lok_idx)
     _ = click_on_travel_button(travel_button_idx=travel_button_idx, return_delay=14)
     
+    
 def sell_to_chassis_dealer():
-    # Click on chassis dealer
-    swg_utils.click(return_delay=3)
-    # Back up
-    pdi.press('s', presses=2)
-    swg_utils.chat('/ui action conversationResponse0', start_delay=0, return_delay=5)
+    swg_utils.chat('/macro chassisDealer', start_delay=0, return_delay=5)
     select_button_arr = file_utils.read_csv(os.path.join(git_path, 'land_ui_dir', 'Select.csv'), dtype=int)
     img_arr = swg_utils.take_grayscale_screenshot(swg_window, region, 
                 sharpen_threshold=197, scale_to=255, set_focus=False, sharpen=True)
@@ -109,6 +111,8 @@ def sell_to_chassis_dealer():
         
         select_button_idx, _ = swg_utils.find_arr_on_region(select_button_arr, img_arr=img_arr, fail_gracefully=True)
         # The "select" on the SELL LOOT window will disappear once all loot has been sold.
+    # Exit free moving mouse mode
+    pdi.press('alt')
         
         
 def launch_ship():
@@ -152,7 +156,8 @@ def go_to_chassis_dealer(swg_window_i=0, calibrate_to_north=True):
 def main():
     swg_window.set_focus()
     time.sleep(0.5)
-    go_to_chassis_dealer()
+    #go_to_chassis_dealer()
+    sell_to_chassis_dealer()
     
     
 if __name__ == '__main__':

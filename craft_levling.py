@@ -58,6 +58,8 @@ def manual():
 def main():
     swg_window.set_focus()
     time.sleep(0.5)
+    # Enter free-moving mouse mode
+    pdi.press('alt')
     resource_idx = [135, 50]
     # Make it so only the window that requires double clicking resource has a part of it that goes to the upper left corner
     pixel_sum_region = {'left': swg_region['left'], 'top': swg_region['top'], 'width': 5, 'height': 5}

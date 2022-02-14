@@ -157,7 +157,7 @@ def attack():
         
 
 def destroy_for_all_windows():
-    item_to_destroy_coord_list = [[296, 367]]
+    item_to_destroy_coord_list = [[380, 550]]
     num_items_to_destroy = [17]
     radial_option_delta_dct = {'6': [52, -106], '5': [70, -12], '4': [52, 81], '3': [-3, 104], '2': [-59, 81]}
     for i in range(len(swm.swg_windows)):
@@ -175,6 +175,8 @@ def destroy_for_all_windows():
         pdi.press('esc', presses=2)
         pdi.press('i')
         mouse_pos = item_to_destroy_coord_list[i]
+        pdi.moveTo(x=mouse_pos[0], y=mouse_pos[1])
+        raise Exception('done')
         for j in range(num_items_to_destroy[i]):
             swg_utils.click(coords=mouse_pos, button='right', start_delay=0, return_delay=0.3)
             img_arr = glc.take_screenshot_and_sharpen(swg_window, region, 

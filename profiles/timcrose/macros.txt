@@ -70,7 +70,7 @@ version: 0000
 56 rapidFire bh_return_fire_command #ffffff /pause 0.25;/ship WeaponGroup fireProjectile 0;/pause 0.1;/ship WeaponGroup fireProjectile 1;/pause 0.1;/ship WeaponGroup fireProjectile 2;/macro rapidFire;
 103 repairAndGetMission bh_carbine #ffffff /pause 0.25;/pause 1;/conversationStart;/pause 1;/ui action conversationResponse1;/pause 1;/ui action conversationResponse3;/pause 1;/ui action conversationResponse0;/pause 1;/ui action conversationResponse2;/pause 1;/ui action conversationResponse3;/pause 1;/conversationStop;
 84 repeatLoot battlefield_communication_run #ffffff /pause 0.25;/macro loot;/pause 10;/macro repeatLoot;
-70 rotateYaw90 bm_improved_healing #ffffff /pause 0.25;/rotate yaw 90;/pause 0.3;/macro rotateYaw90;
+70 rotateYaw90 bm_improved_healing #ffffff /pause 0.25;/rotate yaw -90;/pause 0.3;/macro rotateYaw90;
 72 sendTellOdd wod_agony #ffffff /pause 0.25;/say send tell to OddBodkins for invite;/pause 120;/macro sendTellOdd;
 7 sendtell bh_taunt #ffffff /pause 0.25;/say send me a tell if you need these npcs;/pause 120;/macro sendtell;
 115 shieldRearAdjustExtreme of_deadeye_debuff #ffffff /pause 0.25;/droid droidcommand_shieldadjustrearfour;
@@ -104,3 +104,4 @@ version: 0000
 58 w0 startband #ffffff /pause 0.25;/ship WeaponGroup fireProjectile 0;/macro w0;
 59 w1 stopband #ffffff /pause 0.25;/ship WeaponGroup fireProjectile 1;/macro w1;
 60 w2 startgroupdance #ffffff /pause 0.25;/ship WeaponGroup fireProjectile 2;/macro w2;
+117 moveLeft actOfWar #ffffff /pause 0.25;/move left 200;/pause 0.05;/macro moveLeft;

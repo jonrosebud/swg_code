@@ -22,7 +22,6 @@ import pydirectinput_tmr as pdi
 import get_land_coords as glc
 import waypoint_path as wpp
 import swg_window_management as swm
-from destroy_junk import press_destroy
 import random
 import string
 import swg_utils

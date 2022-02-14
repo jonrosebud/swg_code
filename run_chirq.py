@@ -82,7 +82,7 @@ def check_if_player_nearby_2():
     player_nearby = True
     while player_nearby:
         img_arr = swg_utils.take_screenshot(region=radar_region, set_focus=False)
-        swg_utils.save_BGR_to_csvs(img_arr, '.', 'debug')
+        #swg_utils.save_BGR_to_csvs(img_arr, '.', 'debug')
         # Find all indices of cyan and purple
         purple_set = swg_utils.find_pixels_on_BGR_arr(img_arr, b=198, g=0, r=132, return_as_set=True)
         cyan_set = swg_utils.find_pixels_on_BGR_arr(img_arr, b=171, g=161, r=0, return_as_set=True)

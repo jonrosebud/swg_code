@@ -1,0 +1,80 @@
+Installing MPI on Windows (optional)
+1. Click the Download button on https://www.microsoft.com/en-us/download/details.aspx?id=54607&ranMID=24542&ranEAID=TnL5HPStwNw&ranSiteID=TnL5HPStwNw-u05q2yRLAGmZkbZ63C2c8g&epi=TnL5HPStwNw-u05q2yRLAGmZkbZ63C2c8g&irgwc=1&OCID=AID2200057_aff_7593_1243925&tduid=%28ir__otxuhcsf1gkfq332xkedz1fqem2xoex0xx33haas00%29%287593%29%281243925%29%28TnL5HPStwNw-u05q2yRLAGmZkbZ63C2c8g%29%28%29&irclickid=_otxuhcsf1gkfq332xkedz1fqem2xoex0xx33haas00
+2. Run installer.
+-------------------------------------------------------------------------------------------------------
+Installing Anaconda3
+1. Click the "Download the Anaconda Installer" link on https://docs.anaconda.com/anaconda/install/windows/
+2. Run installer and accept defaults.
+Notes: Now, open Anaconda Prompt program as administrator.
+-------------------------------------------------------------------------------------------------------
+Installing mss
+1. Anaconda prompt
+pip3 install mss
+-------------------------------------------------------------------------------------------------------
+Installing cv2
+1. Anaconda prompt
+pip3 install opencv-python
+Note: import cv2
+-------------------------------------------------------------------------------------------------------
+Installing pyautogui
+1. Anaconda prompt
+pip3 install pyautogui
+-------------------------------------------------------------------------------------------------------
+Installing mpi4py (optional)
+1. Anaconda prompt
+pip3 install mpi4py
+-------------------------------------------------------------------------------------------------------
+Installing pygame
+1. Anaconda prompt
+pip3 install pygame
+-------------------------------------------------------------------------------------------------------
+Installing pynput
+1. Anaconda prompt
+pip3 install pynput
+-------------------------------------------------------------------------------------------------------
+Installing PyAutoIt
+1. Anaconda prompt
+pip3 install PyAutoIt
+Note: import autoit
+-------------------------------------------------------------------------------------------------------
+Installing pywinauto
+1. Download pywin32-228-cp39-cp39-win_amd64.whl from https://github.com/CristiFati/Prebuilt-Binaries/tree/master/PyWin32/v228
+2. Anaconda prompt:
+pip3 install -U --force-reinstall C:\Users\trose\Downloads\pywin32-228-cp39-cp39-win_amd64.whl
+-------------------------------------------------------------------------------------------------------
+Obtain github swg_code repo
+1. Download Git for Windows at gitforwindows.org
+2. Run downloaded installer and accept defaults.
+3. In Git for Windows (MINGW64) navigate to a directory that you want to have the repo put in.
+4. git clone https://github.com/jonrosebud/swg_code.git
+-------------------------------------------------------------------------------------------------------
+Obtain python_utils
+1. In Git for Windows navigate to a directory that you want to have the repo put in.
+2. git clone https://github.com/timcrose/python_utils.git
+-------------------------------------------------------------------------------------------------------
+Setup your config file
+1. Run Spyder as administrator
+2. In the python terminal do
+import socket
+print(socket.gethostname())
+3. Let's say the result is Timspro1. Open a new Notepad. It's name will be saved to be swg_config_file_for_Timspro1.txt.
+4. Put python_utils path and git_path as seen below (later, could run setup.py to install python_utils and create setup.py and __init__.py for swg_code)
+5. Put coordinates of the top left of the ground radar coordinates relative to the borderless swg window
+6. Put the relative coordinates of where north is on the ground radar
+Example:
+
+[main]
+python_utils_path = C:\Users\trose\Documents\python_packages
+top_coord = 166
+left_coord = 867
+top_north = 37
+left_north = 940
+git_path = C:\Users\trose\Documents\python_packages\swg_code
+
+7. Save the file to the git_path directory.
+-------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------
+Running:
+For regular scripts run via Spyder or Anaconda Prompt (run as administrator).
+For MPI scripts run via Anaconda Prompt e.g., when in directory containing mpi_test.py, use
+mpiexec -n 2 C:\ProgramData\Anaconda3\python.exe mpi_test.py

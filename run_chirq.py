@@ -151,8 +151,7 @@ def attack():
         
 
 def destroy_for_all_windows():
-    spin_toon = [True, True, False]
-    item_to_destroy_coord_list = [[448, 669], [1865, 600], [2711, 533]]
+    item_to_destroy_coord_list = [[445, 660], [1349, 658], [2540, 533]]
     num_items_to_destroy = [4,4,17]
     radial_option_delta_dct = {'6': [52, -106], '5': [70, -12], '4': [52, 81], '3': [-3, 104], '2': [-59, 81]}
     for i in range(len(swm.swg_windows)):

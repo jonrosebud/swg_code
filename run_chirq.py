@@ -28,6 +28,13 @@ import string
 import swg_utils
 os = file_utils.os
 
+swg_window_i = config.config_dct['main']['swg_window_i']
+if swg_window_i is None:
+    # Set custom value here
+    swg_window_i = 0
+swg_window = swm.swg_windows[swg_window_i]
+region = swm.swg_window_regions[swg_window_i]
+
 destroy_arr = file_utils.read_csv(os.path.join('words_dir', 'Destroy.csv'), dtype=int)
 player_nearby_global = False
 
@@ -183,8 +190,6 @@ def destroy_for_all_windows():
         swg_utils.press('i', return_delay=0.1)
         
 
-swg_window = swm.swg_windows[2]
-region = swm.swg_window_regions[2]
 radar_searchable_indices = get_radar_searchable_indices(planet='Talus')
 radar_region = get_radar_region(swg_window, region)
 def main():

@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import math
 import pyautogui as pag
-import pydirectinput as pdi
+import pydirectinput_tmr as pdi
 from drag_mouse import drag_mouse
 import time
 from config_utils import Instruct

@@ -6,7 +6,7 @@ Created on Wed Oct 13 14:57:48 2021
 """
 import time
 import pyautogui as pag
-import pydirectinput as pdi
+import pydirectinput_tmr as pdi
 import pygame
 pygame.init()
 import sys

@@ -18,7 +18,7 @@ np = file_utils.np
 git_path = config.config_dct['main']['git_path']
 sys.path.append(r"" + git_path)
 import run_waypoint_path as rwp
-import pydirectinput as pdi
+import pydirectinput_tmr as pdi
 import swg_window_management as swm
 import swg_utils
 import time

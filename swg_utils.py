@@ -469,7 +469,7 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
             return [i, j], img_arr
     if not fail_gracefully:
         raise Exception('Could not find search_arr in img_arr')
-    return None, None
+    return None, img_arr
 
 
 def get_search_arr(fname, dir_path='.', mask_int=None):

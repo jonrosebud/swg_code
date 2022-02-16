@@ -24,6 +24,7 @@ import run_waypoint_path as rwp
 import swg_utils
 import pandas as pd
 os = file_utils.os
+import random
 
 class SWG:
     def __init__(self, swg_window_i=0):
@@ -38,18 +39,18 @@ class SWG:
 class Space(SWG):
     def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir')):
         super(Space, self).__init__(swg_window_i=swg_window_i)
+        self.dir_path = dir_path
         self.target_closest_enemy_hotkey = target_closest_enemy_hotkey
-        self.space_target_distance_digits = {digit: swg_utils.get_search_arr('space_target_distance_digit_' + str(digit), dir_path=dir_path, mask_int=0) for digit in range(10)}
+        self.space_target_distance_digits = {digit: swg_utils.get_search_arr('space_target_distance_digit_' + str(digit), dir_path=self.dir_path, mask_int=None) for digit in range(10)}
         # INITIAL VALUES
         self.target_dist_idx = None
         
         
     def get_target_dist(self):
         if self.target_dist_idx is None:
-            pdi.press('c')
-            target_dist_right_arr = swg_utils.get_search_arr('target_dist_right_parenthesis', dir_path=self.dir_path, mask_int=0)
+            target_dist_right_arr = swg_utils.get_search_arr('target_dist_right_parenthesis', dir_path=self.dir_path, mask_int=None)
             target_right_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_right_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194)
-            target_dist_left_arr = swg_utils.get_search_arr('target_dist_left_parenthesis', dir_path=self.dir_path, mask_int=0)
+            target_dist_left_arr = swg_utils.get_search_arr('target_dist_left_parenthesis', dir_path=self.dir_path, mask_int=None)
             target_left_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_left_arr, region=self.swg_region, start_row=target_right_parenthesis_idx[0], start_col=target_right_parenthesis_idx[1] - 100, end_row=target_right_parenthesis_idx[0], end_col=target_right_parenthesis_idx[1], fail_gracefully=False, sharpen_threshold=194)
             self.target_dist_idx = [target_left_parenthesis_idx[0], target_left_parenthesis_idx[1] + target_dist_left_arr.shape[1] + 1]
         line_region = {'left': self.swg_region['left'] + self.target_dist_idx[1], 'top': self.swg_region['top'] + self.target_dist_idx[0], 'width': 6 * 6, 'height': 7}
@@ -425,10 +426,11 @@ class Duty_Mission_Deck_Turret(Duty_Mission_Turret, Deck_Turret):
 
         
 class Pilot(Space):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350, enemy_full_speed=600):
         super(Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path)
         self.full_speed_when_booster_on = full_speed_when_booster_on
         self.full_speed = full_speed
+        self.enemy_full_speed = enemy_full_speed
         # INITIAL VALUES
         self.active_waypoint_idx = None
         self.target_location_idx = None
@@ -463,19 +465,17 @@ class Pilot(Space):
             return
         swg_utils.chat('/fol')
         time.sleep(0.1)
-        acquired_direction = False
+        swg_utils.chat('/tar ' + space_station_name)
         while self.get_target_dist() > self.distance_to_start_winding_down:
-            swg_utils.chat('/tar ' + space_station_name)
             swg_utils.chat('/fol')
-            if not acquired_direction:
-                time.sleep(7)
-                acquired_direction = True
-            else:
-                time.sleep(3)
             self.boost_to_target()
         swg_utils.chat('/throttle 0.1')
         while self.get_target_dist() > self.distance_to_go_slow:
             time.sleep(0.5)
+            while self.get_target_dist() > self.distance_to_start_winding_down:
+                swg_utils.chat('/fol')
+                self.boost_to_target()
+                swg_utils.chat('/throttle 0.1')
         # Never go 0 speed due to swg bug that can make distances be extremely off.
         swg_utils.chat('/throttle 0.01')
         while self.get_target_dist() > 1000:
@@ -484,7 +484,7 @@ class Pilot(Space):
             
     def mission_critical_dropdown_gone(self):
         if self.active_waypoint_idx is None:
-            active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=0)
+            active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
             self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194)
         img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194,
                     scale_to=255, set_focus=False, sharpen=True)
@@ -498,8 +498,10 @@ class Pilot(Space):
     
     
     def get_target_location_idx(self):
-        while self.target_location_idx is None:
-            target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=0)
+        get_target_location_i = 0
+        if self.target_location_idx is None:
+            target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=None)
+        while self.target_location_idx is None and get_target_location_i < 2:
             if self.active_waypoint_idx is None:
                 start_row = 0
                 start_col = 0
@@ -509,13 +511,14 @@ class Pilot(Space):
             self.target_location_idx, img_arr = swg_utils.find_arr_on_region(target_location_arr, region=self.swg_region, start_row=start_row, start_col=start_col, fail_gracefully=True, sharpen_threshold=194)
             if self.target_location_idx is None:
                 if self.active_waypoint_idx is None:
-                    active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=0)
+                    active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
                     self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194)
                 # If Active Waypoints dropdown is closed, open it
                 self.dropdown_arrow_idx = [self.active_waypoint_idx[0], self.active_waypoint_idx[1] - 4]
                 if img_arr[self.dropdown_arrow_idx[0], self.dropdown_arrow_idx[1]] == 0:
                     swg_utils.click(button='left', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.dropdown_arrow_idx, activate_window=False)
                     time.sleep(0.3)
+            get_target_location_i += 1
                     
                     
     def autopilot_to_target_location(self):
@@ -526,7 +529,7 @@ class Pilot(Space):
         self.target_location_clickable_idx = [self.target_location_idx[0] + 7, self.target_location_idx[1] + 25]
         swg_utils.click(button='right', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.target_location_clickable_idx, activate_window=False)
         if self.autopilot_to_idx is None:
-            autopilot_to_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=0)
+            autopilot_to_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=None)
             self.autopilot_to_idx, img_arr = swg_utils.find_arr_on_region(autopilot_to_arr, region=self.swg_region, start_row=max(self.target_location_idx[0] - 100, 0), start_col=max(self.target_location_idx[1] - 100, 0), fail_gracefully=False, sharpen_threshold=194)
         swg_utils.click(button='left', start_delay=0.1, return_delay=0.4, window=self.swg_window, region=self.swg_region, coords_idx=self.autopilot_to_idx, activate_window=False)
         pdi.moveTo(x=self.swg_region['left'] + 51, y=self.swg_region['top'] + 51)
@@ -547,7 +550,9 @@ class Pilot(Space):
     def got_mission(self):
         if self.target_location_idx is None:
             self.get_target_location_idx()
-        target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=0)
+        if self.target_location_idx is None:
+            return False
+        target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=None)
         img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194, scale_to=255, set_focus=False, sharpen=True)
         # If the "Target Location" isn't there anymore, then the duty mission is over. Get new mission.
         return np.all(img_arr[self.target_location_idx[0] : self.target_location_idx[0] + target_location_arr.shape[0], 
@@ -566,7 +571,7 @@ class Pilot(Space):
         
     def mission_critical_dropped_down(self):
         if self.active_waypoint_idx is None:
-            active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=0)
+            active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
             self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194)
         img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194,
                     scale_to=255, set_focus=False, sharpen=True)
@@ -587,7 +592,7 @@ class Pilot(Space):
         for _ in range(self.num_times_to_click_autopilot_to_enemy):
             swg_utils.click(button='right', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=enemy_idx, activate_window=False)
             if self.autopilot_to_enemy_idx is None:
-                autopilot_to_enemy_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=0)
+                autopilot_to_enemy_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=None)
                 self.autopilot_to_enemy_idx, img_arr = swg_utils.find_arr_on_region(autopilot_to_enemy_arr, region=self.swg_region, start_row=max(enemy_idx[0] - 100, 0), start_col=max(enemy_idx[1] - 100, 0), fail_gracefully=False, sharpen_threshold=194)
             swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.autopilot_to_enemy_idx, activate_window=False)
             time.sleep(self.interval_delay)
@@ -595,8 +600,8 @@ class Pilot(Space):
         
         
 class Fighter_Pilot(Pilot):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350):
-        super(Fighter_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed)
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350, enemy_full_speed=600):
+        super(Fighter_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed, enemy_full_speed=enemy_full_speed)
         # CONSTANTS
         self.distance_to_start_winding_down = 1300
         self.distance_to_go_slow = 1050
@@ -606,8 +611,8 @@ class Fighter_Pilot(Pilot):
         
         
 class POB_Pilot(Pilot):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350):
-        super(POB_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed)
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350, enemy_full_speed=600):
+        super(POB_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed, enemy_full_speed=enemy_full_speed)
         # CONSTANTS
         self.distance_to_start_winding_down = 2400
         self.distance_to_go_slow = 1100
@@ -617,29 +622,38 @@ class POB_Pilot(Pilot):
         
     
 class Duty_Mission_Pilot(Pilot):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350):
-        super(Duty_Mission_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed)
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350, enemy_full_speed=600):
+        super(Duty_Mission_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed, enemy_full_speed=enemy_full_speed)
         
         
 class Duty_Mission_Fighter_Pilot(Duty_Mission_Pilot, Fighter_Pilot):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350):
-        super(Duty_Mission_Fighter_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed)
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350, enemy_full_speed=600):
+        super(Duty_Mission_Fighter_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed, enemy_full_speed=enemy_full_speed)
         
         
 class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350):
-        super(Duty_Mission_POB_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed)
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350, enemy_full_speed=600):
+        super(Duty_Mission_POB_Pilot, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on, full_speed=full_speed, enemy_full_speed=enemy_full_speed)
         
     
     def optimize_speed(self):
+        start_time = time.time()
         while not self.mission_critical_dropdown_gone():  
+            if time.time() - start_time > 60:
+                self.autopilot_to_target_location()
+                start_time = time.time()
             pdi.press(self.target_closest_enemy_hotkey)
             # Get distance from enemy so you know whether to slow down or speed up
             dist_to_enemy = self.get_target_dist()
             if dist_to_enemy == '':
                 continue
-            if dist_to_enemy > 500:
+            if dist_to_enemy > 700:
                 pdi.press('s')
+            elif dist_to_enemy > 500:
+                # Don't press s every iteration in order to not slow down too quickly.
+                pdi.press('m')
+                if self.enemy_full_speed < self.full_speed:
+                    pdi.press('s', presses=2)
             else:
                 pdi.press('w')
             if dist_to_enemy > 2000:
@@ -656,7 +670,7 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
             while self.mission_critical_dropdown_gone():
                 self.autopilot_to_target_location()
             # Enemies enaging
-            if not self.mission_critical_dropped_down():
+            if self.mission_critical_dropped_down():
                 swg_utils.click(button='left', start_delay=0.02, return_delay=0.1, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
             self.optimize_speed()
             swg_utils.click(button='left', start_delay=0.02, return_delay=0.1, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
@@ -703,5 +717,5 @@ def main(task_type='duty_mission', turret_type=None, pilot_type=None):
         raise Exception('Invalid task_type')
     
 if __name__ == '__main__':
-    main()
+    main(task_type='duty_mission', pilot_type='POB')
     

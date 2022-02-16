@@ -26,6 +26,7 @@ import pandas as pd
 os = file_utils.os
 import random
 
+
 class SWG:
     def __init__(self, swg_window_i=0):
         self.swg_window = swm.swg_windows[swg_window_i]
@@ -46,7 +47,7 @@ class Space(SWG):
         self.target_dist_idx = None
         
         
-    def get_target_dist(self):
+    def get_target_dist(self, fail_gracefully=False):
         if self.target_dist_idx is None:
             target_dist_right_arr = swg_utils.get_search_arr('target_dist_right_parenthesis', dir_path=self.dir_path, mask_int=None)
             target_right_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_right_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194)
@@ -57,7 +58,7 @@ class Space(SWG):
         line_arr = swg_utils.take_grayscale_screenshot(window=swm.swg_windows[0], region=line_region, sharpen_threshold=194,
                 scale_to=255, set_focus=False, sharpen=True)
         
-        return swg_utils.get_int_from_line_arr(line_arr, self.space_target_distance_digits)
+        return swg_utils.get_int_from_line_arr(line_arr, self.space_target_distance_digits, fail_gracefully=fail_gracefully)
         
 
 class Turret(Space):
@@ -189,9 +190,12 @@ class Turret(Space):
             self.RDU_0 = p / np.linalg.norm(p)
 
 
-    def move_and_fire(self):
+    def move_to_align(self):
         pdi.moveRel_fast(xOffset=int(np.sign(self.horizontal_movements_12)), loops=int(np.abs(self.horizontal_movements_12)))
         pdi.moveRel_fast(yOffset=int(np.sign(self.vertical_movements_12)), loops=int(np.abs(self.vertical_movements_12)))
+        
+        
+    def fire_weapon(self):
         if self.fire:
             # FIRE!!!
             swg_utils.click(start_delay=0.025, return_delay=0)
@@ -328,9 +332,10 @@ class Turret(Space):
             self.get_trained_RDU_0()
             self.get_remaining_gamma_phi()
             self.get_aligning_movements()
+            self.move_to_align()
             if self.crosshairs_found:
                 # Later could also fire when brown_avg found if target is within range (which depends on distance and speed and is usually sooner than the crosshairs light up)
-                self.move_and_fire()
+                self.fire_weapon()
             self.horizontal_movements_cum += self.horizontal_movements_12
             self.vertical_movements_cum += self.vertical_movements_12
             self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
@@ -453,8 +458,8 @@ class Pilot(Space):
         # Approximately 100m per second for 1000 speed.
         # So 1 speed = 0.1 m/s
         # Subtract off length of time to go from booster speed to 0
-        target_dist = self.get_target_dist()
-        if target_dist == '':
+        target_dist = self.get_target_dist(fail_gracefully=True)
+        if target_dist is None:
             return
         booster_duration = max((target_dist / (self.full_speed_when_booster_on * 0.1)) - 14, 0)
         if booster_duration < 1:
@@ -651,8 +656,8 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
                 start_time = time.time()
             pdi.press(self.target_closest_enemy_hotkey)
             # Get distance from enemy so you know whether to slow down or speed up
-            dist_to_enemy = self.get_target_dist()
-            if dist_to_enemy == '':
+            dist_to_enemy = self.get_target_dist(fail_gracefully=True)
+            if dist_to_enemy is None:
                 continue
             if dist_to_enemy > 700:
                 pdi.press('s')

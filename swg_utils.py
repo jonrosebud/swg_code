@@ -29,7 +29,7 @@ top_border_height = config.get_value('main', 'top_border_height', desired_type=i
 side_border_width = config.get_value('main', 'side_border_width', desired_type=int, required_to_be_in_conf=False, default_value=0)
 
 
-def get_int_from_line_arr(line_arr, digit_dct):
+def get_int_from_line_arr(line_arr, digit_dct, fail_gracefully=False):
     number = ''
     col = 0
     digit_found = True
@@ -40,7 +40,13 @@ def get_int_from_line_arr(line_arr, digit_dct):
                 number += str(digit)
                 col += digit_arr.shape[1] + 1
                 break
-    return int(number)
+    try:
+        return int(number)
+    except Exception as e:
+        if fail_gracefully:
+            return None
+        else:
+            raise e
             
 
 def save_to_csv(img_arr, output_dir, fname):

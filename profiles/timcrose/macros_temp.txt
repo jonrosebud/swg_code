@@ -59,6 +59,7 @@ version: 0000
 57 master costume_hutt_female #ffffff /pause 0.25;/macro w0;/pause 0.08;/macro w1;/pause 0.08;/macro w2;
 61 masterMaster startjuggling #ffffff /pause 0.25;/macro master;/pause 0.15;/macro master;/pause 0.15;/macro master;/pause 0.15;/macro master;/pause 0.15;/macro master;/pause 0.15;/macro master;/pause 0.15;/macro master;/pause 0.15;/macro master;/pause 0.15;/macro master;
 85 medicAttack wod_cripple #ffffff /pause 0.25;/ui action toolbarSlot00;/pause 0.2;/ui action toolbarSlot01;/pause 0.2;/ui action toolbarSlot02;/pause 0.2;/macro medicAttack;
+117 moveLeft actOfWar #ffffff /pause 0.25;/move left 200;/pause 0.05;/macro moveLeft;
 69 petAttack headHit #ffffff /pause 0.25;/ui action petToolbarSlot0;/pause 0.2;/ui action petToolbarSlot3;/pause 0.2;/ui action petToolbarSlot4;/pause 0.2;/ui action petToolbarSlot5;/pause 0.2;/macro petAttack;
 44 petFood bm_happiness_ecstatic #ffffff /pause 0.25;/pause 5;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;/ui action toolbarSlot12;/pause 7205;
 42 petGrind bm_happiness_angry #ffffff /pause 0.25;/ui action toolbarSlot00;/pause .2;/ui action cycleTargetOutward;/pause 0.1;/ui action toolbarSlot01;/pause 0.2;/ui action toolbarSlot02;/pause 0.2;/ui action petToolbarSlot0;/pause 0.2;/ui action petToolbarSlot3;/pause 0.2;/ui action petToolbarSlot4;/pause 0.2;/ui action petToolbarSlot5;/pause 0.2;/macro petGrind;
@@ -75,6 +76,7 @@ version: 0000
 7 sendtell bh_taunt #ffffff /pause 0.25;/say send me a tell if you need these npcs;/pause 120;/macro sendtell;
 115 shieldRearAdjustExtreme of_deadeye_debuff #ffffff /pause 0.25;/droid droidcommand_shieldadjustrearfour;
 114 shipRearHeal bactaSpray #ffffff /pause 0.25;/droid droidcommand_shieldfronttobackhundred;/pause 2.5;/droid droidcommand_weapcaptoshieldone;/pause 8.1;/macro shipRearHeal;
+118 shipRearSlowHeal startjuggling #ffffff /pause 0.25;/droid droidcommand_shieldfronttobacktwenty;/pause 2.5;/droid droidcommand_weapcaptoshieldone;/pause 8.1;/macro shipRearSlowHeal;
 25 shortBuff me_rv #ffffff /pause 0.25;/ui action toolbarSlot01;/pause 305;/macro shortBuff;
 87 slot00 command_pvp_retaliation_rebel_ability #ffffff /pause 0.25;/ui action toolbarSlot00;/pause 0.1;/ui action toolbarSlot00;/pause 0.1;/ui action toolbarSlot00;
 88 slot01 command_pvp_retaliation_rebel_ability #ffffff /pause 0.25;/ui action toolbarSlot01;/pause 0.1;/ui action toolbarSlot01;/pause 0.1;/ui action toolbarSlot01;
@@ -104,4 +106,3 @@ version: 0000
 58 w0 startband #ffffff /pause 0.25;/ship WeaponGroup fireProjectile 0;/macro w0;
 59 w1 stopband #ffffff /pause 0.25;/ship WeaponGroup fireProjectile 1;/macro w1;
 60 w2 startgroupdance #ffffff /pause 0.25;/ship WeaponGroup fireProjectile 2;/macro w2;
-117 moveLeft actOfWar #ffffff /pause 0.25;/move left 200;/pause 0.05;/macro moveLeft;

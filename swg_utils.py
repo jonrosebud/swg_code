@@ -25,6 +25,8 @@ import autoit as ait
 git_path = config.config_dct['main']['git_path']
 sys.path.append(r"" + git_path)
 import pydirectinput_tmr as pdi
+top_border_height = config.get_value('main', 'top_border_height', desired_type=int, required_to_be_in_conf=False, default_value=26)
+side_border_width = config.get_value('main', 'side_border_width', desired_type=int, required_to_be_in_conf=False, default_value=0)
 
 
 def get_int_from_line_arr(line_arr, digit_dct):
@@ -304,9 +306,8 @@ def click(coords=None, button='left', start_delay=0.5, return_delay=1, presses=1
     if coords_idx is not None:
         if window is not None and region is None:
             rect = window.rectangle()
-            height_of_window_header = 26
             # The screen part to capture
-            region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
+            region = {'top': rect.top + top_border_height, 'left': rect.left + side_border_width, 'width': rect.width() - 2 * side_border_width, 'height': rect.height() - top_border_height}
         if region is not None:
             coords = [region['left'] + coords_idx[1], region['top'] + coords_idx[0]]
     pdi.click_fast(x=coords[0], y=coords[1], clicks=presses, interval=interval_delay, move_speed=move_speed, duration=duration, button=button)
@@ -320,9 +321,8 @@ def moveTo(coords=None, start_delay=0.0, return_delay=0.0, move_speed=5, window=
     if coords_idx is not None:
         if window is not None and region is None:
             rect = window.rectangle()
-            height_of_window_header = 26
             # The screen part to capture
-            region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
+            region = {'top': rect.top + top_border_height, 'left': rect.left + side_border_width, 'width': rect.width() - 2 * side_border_width, 'height': rect.height() - top_border_height}
         if region is not None:
             coords = [region['left'] + coords_idx[1], region['top'] + coords_idx[0]]
     ait.mouse_move(x=coords[0], y=coords[1], speed=move_speed)

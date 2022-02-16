@@ -24,6 +24,8 @@ import numpy as np
 import subprocess
 git_path = config.get_value('main', 'git_path', desired_type=str, required_to_be_in_conf=False, default_value='.')
 sys.path.append(r"" + git_path)
+top_border_height = config.get_value('main', 'top_border_height', desired_type=int, required_to_be_in_conf=False, default_value=26)
+side_border_width = config.get_value('main', 'side_border_width', desired_type=int, required_to_be_in_conf=False, default_value=0)
 import time
 
 
@@ -202,9 +204,8 @@ swg_windows = get_swg_windows()
 swg_window_regions = []
 for swg_window_i in range(len(swg_windows)):
     rect = swg_windows[swg_window_i].rectangle()
-    height_of_window_header = 26
     # The screen part to capture
-    region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
+    region = {'top': rect.top + top_border_height, 'left': rect.left + side_border_width, 'width': rect.width() - 2 * side_border_width, 'height': rect.height() - top_border_height}
     swg_window_regions.append(region)
 if __name__ == '__main__':
     main()

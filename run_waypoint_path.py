@@ -18,17 +18,18 @@ import numpy as np
 import get_land_coords as glc
 import waypoint_path as wpp
 swg_windows = glc.swm.swg_windows
+swg_window_regions = glc.swm.swg_window_regions
 
 
 def empty_function():
     pass
 
 
-def main(swg_window_idx, waypoint_csv_path, num_loops=1, function_list=[], arrow_rect_csv_fpath='arrow_rect.csv', calibrate_to_north=True, relative_coords=False):
+def main(swg_window_i, waypoint_csv_path, num_loops=1, function_list=[], arrow_rect_csv_fpath='arrow_rect.csv', calibrate_to_north=True, relative_coords=False):
     '''
     Parameters
     ----------
-    swg_window_idx: int
+    swg_window_i: int
        Index of the list of swg_windows. See glc.swm docs.
        
     waypoint_csv_path: str
@@ -59,16 +60,17 @@ def main(swg_window_idx, waypoint_csv_path, num_loops=1, function_list=[], arrow
     -------
     Run a previously recorded waypoint path possibly many times in a loop and optionally initially calibrate orientation to be facing North.
     '''
-    swg_window = swg_windows[swg_window_idx]
+    swg_window = swg_windows[swg_window_i]
+    swg_window_region = swg_window_regions[swg_window_i]
     swg_window.set_focus()
     if calibrate_to_north:
-        glc.north_calibrate(swg_window, arrow_rect_csv_fpath=arrow_rect_csv_fpath)
+        glc.north_calibrate(swg_window_region, arrow_rect_csv_fpath=arrow_rect_csv_fpath)
     waypoint_arr = file_utils.read_csv(waypoint_csv_path, dtype=int)
     if relative_coords:
-        starting_coords = np.array(glc.get_land_coords(swg_windows[swg_window_idx]))
+        starting_coords = np.array(glc.get_land_coords(swg_window_region))
         waypoint_arr[:,:2] = waypoint_arr[:,:2] - waypoint_arr[0,:2] + starting_coords
     waypoint_list = list(map(list, waypoint_arr))
     if len(function_list) == 0:
         function_list = [empty_function]
     for _ in range(num_loops):
-        wpp.move_along(swg_window, waypoint_list, function_list=function_list)
+        wpp.move_along(swg_window_region, waypoint_list, function_list=function_list)

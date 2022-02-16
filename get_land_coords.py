@@ -24,11 +24,12 @@ os = file_utils.os
 from copy import deepcopy
 from PIL import Image
 import swg_window_management as swm
+import swg_utils
 
 top_north = config.config_dct['main']['top_north']
 left_north = config.config_dct['main']['left_north']
-ground_coords_top = config.config_dct['main']['top_coord'] 
-ground_coords_left = config.config_dct['main']['left_coord'] 
+ground_coords_top = config.config_dct['main']['ground_coords_top'] 
+ground_coords_left = config.config_dct['main']['ground_coords_left'] 
 use_generic_arrow = config.get_value('main', 'use_generic_north_arrow', desired_type=bool, default_value=True)
 
 '''
@@ -85,12 +86,18 @@ for digit_csv in land_coords_digit_csvs:
         land_coords_digit_dct[digit_fname] = digit_arr
         
         
-def north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv'):
+def north_calibrate(swg_window_region, arrow_rect_csv_fpath='arrow_rect.csv'):
     '''
     Parameters
     ----------
-    swg_window: pywinauto.application.WindowSpecification
-        A window object for a particular swg instance.
+    swg_window_region: dict
+        Defines a rectangular area of the screen corresponding to the swg_window.
+        Keys: 'top', 'left', 'width', 'height'
+        Values: int
+        'top': topmost (y) coordinate
+        'left': leftmost (x) coordinate
+        'width': number of pixels wide
+        'height': number of pixels tall
         
     arrow_rect_csv_fpath: str
         File containing array of a portion of the arrow that is pointing north on
@@ -111,19 +118,18 @@ def north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv'):
         arrow_rect_csv_fpath = os.path.abspath(arrow_rect_csv_fpath)
         arrow_dir = os.path.dirname(arrow_rect_csv_fpath)
         arrow_fname = socket.gethostname() + '_' + file_utils.fname_from_fpath(arrow_rect_csv_fpath)
-        arrow_rect_csv_fpath = arrow_fname + '.csv'
+        arrow_rect_csv_fpath = os.path.join(arrow_dir, arrow_fname + '.csv')
     calibrated_north = file_utils.read_csv(arrow_rect_csv_fpath, dtype=int)
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.
     atol=30
-    rect = swg_window.rectangle()
-    top = rect.top + top_north
-    left = rect.left + left_north
+    top = swg_window_region['top'] + top_north
+    left = swg_window_region['left'] + left_north
     width = 7
     height = 3
     region = {'top': top, 'left': left, 'width': width, 'height': height}
-    img_arr = take_screenshot_and_sharpen(swg_window, region=region, 
-            sharpen_threshold=200, scale_to=255, sharpen=False)
+    img_arr = swg_utils.take_grayscale_screenshot(window=None, region=region, sharpen_threshold=200,
+            scale_to=255, set_focus=False, sharpen=False)
     
     if np.allclose(img_arr, calibrated_north, atol=atol):
         return
@@ -133,8 +139,8 @@ def north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv'):
     pdi.keyUp('shift')
     pdi.keyUp('ctrl')
     while not np.allclose(img_arr, calibrated_north, atol=atol):
-        img_arr = take_screenshot_and_sharpen(swg_window, region=region, 
-            sharpen_threshold=200, scale_to=255, sharpen=False)
+        img_arr = swg_utils.take_grayscale_screenshot(window=None, region=region, sharpen_threshold=200,
+                scale_to=255, set_focus=False, sharpen=False)
         
     pdi.keyDown('ctrl')
     pdi.keyDown('shift')
@@ -144,81 +150,17 @@ def north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv'):
     pdi.press('a', presses=1)
 
 
-def take_screenshot_and_sharpen(window, region, sharpen_threshold=200,
-        scale_to=1, set_focus=True, sharpen=True):
+def determine_region_coords(swg_window_region, region_fpath='region.png', 
+        csv_fpath='region.csv'):
     '''
-    window: pywinauto.application.WindowSpecification
-        A window object for a particular application.
-        
-    region: dict
-        Defines the area of the screen that will be screenshotted.
+    swg_window_region: dict
+        Defines a rectangular area of the screen corresponding to the swg_window.
         Keys: 'top', 'left', 'width', 'height'
         Values: int
         'top': topmost (y) coordinate
         'left': leftmost (x) coordinate
         'width': number of pixels wide
         'height': number of pixels tall
-        
-    sharpen_threshold: int
-        Grayscale pictures have each pixel range from 0 to 255. However, we
-        want to sharpen the image so there is no noise. Thus we only want 
-        black and white (0 and 255 only) or 0 and 1 only. sharpen_threshold
-        is the cutoff level above which, everything will be given the value
-        of scale_to, and below which, everything will be given the value of 0.
-        
-    scale_to: int
-        Grayscale pictures have each pixel range from 0 to 255. However, we
-        want to sharpen the image so there is no noise. Thus we only want 
-        black and white (0 and 255 only) or 0 and 1 only. Set scale_to to 255
-        or 1 to accomplish this. Use 255 if you want to view the matrix as
-        an image, or 1 if you want the math to be easier but dont need to
-        look at the matrix.
-        
-    set_focus: bool
-        True: Make sure the window has focus (is activated) before taking the
-        screenshot.
-        False: Take the screenshot without assuring focus because by some other
-            means, I know the window is visible.
-            
-    sharpen: bool
-        Whether to apply sharpen_threshold and scale_to.
-
-    Returns
-    -------
-    img_arr: 2D np.array
-        Matrix containing only values equal to 0 or scale_to which are the
-        "sharpened" pixel values in matrix form of the screenshot taken in the
-        given region.
-
-    Purpose
-    -------
-    Take a screenshot of the provided region in the provided window, convert
-    to a numpy array, grayscale it, and sharpen according to the threshold and
-    scale_to provided.
-    '''
-    if set_focus and not window.has_focus():
-        # Activate the window
-        window.set_focus()
-        time.sleep(0.02)
-    with mss.mss() as sct:
-        # Take the screenshot of just the in-game coordinates
-        screenshot = sct.grab(region)
-        # Convert to numpy array
-        img_arr = deepcopy(np.asarray(screenshot))
-    # Convert to Grayscale
-    img_arr = cv2.cvtColor(img_arr, cv2.COLOR_BGRA2GRAY)
-    if sharpen:
-        # Sharpen image
-        img_arr[img_arr < sharpen_threshold] = 0
-        img_arr[img_arr >= sharpen_threshold] = scale_to
-    return img_arr
-
-
-def determine_region_coords(swg_window, region_fpath='region.png', 
-        csv_fpath='region.csv'):
-    '''
-    swg_window: pywinauto.application.WindowSpecification
-        A window object for a particular swg instance.
         
     region_fpath: str
         Path where the screenshot of region will be saved as a picture file.
@@ -241,18 +183,13 @@ def determine_region_coords(swg_window, region_fpath='region.png',
     '''
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.
-    rect = swg_window.rectangle()
-    top = rect.top + ground_coords_top
-    left = rect.left + ground_coords_left
+    top = swg_window_region['top'] + ground_coords_top
+    left = swg_window_region['left'] + ground_coords_left
     width = 150
     height = 8
-    #top = rect.top #+ 60
-    #left = rect.left #+ 60
-    #width = rect.width() #50
-    #height = rect.height() #50
     region = {'top': top, 'left': left, 'width': width, 'height': height}
-    img_arr = take_screenshot_and_sharpen(swg_window, region=region, 
-            sharpen_threshold=200, scale_to=255, sharpen=True)
+    img_arr = swg_utils.take_grayscale_screenshot(window=None, region=region, sharpen_threshold=200,
+            scale_to=255, set_focus=False, sharpen=True)
     
     img = Image.fromarray(img_arr)
     img.save(region_fpath)
@@ -332,10 +269,16 @@ def get_number_from_arr(line_arr):
     return int(digits)
     
         
-def get_land_coords(swg_window):
+def get_land_coords(swg_window_region):
     '''
-    swg_window: pywinauto.application.WindowSpecification
-        A window object for a particular swg instance.
+    swg_window_region: dict
+        Defines a rectangular area of the screen corresponding to the swg_window.
+        Keys: 'top', 'left', 'width', 'height'
+        Values: int
+        'top': topmost (y) coordinate
+        'left': leftmost (x) coordinate
+        'width': number of pixels wide
+        'height': number of pixels tall
         
     Returns
     -------
@@ -356,14 +299,13 @@ def get_land_coords(swg_window):
     '''
     # Define the region of the matrix corresponding to the in-game 
     # coordinates as shown in the minimap.
-    rect = swg_window.rectangle()
-    top = rect.top + ground_coords_top
-    left = rect.left + ground_coords_left
+    top = swg_window_region['top'] + ground_coords_top
+    left = swg_window_region['left'] + ground_coords_left
     width = 150
     height = 8
     region = {'top': top, 'left': left, 'width': width, 'height': height}
-    img_arr = take_screenshot_and_sharpen(swg_window, region=region, 
-            sharpen_threshold=200, scale_to=1, sharpen=True)
+    img_arr = swg_utils.take_grayscale_screenshot(window=None, region=region, sharpen_threshold=200,
+            scale_to=1, set_focus=False, sharpen=True)
     # Get the region of the coordinate matrix that just corresponds to the first
     # (x) number.
     x_coord_arr = img_arr[:, 6:44]
@@ -377,7 +319,10 @@ def get_land_coords(swg_window):
         
         
 def main():
-    coords = get_land_coords(swm.swg_windows[0])
+    swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
+    swg_window = swm.swg_windows[swg_window_i]
+    swg_window_region = swm.swg_window_regions[swg_window_i]
+    coords = get_land_coords(swg_window_region)
     print(coords)
     
     
@@ -385,8 +330,11 @@ def main():
 if __name__ == '__main__':
     #main()
     #swm.calibrate_window_position(swm.swg_windows)
-    swm.swg_windows[0].set_focus()
+    swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
+    swg_window = swm.swg_windows[swg_window_i]
+    swg_window_region = swm.swg_window_regions[swg_window_i]
+    swg_window.set_focus()
     time.sleep(0.5)
-    determine_region_coords(swm.swg_windows[0], region_fpath='region.png', 
-        csv_fpath='region.csv')
-    #north_calibrate(swm.swg_windows[0], arrow_rect_csv_fpath='arrow_rect.csv')
+    #determine_region_coords(swg_window_region, region_fpath='region.png', 
+    #    csv_fpath='region.csv')
+    north_calibrate(swg_window_region, arrow_rect_csv_fpath='arrow_rect.csv')

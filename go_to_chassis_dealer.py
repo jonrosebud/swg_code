@@ -18,14 +18,12 @@ np = file_utils.np
 git_path = config.config_dct['main']['git_path']
 sys.path.append(r"" + git_path)
 import run_waypoint_path as rwp
-import pydirectinput_tmr as pdi
+import pydirectinput as pdi
 import swg_window_management as swm
 import swg_utils
 import time
-import get_land_coords as glc
 
-
-swg_window_i = 2
+swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
 swg_window = swm.swg_windows[swg_window_i]
 region = swm.swg_window_regions[swg_window_i]
 
@@ -36,7 +34,7 @@ def find_travel_button():
                 sharpen_threshold=197, scale_to=255, set_focus=False, sharpen=True)
     
     # Assume Travel button is in the bottom half of the screen.
-    travel_button_idx, _ = swg_utils.find_arr_on_region(travel_button_arr, img_arr=img_arr, start_row=int(img_arr.shape[0]/2), fail_gracefully=False)
+    travel_button_idx, _ = swg_utils.find_arr_on_region(travel_button_arr, img_arr=img_arr, start_row=int(img_arr.shape[0]/2), start_col=0, fail_gracefully=False)
     return travel_button_idx
 
 
@@ -55,12 +53,11 @@ def instant_travel_vehicle():
     swg_utils.press(['1'], return_delay=1)
     # Click to open the itv window
     swg_utils.click(return_delay=4)
-    # Click on Mos Espa Starport
+    # Double click on Doaba Guerfel Starport to travel there.
     travel_button_idx = find_travel_button()
-    starport_idx = [travel_button_idx[0] - 425, travel_button_idx[1] - 242]
-    swg_utils.click(button='left', presses=2, start_delay=0.5, return_delay=0.5, interval_delay=0, window=None, region=region, coords_idx=starport_idx)
-    time.sleep(14)
-    
+    starport_idx = [travel_button_idx[0] - 534, travel_button_idx[1] - 58]
+    swg_utils.click(button='left', presses=2, start_delay=0, return_delay=14, interval_delay=0, window=None, region=region, coords_idx=starport_idx)
+        
     
 def open_ship_details_window():
     select_button_idx = None
@@ -72,7 +69,7 @@ def open_ship_details_window():
                     sharpen_threshold=197, scale_to=255, set_focus=False, sharpen=True)
         
         # Assume Select button is in the bottom half of the screen.
-        select_button_idx, _ = swg_utils.find_arr_on_region(select_button_arr, img_arr=img_arr, start_row=int(img_arr.shape[0]/2), fail_gracefully=True)
+        select_button_idx, _ = swg_utils.find_arr_on_region(select_button_arr, img_arr=img_arr, start_row=int(img_arr.shape[0]/2), start_col=0, fail_gracefully=True)
         if select_button_idx is None:
             # Someone is in the way.
             time.sleep(5)
@@ -81,10 +78,6 @@ def open_ship_details_window():
     
     
 def space_travel():
-    swg_utils.zoom(direction='out')
-    # Find Starship Terminal
-    chassis_dealer_idx, _ = swg_utils.find_via_moving_mouse('Starship_255', os.path.join(git_path, 'land_ui_dir'), region, sharpen_threshold=255, start_row=200, start_col=200, end_row=700, end_col=900, row_chunk_size=10, col_chunk_size=10, slow_move_speed=40, fast_move_speed=10, fail_gracefully=False)
-    swg_utils.click(return_delay=3)
     open_ship_details_window()
     _ = click_on_travel_button(return_delay=3)
     travel_button_idx = find_travel_button()
@@ -94,12 +87,13 @@ def space_travel():
     
     
 def sell_to_chassis_dealer():
-    swg_utils.chat('/macro chassisDealer', start_delay=0, return_delay=5)
+    swg_utils.chat('/macro chassisDealer')
+    time.sleep(4)
     select_button_arr = file_utils.read_csv(os.path.join(git_path, 'land_ui_dir', 'Select.csv'), dtype=int)
     img_arr = swg_utils.take_grayscale_screenshot(swg_window, region, 
                 sharpen_threshold=197, scale_to=255, set_focus=False, sharpen=True)
     
-    select_button_idx, _ = swg_utils.find_arr_on_region(select_button_arr, img_arr=img_arr, fail_gracefully=False)
+    select_button_idx, _ = swg_utils.find_arr_on_region(select_button_arr, img_arr=img_arr, start_row=0, start_col=0, fail_gracefully=False)
     while select_button_idx is not None:
         # Press and hold enter to sell quickly.
         pdi.keyDown('enter')
@@ -109,12 +103,9 @@ def sell_to_chassis_dealer():
         img_arr = swg_utils.take_grayscale_screenshot(swg_window, region, 
                 sharpen_threshold=197, scale_to=255, set_focus=False, sharpen=True)
         
-        select_button_idx, _ = swg_utils.find_arr_on_region(select_button_arr, img_arr=img_arr, fail_gracefully=True)
+        select_button_idx, _ = swg_utils.find_arr_on_region(select_button_arr, img_arr=img_arr, start_row=0, start_col=0, fail_gracefully=True)
         # The "select" on the SELL LOOT window will disappear once all loot has been sold.
-    # Exit free moving mouse mode
-    pdi.press('alt')
-        
-        
+
 def launch_ship():
     open_ship_details_window()
     # Find travel button to click on Launch Ship button
@@ -123,7 +114,7 @@ def launch_ship():
                 sharpen_threshold=197, scale_to=255, set_focus=False, sharpen=True)
     
     # Assume Travel button is in the bottom half of the screen.
-    travel_button_idx, _ = swg_utils.find_arr_on_region(travel_button_arr, img_arr=img_arr, start_row=int(img_arr.shape[0]/2), fail_gracefully=False)
+    travel_button_idx, _ = swg_utils.find_arr_on_region(travel_button_arr, img_arr=img_arr, start_row=int(img_arr.shape[0]/2), start_col=0, fail_gracefully=False)
     # Launch Ship button is 100 columns to the left of Travel button.
     launch_ship_idx = [travel_button_idx[0], travel_button_idx[1] - 100]
     swg_utils.click(button='left', start_delay=0, return_delay=14, interval_delay=0, window=None, region=region, coords_idx=launch_ship_idx)
@@ -137,27 +128,23 @@ def go_home_via_G9():
     pdi.press('0')
     time.sleep(2)
     pdi.click()
-    time.sleep(2)
+    time.sleep(4)
     pdi.press('down')
     time.sleep(0.1)
     pdi.press('enter')
     time.sleep(14)
 
 
-def go_to_chassis_dealer(swg_window_i=0, calibrate_to_north=True):
-    global swg_window, region
-    swg_window = swm.swg_windows[swg_window_i]
-    region = swm.swg_window_regions[swg_window_i]
-    waypoint_csv_path = os.path.join(git_path, 'house_to_chassis_dealer.csv')
+def go_to_chassis_dealer(calibrate_to_north=True):
+    waypoint_csv_path = os.path.join(git_path, 'likeCinnamon_house_to_chassis_dealer.csv')
     arrow_rect_csv_fpath = os.path.join(git_path, 'arrow_rect.csv')
-    rwp.main(swg_window_i, waypoint_csv_path, function_list=[empty_function, instant_travel_vehicle, sell_to_chassis_dealer, space_travel,  go_home_via_G9], arrow_rect_csv_fpath=arrow_rect_csv_fpath, calibrate_to_north=calibrate_to_north)
+    rwp.main(swg_window_i, waypoint_csv_path, function_list=[empty_function, instant_travel_vehicle, sell_to_chassis_dealer, space_travel, go_home_via_G9], arrow_rect_csv_fpath=arrow_rect_csv_fpath, calibrate_to_north=calibrate_to_north)
 
 
 def main():
     swg_window.set_focus()
     time.sleep(0.5)
-    #go_to_chassis_dealer()
-    sell_to_chassis_dealer()
+    go_to_chassis_dealer()
     
     
 if __name__ == '__main__':

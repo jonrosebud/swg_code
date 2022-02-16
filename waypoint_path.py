@@ -58,10 +58,16 @@ def empty_function():
     pass
 
 
-def move_along(swg_window, waypoint_list, planning_mode=False, function_list=[empty_function]):
+def move_along(swg_window_region, waypoint_list, planning_mode=False, function_list=[empty_function]):
     '''
-    swg_window: pywinauto.application.WindowSpecification
-        A window object for a particular swg instance.
+    swg_window_region: dict
+        Defines a rectangular area of the screen corresponding to the swg_window.
+        Keys: 'top', 'left', 'width', 'height'
+        Values: int
+        'top': topmost (y) coordinate
+        'left': leftmost (x) coordinate
+        'width': number of pixels wide
+        'height': number of pixels tall
         
     waypoint_list: a list of list of integer
         A list of waypoint(s) to go to. Includes x, y, (in-game planetary 
@@ -102,7 +108,7 @@ def move_along(swg_window, waypoint_list, planning_mode=False, function_list=[em
     -------
     Move the toon from waypoint to waypoint in the provided waypoint list.
     '''
-    position_actual = glc.get_land_coords(swg_window)
+    position_actual = glc.get_land_coords(swg_window_region)
     key_df = pd.DataFrame({'should_be_down':[False]*6, 'is_down':[False]*6}, index=['w','s','q','e','a','d'])
     for position_desired in waypoint_list:
         start_time = time.time()
@@ -110,7 +116,7 @@ def move_along(swg_window, waypoint_list, planning_mode=False, function_list=[em
         stuck_timeout = 5
         while (not (position_desired[1] == position_actual[1] and position_desired[0] == position_actual[0])) and time.time() - start_time < stuck_timeout:
             # Update position_actual by taking a new screenshot
-            position_actual = glc.get_land_coords(swg_window)
+            position_actual = glc.get_land_coords(swg_window_region)
             # w
             key_df.loc['w']['should_be_down'] = (position_desired[1] > position_actual[1])
             # s

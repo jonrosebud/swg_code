@@ -41,8 +41,10 @@ class Waypoint_manager:
 waypoint_manager = Waypoint_manager()
 
 swm.calibrate_window_position(swm.swg_windows)
-swg_window = swm.swg_windows[0]
-# glc.north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv')
+swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
+swg_window = swm.swg_windows[swg_window_i]
+swg_window_region = swm.swg_window_regions[swg_window_i]
+# glc.north_calibrate(swg_window_region, arrow_rect_csv_fpath='arrow_rect.csv')
 
 
 def selection(waypoint_manager):
@@ -133,7 +135,7 @@ def insert_waypoint(waypoint_manager):
     notes:
     none
     '''    
-    current_waypoint = glc.get_land_coords(swg_window)
+    current_waypoint = glc.get_land_coords(swg_window_region)
     # Initialize wait time and function index to 0 by default.
     current_waypoint += [0, 0]
     waypoint_manager.index += 1
@@ -170,7 +172,7 @@ def run_waypoint_list_forward(waypoint_manager):
     print('file_name: ',waypoint_manager.file_name)
     print('waypoint list: ', waypoint_manager.waypoint_list)
     print('index: ', waypoint_manager.index)
-    wpp.move_along(swg_window, waypoint_manager.waypoint_list, planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
+    wpp.move_along(swg_window_region, waypoint_manager.waypoint_list, planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
     
     
 def run_waypoint_list_backward(waypoint_manager):
@@ -185,7 +187,7 @@ def run_waypoint_list_backward(waypoint_manager):
     print('file_name: ',waypoint_manager.file_name)
     print('waypoint list: ', waypoint_manager.waypoint_list)
     print('index: ', waypoint_manager.index)
-    wpp.move_along(swg_window, waypoint_manager.waypoint_list[::-1], planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
+    wpp.move_along(swg_window_region, waypoint_manager.waypoint_list[::-1], planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
 
 
 def step_next_waypoint(waypoint_manager):
@@ -201,7 +203,7 @@ def step_next_waypoint(waypoint_manager):
     if(waypoint_manager.index + 1 < len(waypoint_manager.waypoint_list)):
         waypoint_manager.index += 1
         print('moving to waypoint: ',waypoint_manager.waypoint_list[waypoint_manager.index])
-        wpp.move_along(swg_window, [waypoint_manager.waypoint_list[waypoint_manager.index]], planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
+        wpp.move_along(swg_window_region, [waypoint_manager.waypoint_list[waypoint_manager.index]], planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
     
     print('waypoint list: ', waypoint_manager.waypoint_list)
     print('index: ', waypoint_manager.index)
@@ -224,7 +226,7 @@ def step_previous_waypoint(waypoint_manager):
         waypoint_manager.index = 0
     else:
         print('moving to waypoint: ',waypoint_manager.waypoint_list[waypoint_manager.index])
-        wpp.move_along(swg_window, [waypoint_manager.waypoint_list[waypoint_manager.index]], planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
+        wpp.move_along(swg_window_region, [waypoint_manager.waypoint_list[waypoint_manager.index]], planning_mode=waypoint_manager.planning_mode, function_list=[empty_function] * 500)
         return
     
     print('waypoint list: ', waypoint_manager.waypoint_list)

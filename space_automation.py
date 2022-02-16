@@ -702,15 +702,16 @@ def main_duty_mission_fighter_pilot():
     
     
 def main(task_type='duty_mission', turret_type=None, pilot_type=None):
+    swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
     if task_type == 'duty_mission':
         if turret_type == 'rear':
-            main_duty_mission_rear_turret()
+            main_duty_mission_rear_turret(swg_window_i=swg_window_i)
         elif turret_type == 'deck':
-            main_duty_mission_deck_turret()
+            main_duty_mission_deck_turret(swg_window_i=swg_window_i)
         elif pilot_type == 'POB':
-            main_duty_mission_POB_pilot()
+            main_duty_mission_POB_pilot(swg_window_i=swg_window_i)
         elif pilot_type == 'fighter':
-            main_duty_mission_fighter_pilot()
+            main_duty_mission_fighter_pilot(swg_window_i=swg_window_i)
         else:
             raise Exception('Invalid turret_type or pilot_type')
     else:

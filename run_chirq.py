@@ -27,10 +27,7 @@ import string
 import swg_utils
 os = file_utils.os
 
-swg_window_i = config.config_dct['main']['swg_window_i']
-if swg_window_i is None:
-    # Set custom value here
-    swg_window_i = 0
+swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
 swg_window = swm.swg_windows[swg_window_i]
 region = swm.swg_window_regions[swg_window_i]
 
@@ -39,10 +36,6 @@ player_nearby_global = False
 
 def check_if_player_nearby(swg_window, letters_to_skip=[]):
     meters_m_arr = file_utils.read_csv('meters_m.csv', dtype=int)
-    rect = swg_window.rectangle()
-    height_of_window_header = 26
-    # The screen part to capture
-    region = {'top': rect.top + height_of_window_header, 'left': rect.left, 'width': rect.width(), 'height': rect.height() - height_of_window_header}
     alphabet = string.ascii_lowercase
     row_of_meters = 73
     col_of_single_digit_meters = 310
@@ -197,9 +190,9 @@ def main():
     swg_window.set_focus()
     time.sleep(1)
     waypoint_list = list(map(list, np.array(file_utils.read_csv('aclo_grenadier.csv')).astype(int)))
-    glc.north_calibrate(swg_window, arrow_rect_csv_fpath='arrow_rect.csv')
+    glc.north_calibrate(region, arrow_rect_csv_fpath='arrow_rect.csv')
     for _ in range(2000):
-        wpp.move_along(swg_window, waypoint_list, function_list=[check_if_player_nearby_2, attack, destroy_for_all_windows])
+        wpp.move_along(region, waypoint_list, function_list=[check_if_player_nearby_2, attack, destroy_for_all_windows])
         if player_nearby_global:
             while check_if_player_nearby(swg_window, letters_to_skip=['o']):
                 for _ in range(3):

@@ -677,31 +677,31 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
             self.autopilot_to_target_location()
 
     
-def main_duty_mission_rear_turret():
-    turret = Duty_Mission_Rear_Turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5)
+def main_duty_mission_rear_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+    turret = Duty_Mission_Rear_Turret(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
     # For now, assume only need to run commands once (which assumes the ship doesn't get destroyed etc)
     turret.run_droid_commands()
     turret.operate_turret()
 
 
-def main_duty_mission_deck_turret():
-    turret = Duty_Mission_Deck_Turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5)
+def main_duty_mission_deck_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+    turret = Duty_Mission_Deck_Turret(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
     # For now, assume only need to run commands once (which assumes the ship doesn't get destroyed etc)
     turret.run_droid_commands()
     turret.operate_turret()
     
 
-def main_duty_mission_POB_pilot():
-    pilot = Duty_Mission_POB_Pilot(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843)
+def main_duty_mission_POB_pilot(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843):
+    pilot = Duty_Mission_POB_Pilot(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on)
     pilot.pilot_main()
     
     
-def main_duty_mission_fighter_pilot():
-    pilot = Duty_Mission_POB_Pilot(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843)
+def main_duty_mission_fighter_pilot(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843):
+    pilot = Duty_Mission_POB_Pilot(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, full_speed_when_booster_on=full_speed_when_booster_on)
     pilot.pilot_main() 
     
     
-def main(task_type='duty_mission', turret_type=None, pilot_type=None):
+def main(task_type='duty_mission', turret_type='None', pilot_type='None'):
     swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
     if task_type == 'duty_mission':
         if turret_type == 'rear':
@@ -718,5 +718,8 @@ def main(task_type='duty_mission', turret_type=None, pilot_type=None):
         raise Exception('Invalid task_type')
     
 if __name__ == '__main__':
-    main(task_type='duty_mission', pilot_type='POB')
+    task_type = config.get_value('main', 'task_type', desired_type=str, required_to_be_in_conf=False, default_value='duty_mission')
+    turret_type = config.get_value('main', 'turret_type', desired_type=str, required_to_be_in_conf=False, default_value='None')
+    pilot_type = config.get_value('main', 'pilot_type', desired_type=str, required_to_be_in_conf=False, default_value='None')
+    main(task_type=task_type, turret_type=turret_type, pilot_type=pilot_type)
     

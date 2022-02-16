@@ -90,6 +90,8 @@ class Instruct(ConfigParser):
                 else:
                     raise ValueError("If present, boolean option must be 'true' or 'false' (non-case-sensitive).",
                             'section:', section, 'option:', option)
+            elif desired_type is None:
+                return None
             else:
                 return desired_type(eval(value))
                 

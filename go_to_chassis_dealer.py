@@ -26,6 +26,8 @@ import time
 swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
 swg_window = swm.swg_windows[swg_window_i]
 region = swm.swg_window_regions[swg_window_i]
+print(region)
+raise Exception('done')
 
 
 def find_travel_button():

@@ -38,8 +38,9 @@ pip3 install PyAutoIt
 Note: import autoit
 -------------------------------------------------------------------------------------------------------
 Installing pywinauto
-1. Download pywin32-228-cp39-cp39-win_amd64.whl from https://github.com/CristiFati/Prebuilt-Binaries/tree/master/PyWin32/v228
-2. Anaconda prompt:
+1. pip3 install pywinauto
+2. Download pywin32-228-cp39-cp39-win_amd64.whl from https://github.com/CristiFati/Prebuilt-Binaries/tree/master/PyWin32/v228
+3. Anaconda prompt:
 pip3 install -U --force-reinstall C:\Users\trose\Downloads\pywin32-228-cp39-cp39-win_amd64.whl
 -------------------------------------------------------------------------------------------------------
 Obtain github swg_code repo

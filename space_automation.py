@@ -174,6 +174,11 @@ class Turret(Space):
             self.vertical_movements_12 = min(self.vertical_movements_12, self.max_vertical_movements - self.vertical_movements_01)
         else:
             self.vertical_movements_12 = max(self.vertical_movements_12, self.min_vertical_movements - self.vertical_movements_01)
+        # if not at the edge, fire
+        self.fire = not (self.horizontal_movements_12 == self.max_horizontal_movements - self.horizontal_movements_01 or
+            self.horizontal_movements_12 == self.min_horizontal_movements - self.horizontal_movements_01 or
+            self.vertical_movements_12 == self.max_vertical_movements - self.vertical_movements_01 or 
+            self.vertical_movements_12 == self.min_vertical_movements - self.vertical_movements_01)
 
             
     def get_trained_RDU_0(self):
@@ -187,9 +192,10 @@ class Turret(Space):
     def move_and_fire(self):
         pdi.moveRel_fast(xOffset=int(np.sign(self.horizontal_movements_12)), loops=int(np.abs(self.horizontal_movements_12)))
         pdi.moveRel_fast(yOffset=int(np.sign(self.vertical_movements_12)), loops=int(np.abs(self.vertical_movements_12)))
-        # FIRE!!!
-        swg_utils.click(start_delay=0.025, return_delay=0)
-        
+        if self.fire:
+            # FIRE!!!
+            swg_utils.click(start_delay=0.025, return_delay=0)
+            
         
     def get_crosshairs(self):
         crosshairs = [None, None]
@@ -586,9 +592,9 @@ class Pilot(Space):
     def autopilot_to_enemy(self):
         if self.mission_critical_dropdown_gone():
             return
-        # Presume dropdown is closed (not dropped down) at this point
-        swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
-        enemy_idx = [self.mission_critical_dropdown_idx[0] + 28, self.mission_critical_dropdown_idx[1] + 23]
+        if not self.mission_critical_dropped_down():
+            swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
+        enemy_idx = [self.mission_critical_dropdown_idx[0] + 30, self.mission_critical_dropdown_idx[1] + 25]
         for _ in range(self.num_times_to_click_autopilot_to_enemy):
             swg_utils.click(button='right', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=enemy_idx, activate_window=False)
             if self.autopilot_to_enemy_idx is None:
@@ -596,7 +602,8 @@ class Pilot(Space):
                 self.autopilot_to_enemy_idx, img_arr = swg_utils.find_arr_on_region(autopilot_to_enemy_arr, region=self.swg_region, start_row=max(enemy_idx[0] - 100, 0), start_col=max(enemy_idx[1] - 100, 0), fail_gracefully=False, sharpen_threshold=194)
             swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.autopilot_to_enemy_idx, activate_window=False)
             time.sleep(self.interval_delay)
-        swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
+        if self.mission_critical_dropped_down():
+            swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
         
         
 class Fighter_Pilot(Pilot):
@@ -680,7 +687,7 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
 def main_duty_mission_rear_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
     turret = Duty_Mission_Rear_Turret(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
     # For now, assume only need to run commands once (which assumes the ship doesn't get destroyed etc)
-    turret.run_droid_commands()
+    #turret.run_droid_commands()
     turret.operate_turret()
 
 

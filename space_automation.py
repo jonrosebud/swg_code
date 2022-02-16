@@ -184,9 +184,9 @@ class Turret(Space):
             self.RDU_0 = p / np.linalg.norm(p)
 
 
-    def move_and_fire(self, horizontal_movements, vertical_movements):
-        pdi.moveRel_fast(xOffset=int(np.sign(horizontal_movements)), loops=int(np.abs(horizontal_movements)))
-        pdi.moveRel_fast(yOffset=int(np.sign(vertical_movements)), loops=int(np.abs(vertical_movements)))
+    def move_and_fire(self):
+        pdi.moveRel_fast(xOffset=int(np.sign(self.horizontal_movements_12)), loops=int(np.abs(self.horizontal_movements_12)))
+        pdi.moveRel_fast(yOffset=int(np.sign(self.vertical_movements_12)), loops=int(np.abs(self.vertical_movements_12)))
         # FIRE!!!
         swg_utils.click(start_delay=0.025, return_delay=0)
         
@@ -308,7 +308,7 @@ class Turret(Space):
     
     
     def hunt_target(self, target_type='crosshairs'):
-        self.gamma_01, self.phi_01 = self.convert_movements_to_angles()
+        self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
         self.RDU_lst = []
         img_arr = self.get_target(target_type=target_type)
         if self.target is None:
@@ -321,13 +321,13 @@ class Turret(Space):
         while num_none_target < self.num_none_target_max and time.time() - hunt_start_time < 20 and found_white_arrow is None:
             self.get_trained_RDU_0()
             self.get_remaining_gamma_phi()
-            horizontal_movements, vertical_movements = self.get_aligning_movements()
+            self.get_aligning_movements()
             if self.crosshairs_found:
                 # Later could also fire when brown_avg found if target is within range (which depends on distance and speed and is usually sooner than the crosshairs light up)
-                self.move_and_fire(horizontal_movements, vertical_movements)
-            self.horizontal_movements_cum += horizontal_movements
-            self.vertical_movements_cum += vertical_movements
-            self.gamma_01, self.phi_01 = self.convert_movements_to_angles()
+                self.move_and_fire()
+            self.horizontal_movements_cum += self.horizontal_movements_12
+            self.vertical_movements_cum += self.vertical_movements_12
+            self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
             img_arr = self.get_target(target_type)
             while self.target is None:
                 num_none_target += 1

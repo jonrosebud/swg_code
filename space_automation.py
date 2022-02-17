@@ -533,9 +533,7 @@ class Pilot(Space):
                     
                     
     def autopilot_to_target_location(self):
-        # Move to upper left corner to get out of the way of the searches.
-        pdi.moveTo(x=self.swg_region['left'] + 50, y=self.swg_region['top'] + 50)
-        time.sleep(0.9)
+        time.sleep(0.2)
         self.get_target_location_idx()
         self.target_location_clickable_idx = [self.target_location_idx[0] + 7, self.target_location_idx[1] + 25]
         swg_utils.click(button='right', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.target_location_clickable_idx, activate_window=False)
@@ -663,7 +661,7 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
     def optimize_speed(self):
         start_time = time.time()
         while not self.mission_critical_dropdown_gone():  
-            if time.time() - start_time > 60:
+            if time.time() - start_time > 45:
                 self.autopilot_to_target_location()
                 start_time = time.time()
             pdi.press(self.target_closest_enemy_hotkey)
@@ -691,8 +689,12 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
         while True:
             if not self.got_mission():
                 self.get_duty_mission_from_space_station()
+            i = 1
             while self.mission_critical_dropdown_gone():
                 self.autopilot_to_target_location()
+                if i % 10 == 0:
+                    swg_utils.chat('/throttle 1.0')
+                i += 1
             # Enemies enaging
             if self.mission_critical_dropped_down():
                 swg_utils.click(button='left', start_delay=0.02, return_delay=0.1, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)

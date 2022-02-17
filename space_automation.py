@@ -42,20 +42,20 @@ class Space(SWG):
         super(Space, self).__init__(swg_window_i=swg_window_i)
         self.dir_path = dir_path
         self.target_closest_enemy_hotkey = target_closest_enemy_hotkey
-        self.space_target_distance_digits = {digit: swg_utils.get_search_arr('space_target_distance_digit_' + str(digit), dir_path=self.dir_path, mask_int=None) for digit in range(10)}
+        self.space_target_distance_digits = {digit: swg_utils.get_search_arr('space_target_distance_digit_' + str(digit), dir_path=self.dir_path, mask_int=0) for digit in range(10)}
         # INITIAL VALUES
         self.target_dist_idx = None
         
         
     def get_target_dist(self, fail_gracefully=False):
         if self.target_dist_idx is None:
-            target_dist_right_arr = swg_utils.get_search_arr('target_dist_right_parenthesis', dir_path=self.dir_path, mask_int=None)
-            target_right_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_right_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194)
-            target_dist_left_arr = swg_utils.get_search_arr('target_dist_left_parenthesis', dir_path=self.dir_path, mask_int=None)
-            target_left_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_left_arr, region=self.swg_region, start_row=target_right_parenthesis_idx[0], start_col=target_right_parenthesis_idx[1] - 100, end_row=target_right_parenthesis_idx[0], end_col=target_right_parenthesis_idx[1], fail_gracefully=False, sharpen_threshold=194)
+            target_dist_right_arr = swg_utils.get_search_arr('target_dist_right_parenthesis', dir_path=self.dir_path, mask_int=0)
+            target_right_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_right_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=255)
+            target_dist_left_arr = swg_utils.get_search_arr('target_dist_left_parenthesis', dir_path=self.dir_path, mask_int=0)
+            target_left_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_left_arr, region=self.swg_region, start_row=target_right_parenthesis_idx[0], start_col=target_right_parenthesis_idx[1] - 100, end_row=target_right_parenthesis_idx[0], end_col=target_right_parenthesis_idx[1], fail_gracefully=False, sharpen_threshold=255)
             self.target_dist_idx = [target_left_parenthesis_idx[0], target_left_parenthesis_idx[1] + target_dist_left_arr.shape[1] + 1]
         line_region = {'left': self.swg_region['left'] + self.target_dist_idx[1], 'top': self.swg_region['top'] + self.target_dist_idx[0], 'width': 6 * 6, 'height': 7}
-        line_arr = swg_utils.take_grayscale_screenshot(window=swm.swg_windows[0], region=line_region, sharpen_threshold=194,
+        line_arr = swg_utils.take_grayscale_screenshot(window=swm.swg_windows[0], region=line_region, sharpen_threshold=255,
                 scale_to=255, set_focus=False, sharpen=True)
         
         return swg_utils.get_int_from_line_arr(line_arr, self.space_target_distance_digits, fail_gracefully=fail_gracefully)

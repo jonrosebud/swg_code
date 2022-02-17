@@ -566,9 +566,21 @@ class Pilot(Space):
         target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=None)
         img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194, scale_to=255, set_focus=False, sharpen=True)
         # If the "Target Location" isn't there anymore, then the duty mission is over. Get new mission.
-        return np.all(img_arr[self.target_location_idx[0] : self.target_location_idx[0] + target_location_arr.shape[0], 
+        if not np.all(img_arr[self.target_location_idx[0] : self.target_location_idx[0] + target_location_arr.shape[0], 
                 self.target_location_idx[1] : self.target_location_idx[1] + target_location_arr.shape[1]] ==
-                target_location_arr)
+                target_location_arr):
+            
+            # Wait a bit to make sure
+            time.sleep(3)
+        else:
+            return True
+            
+        return (np.all(img_arr[self.target_location_idx[0] : self.target_location_idx[0] + target_location_arr.shape[0], 
+                self.target_location_idx[1] : self.target_location_idx[1] + target_location_arr.shape[1]] ==
+                target_location_arr) or 
+                
+                swg_utils.find_arr_on_region(target_location_arr, region=self.swg_region, start_row=max(self.target_location_idx[0] - 200, 0), start_col=max(self.target_location_idx[1] - 200, 0), fail_gracefully=True, sharpen_threshold=194)[0] is not None
+                )
             
     
     def get_duty_mission_from_space_station(self):

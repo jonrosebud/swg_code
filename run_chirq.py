@@ -170,8 +170,8 @@ def destroy_for_all_windows():
         mouse_pos = item_to_destroy_coord_list[i]
         for j in range(num_items_to_destroy[i]):
             swg_utils.click(coords=mouse_pos, button='right', start_delay=0, return_delay=0.3)
-            img_arr = glc.take_screenshot_and_sharpen(swg_window, region, 
-                    sharpen_threshold=230, scale_to=255, set_focus=False, sharpen=True)
+            img_arr = swg_utils.take_grayscale_screenshot(window=swg_window, region=region, sharpen_threshold=230,
+                    scale_to=255, set_focus=False, sharpen=True)
             
             mouse_idx = [mouse_pos[1] - region['top'], mouse_pos[0] - region['left']]
             for radial_option in radial_option_delta_dct:

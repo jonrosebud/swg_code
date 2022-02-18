@@ -248,7 +248,7 @@ def get_number_from_arr(line_arr):
                 j += 1
             # The digit we want to find a match to, target_digit, is the slice
             # from col i to col j.
-            target_digit = line_arr[:, i : j].astype(np.int)
+            target_digit = line_arr[:, i : j].astype(int)
             # Increase i so it is starting on a column of all zeros and thus
             # ready to find the next digit.
             i += j - i

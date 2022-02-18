@@ -100,7 +100,7 @@ def edit_file(waypoint_manager):
     # ask user for file_name
     waypoint_manager.file_name = input("Enter file_name to edit: ") + ".csv"    
     # waypoint_manager.waypoint_list = file_utils.read_csv(waypoint_manager.file_name)
-    waypoint_manager.waypoint_list = list(map(list,np.array(file_utils.read_csv(waypoint_manager.file_name)).astype(np.int)))
+    waypoint_manager.waypoint_list = list(map(list,np.array(file_utils.read_csv(waypoint_manager.file_name)).astype(int)))
     print('waypoint_list: ', waypoint_manager.waypoint_list)
     # print('index: ', waypoint_manager.index)
     # begin editing

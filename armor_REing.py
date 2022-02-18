@@ -15,7 +15,6 @@ sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils
 import random
 from copy import deepcopy
-import get_land_coords as glc
 import swg_utils
 
 
@@ -295,8 +294,8 @@ class REing:
         for attempt_number in range(attempt_limit):
             stat_value = None
             click(stat_coords, button='left', delay=2)
-            img_arr = glc.take_screenshot_and_sharpen(swg_window, region, 
-                    sharpen_threshold=160, scale_to=255, set_focus=False, sharpen=True)
+            img_arr = swg_utils.take_grayscale_screenshot(window=swg_window, region=region, sharpen_threshold=160,
+                    scale_to=255, set_focus=False, sharpen=True)
             
             for i in range(self.corner_description_coords[1], img_arr.shape[0]):
                 if np.all(img_arr[i : i + stat_arr_dct[stat_name].shape[0], self.left_of_stat : self.left_of_stat + stat_arr_dct[stat_name].shape[1]] == stat_arr_dct[stat_name]):

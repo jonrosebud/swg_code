@@ -385,7 +385,7 @@ def chat(string, start_delay=0.2, return_delay=0.1, interval_delay=0.1):
     time.sleep(return_delay)
     
     
-def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start_col=0, end_row=None, end_col=None, fail_gracefully=False, sharpen_threshold=130):
+def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start_col=0, end_row=None, end_col=None, fail_gracefully=False, sharpen_threshold=130, return_as_tuple=False):
     '''
     Parameters
     ----------
@@ -420,6 +420,10 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
     fail_gracefully: bool
         True: If the desired matrix is not found, return None, None
         False: If the desired matrix is not found, raise an Exception stating this.
+        
+    return_as_tuple: bool
+        True: return row, col, img_arr
+        False: return [row, col], img_arr
         
     Returns
     -------
@@ -472,10 +476,16 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
                 j : j + search_arr.shape[1]] ==
                 search_arr):
             
-            return [i, j], img_arr
+            if return_as_tuple:
+                return i, j, img_arr
+            else:
+                return [i, j], img_arr
     if not fail_gracefully:
         raise Exception('Could not find search_arr in img_arr')
-    return None, img_arr
+    if return_as_tuple:
+        return None, None, img_arr
+    else:
+        return None, img_arr
 
 
 def get_search_arr(fname, dir_path='.', mask_int=None):

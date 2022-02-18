@@ -16,7 +16,7 @@ from python_utils import file_utils
 import random
 from copy import deepcopy
 import get_land_coords as glc
-from swg_code import swg_utils
+import swg_utils
 
 
 inventory_arr_dir = 'inventory_dir'

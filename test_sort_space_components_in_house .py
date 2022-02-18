@@ -965,6 +965,7 @@ class Ship_Component:
                 col = first_indentation_level_col
             else:
                 col = second_indentation_level_col
+            swg_utils.find_arr_on_region(inventory_dct[stat_key], img_arr=img_arr, start_row=corner_description_idx[0], start_col=col, end_col=col, fail_gracefully=False, return_as_tuple=True)
             row = find_str_on_image_given_col(inventory_dct[stat_key], img_arr, col, row_start=corner_description_idx[0])
             if row is None:
                 raise Exception('Could not find', stat_key)

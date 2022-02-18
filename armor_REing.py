@@ -20,9 +20,9 @@ import swg_utils
 
 inventory_arr_dir = 'inventory_dir'
 top_left_corner_of_description_csv = os.path.join(inventory_arr_dir, 'top_left_corner_of_description_section.csv')
-top_left_corner_of_description_arr = np.array(file_utils.read_csv(top_left_corner_of_description_csv)).astype(np.int)
+top_left_corner_of_description_arr = file_utils.read_csv(top_left_corner_of_description_csv, dtype=int)
 stat_names = ['Power', 'Item_Count', 'sockets_available']
-stat_arr_dct = {stat_name : np.array(file_utils.read_csv(os.path.join(inventory_arr_dir, stat_name + '.csv'))).astype(np.int) for stat_name in stat_names}
+stat_arr_dct = {stat_name : file_utils.read_csv(os.path.join(inventory_arr_dir, stat_name + '.csv'), dtype=int) for stat_name in stat_names}
 
 '''
 inventory_digit_csv_dir: str
@@ -65,7 +65,7 @@ inventory_digit_csvs = file_utils.find(inventory_digit_csv_dir, '*.csv')
 inventory_digit_csvs = [fpath for fpath in inventory_digit_csvs if file_utils.fname_from_fpath(fpath) in digit_lst]
 inventory_digit_dct = {}
 for digit_csv in inventory_digit_csvs:
-    digit_arr = np.array(file_utils.read_csv(digit_csv)).astype(np.int)
+    digit_arr = file_utils.read_csv(digit_csv, dtype=int)
     digit_fname = file_utils.fname_from_fpath(digit_csv)
     inventory_digit_dct[digit_fname] = digit_arr
     
@@ -220,15 +220,15 @@ def dump_macros():
 
 class REing:
     def __init__(self, autoit_dir=r'D:\autoit\swg\REing', 
-            junk_RE_tool_coords=[region['left'] + 315, 340],
-            bit_RE_tool_coords=[region['left'] + 378, 340],
-            free_item_coords=[region['left'] + 441, 340],
-            knife_coords=[region['left'] + 504, 340],
-            crate_of_knives_coords=[region['left'] + 711, 276],
-            backpack_coords=[region['left'] + 448, 278],
-            ok_coords = [region['left'] + 428, 434],
-            next_statted_loot_coords=[region['left'] + 971, 119],
-            next_crate_of_knives_coords=[region['left'] + 966, 349],
+            junk_RE_tool_coords=[region['left'] + 315, region['top'] + 314],
+            bit_RE_tool_coords=[region['left'] + 378, region['top'] + 314],
+            free_item_coords=[region['left'] + 441, region['top'] + 314],
+            knife_coords=[region['left'] + 504, region['top'] + 314],
+            crate_of_knives_coords=[region['left'] + 711, region['top'] + 250],
+            backpack_coords=[region['left'] + 448, region['top'] + 252],
+            ok_coords = [region['left'] + 428, region['top'] + 408],
+            next_statted_loot_coords=[region['left'] + 971, region['top'] + 93],
+            next_crate_of_knives_coords=[region['left'] + 966, region['top'] + 323],
             num_junk_loots=3012,
             num_statted_loots=50,
             num_crates_of_knives=50,
@@ -344,7 +344,7 @@ class REing:
         
     def attach_SEA_to_knife(self):
         swg_utils.click_drag(self.free_item_coords, self.knife_coords, start_delay=0.5, return_delay=0.6)
-        click(self.ok_coords, button='left')
+        swg_utils.click(self.ok_coords, button='left')
 
 
     def get_knife(self):

@@ -2729,19 +2729,19 @@ def main(sorting_task, calibration_desires_dct, sorting_desires_dct):
                 get_value_of_desired_percentile(component_type='droid_interface', re_lvl=str(lvl), stat_key='Droid_Command_Speed', desired_percentile=percentile, iterator_magnitude=0.1, start_value=50)
 
 if __name__ == '__main__':
-    main('none', {
+    main('POB', {
         'inventory': True,
         'backpack': False,
         'droids': False,
-        'hopper': True,
+        'hopper': False,
         'pack': False,
-        'loot_box': True,
+        'loot_box': False,
         'good_loot': False}, 
         {
         'inventory': True, 
         'backpack': True, 
         'crates': False, 
-        'droids': False
+        'droids': True
         })
     
 '''

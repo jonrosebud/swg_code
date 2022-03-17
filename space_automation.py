@@ -772,8 +772,8 @@ def main(task_type='duty_mission', turret_type='None', pilot_type='None'):
         raise Exception('Invalid task_type')
     
 if __name__ == '__main__':
-    task_type = config.get_value('main', 'task_type', desired_type=str, required_to_be_in_conf=False, default_value='duty_mission')
-    turret_type = config.get_value('main', 'turret_type', desired_type=str, required_to_be_in_conf=False, default_value='None')
-    pilot_type = config.get_value('main', 'pilot_type', desired_type=str, required_to_be_in_conf=False, default_value='None')
+    task_type = config.get_value('space', 'task_type', desired_type=str, required_to_be_in_conf=False, default_value='duty_mission')
+    turret_type = config.get_value('space', 'turret_type', desired_type=str, required_to_be_in_conf=False, default_value='None')
+    pilot_type = config.get_value('space', 'pilot_type', desired_type=str, required_to_be_in_conf=False, default_value='None')
     main(task_type=task_type, turret_type=turret_type, pilot_type=pilot_type)
     

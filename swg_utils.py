@@ -549,7 +549,12 @@ def run_recorded_key_presses(recorded_key_presses, function_list=[empty_function
             reverse_function_list[function_idx]()
             
             
-def click_drag(start_coords, end_coords, num_drags=1, start_delay=0.0, return_delay=0.0):
+def click_drag(start_coords=None, end_coords=None, start_idx=None, end_idx=None, region=None, num_drags=1, start_delay=0.0, return_delay=0.0):
+    if region is not None:
+        if start_idx is not None:
+            start_coords = [start_idx[1] + region['left'], start_idx[0] + region['top']]
+        if end_idx is not None:
+            end_coords = [end_idx[1] + region['left'], end_idx[0] + region['top']]
     time.sleep(start_delay)
     for i in range(num_drags):
         if i != 0:
@@ -619,3 +624,27 @@ def zoom(direction='in'):
     direction_dct = {'in': 1, 'out': -1}
     for _ in range(50):
         pag.scroll(direction_dct[direction] * 100)
+        
+        
+def idx_checks(region=None, idx=None, fail_gracefully=False):
+    if idx[0] < 0:
+        if fail_gracefully:
+            return False
+        else:
+            raise Exception('idx is too far up. (row less than 0). idx:', idx)
+    if idx[1] < 0:
+        if fail_gracefully:
+            return False
+        else:
+            raise Exception('idx is too far left. (col less than 0). idx:', idx)
+    if idx[0] >= region['height']:
+        if fail_gracefully:
+            return False
+        else:
+            raise Exception('idx is too far down. (row greater than region height). idx:', idx, 'region:', region)
+    if idx[1] >= region['width']:
+        if fail_gracefully:
+            return False
+        else:
+            raise Exception('idx is too far right. (col greater than region width). idx:', idx, 'region:', region)
+    return True

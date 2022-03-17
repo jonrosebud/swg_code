@@ -1,5 +1,6 @@
 version: 0000
 116 BespinPOBSetup startband #ffffff /pause 0.25;/droid droidcommand_reactoroverloadfour;/pause 3;/droid droidcommand_weapcappowerupfour;/pause 3;/droid droidcommand_engineoverloadtwo;/pause 3;/droid droidcommand_weaponoverloadfour;/pause 3;/droid droidcommand_shieldadjustrearfour;/pause 3;/droid droidcommand_weapcaptoshieldtwo;
+120 GetMission bountycheck #ffffff /pause 0.25;/pause 1;/conversationStart;/pause 1;/ui action conversationResponse2;/pause 1;/ui action conversationResponse3;/pause 1;/conversationStop;
 19 HWbuff co_general_blast_resistance #ffffff /pause 0.25;/pause 10;/ui action toolbarSlot20;/pause 1700;/macro HWbuff;
 18 MustyInjector countertoxin #ffffff /pause 0.25;/pause 10;/ui action toolbarSlot22;/pause 130;/macro MustyInjector;
 4 Nym1Armor costume_esb_luke #ffffff /pause 0.25;/conversationStart;/pause 1;/ui action conversationResponse1;/pause 1;/ui action conversationResponse0;/pause 1;/ui action conversationResponse0;/pause 1;/ui action conversationResponse0;/pause 1;/ui action conversationResponse0;/pause 1;/ui action conversationResponse0;
@@ -75,6 +76,7 @@ version: 0000
 72 sendTellOdd wod_agony #ffffff /pause 0.25;/say send tell to OddBodkins for invite;/pause 120;/macro sendTellOdd;
 7 sendtell bh_taunt #ffffff /pause 0.25;/say send me a tell if you need these npcs;/pause 120;/macro sendtell;
 115 shieldRearAdjustExtreme of_deadeye_debuff #ffffff /pause 0.25;/droid droidcommand_shieldadjustrearfour;
+119 shipFrontHeal fs_flurry #ffffff /pause 0.25;/droid droidcommand_shieldbacktofronttwenty;/pause 3.5;/macro shipFrontHeal;
 114 shipRearHeal bactaSpray #ffffff /pause 0.25;/droid droidcommand_shieldfronttobackhundred;/pause 2.5;/droid droidcommand_weapcaptoshieldone;/pause 8.1;/macro shipRearHeal;
 118 shipRearSlowHeal startjuggling #ffffff /pause 0.25;/droid droidcommand_shieldfronttobacktwenty;/pause 2.5;/droid droidcommand_weapcaptoshieldone;/pause 8.1;/macro shipRearSlowHeal;
 25 shortBuff me_rv #ffffff /pause 0.25;/ui action toolbarSlot01;/pause 305;/macro shortBuff;
@@ -88,7 +90,7 @@ version: 0000
 94 slot09 command_pvp_retaliation_rebel_ability #ffffff /pause 0.25;/ui action toolbarSlot09;/pause 0.1;/ui action toolbarSlot09;/pause 0.1;/ui action toolbarSlot09;
 50 slowShipHeal bandages #ffffff /pause 0.25;/droid droidcommand_weapcaptoshieldone;/pause 12;/macro slowShipHeal;
 40 spaceBattleStatus callforsnowspeeder #ffffff /pause 0.25;/spacebattle corellia;/say Cor: Set Nav to Trifecta Star 5.6km;/pause 10;/spacebattle dantooine;/say Dant: Set Nav to Isryn's Veil 5.8km;/pause 10;/spacebattle lok;/say Lok: Set Nav to Voria's Ember 3.7km;/pause 10;/spacebattle naboo;/say Naboo: Set Nav to Pennumbra Omen 8.2km;/pause 10;/spacebattle tatooine;/say Tat: Set Nav to Deep Sea 5.2km;/pause 10;/spacebattle status;
-47 spacepvp callforslave1pickup #ffffff /pause 0.25;/droid droidcommand_shieldadjustfrontfour;/pause 5;/macro dcs;/pause 20;/droid droidcommand_weapcaptoshieldthree;/pause 20;/droid droidcommand_weapcaptoshieldthree;/pause 20;/droid droidcommand_weapcaptoshieldthree;/pause 20;/droid droidcommand_weapcaptoshieldone;
+47 spacepvp callforslave1pickup #ffffff /pause 0.25;/droid droidcommand_shieldadjustfrontfour;/pause 5;/macro dcs;/pause 20;/droid droidcommand_shieldbacktofronttwenty;/pause 1.5;/droid droidcommand_weapcaptoshieldthree;/pause 20;/droid droidcommand_weapcaptoshieldthree;/pause 20;/droid droidcommand_weapcaptoshieldthree;/pause 1.5;/macro shipFrontHeal;
 73 stayAwake of_paint_expose #ffffff /pause 0.25;/blink;/pause 550;/macro stayAwake;
 64 studyCreature bm_pet_dodge #ffffff /pause 0.25;/ui action toolbarSlot08;/pause 7;/macro studyCreature;
 66 tank aurilian_crystal_buff_lrg #ffffff /pause 0.25;/macro heal;/pause 1.5;/ui action toolbarSlot10;/pause 0.2;/macro tank;

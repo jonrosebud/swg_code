@@ -6,13 +6,13 @@ Created on Tue Aug 24 17:41:08 2021
 """
 from copy import deepcopy
 import string
+import random
 from pprint import pprint
 import pandas as pd
 import numpy as np
 import math
 import pyautogui as pag
 import pydirectinput_tmr as pdi
-from drag_mouse import drag_mouse
 import time
 from config_utils import Instruct
 import socket
@@ -29,7 +29,8 @@ sys.path.append(r"" + git_path)
 import swg_utils
 import swg_window_management as swm
 import go_to_chassis_dealer
-
+from pynput.keyboard import Listener, Key
+win_pressed=False
 '''
 inventory_arr_dir: str
     Path of directory which contains matrices of various strings that appear in the inventory description section.
@@ -72,7 +73,8 @@ inventory_dct = {
         'Roll_Rate_Maximum', 'Engine_Top_Speed', 'Front_Shield_Hitpoints', 
         'Back_Shield_Hitpoints', 'Shield_Recharge_Rate', 'Min_Damage', 'Max_Damage', 'Vs_Shields',
         'Vs_Armor', 'Energy_Per_Shot', 'Refire_Rate', 'Contents', 'period', 'slash', 'dash',
-        'top_left_corner_of_description_section_130_threshold', 'lower_right_corner'] +
+        'top_left_corner_of_description_section_130_threshold', 'container_down_arrow_130_thresh', 'show_description_toggle_100_threshold',
+        'square_bracket'] +
         list(map(str, range(10)))
         }
 
@@ -86,8 +88,8 @@ character_names_dct = {
 swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
 swg_window = swm.swg_windows[swg_window_i]
 region = swm.swg_window_regions[swg_window_i]
+        
 
-    
 def get_item_coords(corner_description_idx, swg_window_region, item_inventory_position):
     '''
     Parameters
@@ -214,7 +216,8 @@ def get_number_from_arr(line_arr, numeric_type=int):
         # and one after).
         dash_position = False
         slash_position = False
-        for key in ['slash', 'dash']:
+        square_bracket_position = False
+        for key in ['slash', 'dash', 'square_bracket']:
             i = 0
             # Iterate through the columns of line_arr
             while i < line_arr.shape[1] - inventory_dct[key].shape[1]:
@@ -222,17 +225,19 @@ def get_number_from_arr(line_arr, numeric_type=int):
                 if np.all(inventory_dct[key] == target_arr):
                     if key == 'dash':
                         dash_position = deepcopy(i)
-                    else:
+                    elif key == 'slash':
                         slash_position = deepcopy(i)
+                    elif key == 'square_bracket':
+                        square_bracket_position = deepcopy(i)
                     break
                 i += 1
-            if slash_position is not False or dash_position is not False:
-                break
+        if square_bracket_position is False:
+            square_bracket_position = line_arr.shape[1]
         i = 0
         result = []
         digits = ''
         # Iterate through the columns of line_arr
-        while i < line_arr.shape[1]:
+        while i < line_arr.shape[1] and i < square_bracket_position:
             # If the ith col is not all zeros then we've found the beginning of
             # a digit.
             if np.sum(line_arr[:, i]) > 255:
@@ -241,7 +246,7 @@ def get_number_from_arr(line_arr, numeric_type=int):
                 # find a column of all zeros (or all but one being 0) which 
                 # represents the space in between digits and thus marks the end of 
                 # the digit.
-                while np.sum(line_arr[:, j]) > 255:
+                while j < line_arr.shape[1] and np.sum(line_arr[:, j]) > 255:
                     j += 1
                 # The digit we want to find a match to, target_digit, is the slice
                 # from col i to col j.
@@ -285,42 +290,18 @@ def get_str_from_arr(line_arr):
         '''
         line_arr: 2D np.array
             This matrix must be the same height (number of rows) as the stored
-            digit matrices in digit_dct. line_arr contains some of the
-            digit matrices in digit_dct which will be read sequentially
+            char matrices in character_names_dct. line_arr contains some of the
+            char matrices in character_names_dct which will be read sequentially
             to get the overall (single) number.
             
         Returns
         -------
-        digits: int
-            The number as read from the line_arr.
+        digits: str
+            The string read in line_arr
         
         Purpose
         -------
-        Given a matrix that contains digit matrices separated by columns of all
-        0's (or all are 0's except one), concatenate the digits in the order they 
-        appear to return the overall number represented by line_arr.
-        
-        Method
-        ------
-        Iterate through each column of line_arr until there's a column of not all 
-        zeros or all but one is zero. If the sum of the column is greater than 255 
-        (assuming there are only 255 and 0 entries), this means we have found the 
-        column index, i, of the beginning of a new digit. Continue iterating 
-        through the columns with j until you find the first column after i that is 
-        all zeros (or all but one is zeros). The slice in between is the matrix of 
-        one of the digits. Try each digit matrix until one of them matches. Append 
-        the digit to the overall digits string. Convert to a number at the end.
-    
-        Notes
-        -----
-        1. The reason we are splitting by all zeros or all but one being 0 is 
-            because '4' has a non-zero value sticking out to the right, such that
-            the next digit begins on the very next column without a break (no
-            all-zero column).
-            
-        2. The reason we do not make each digit a common width and use a step
-            size of this width is because there could be other terms like
-            a decimal point or a negative sign.
+        Use character_names_dct to put togehter all characters in the string in line_arr. (image to text recognition).
         '''
         i = 0
         char_start_col = 0
@@ -378,7 +359,7 @@ def get_str_from_arr(line_arr):
         return result
     
     
-def get_item_count_and_capacity(region, img_arr=None, start_row=600, start_col=600):
+def get_item_count_and_capacity(region, img_arr=None, start_row=600, start_col=600, fail_gracefully=False):
     '''
     Parameters
     ----------
@@ -408,18 +389,18 @@ def get_item_count_and_capacity(region, img_arr=None, start_row=600, start_col=6
     Get item_count and item_capacity for a given selected container.
     '''
     time.sleep(0.5)
-    if img_arr is None:
-        img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
-                scale_to=255, sharpen=True, set_focus=False)
-
     # Get lower right corner indices of container window in img_arr
-    lower_right_corner_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['lower_right_corner'], region=region, img_arr=img_arr, start_row=start_row, start_col=start_col, fail_gracefully=False)
+    down_arrow_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['container_down_arrow_130_thresh'], region=region, img_arr=img_arr, start_row=start_row, start_col=start_col, sharpen_threshold=130, fail_gracefully=fail_gracefully)
+    if down_arrow_idx is None:
+        return None, None, None
+    start_of_item_count_idx = np.array([down_arrow_idx[0] + down_arrow_to_start_of_item_count_offset[0], down_arrow_idx[1] - down_arrow_to_start_of_item_count_offset[1]])
     # Get the container item count.
-    line_arr = img_arr[lower_right_corner_idx[0] + num_rows_from_right_corner_row_to_start_of_item_count : digit_height + lower_right_corner_idx[0] + num_rows_from_right_corner_row_to_start_of_item_count, 
-            lower_right_corner_idx[1] - num_cols_from_right_corner_col_to_start_of_item_count : lower_right_corner_idx[1]]
+    line_arr = img_arr[start_of_item_count_idx[0] : digit_height + down_arrow_idx[0] + down_arrow_to_start_of_item_count_offset[0], 
+            start_of_item_count_idx[1] : down_arrow_idx[1]]
     
     item_count, item_capacity = get_number_from_arr(line_arr, numeric_type=int)
-    return item_count, item_capacity
+    # Find the 
+    return item_count, item_capacity, down_arrow_idx
     
     
 def get_extreme_avg_and_modifier_combo_for_stats(extreme_avg_and_modifier_json_dir, loot_table_dir):
@@ -528,8 +509,8 @@ def get_name_header(corner_description_idx, img_arr=None):
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
     # Offset to [row, col]
-    named_component_offset = [-33, -2]
-    named_component_idx = [named_component_offset[0] + corner_description_idx[0], named_component_offset[1] + corner_description_idx[1]]
+    named_component_offset = np.array([-33, -2])
+    named_component_idx = named_component_offset + corner_description_idx
     named_component_row_length = 800
     named_component_height = 10
     line_arr = img_arr[named_component_idx[0] : named_component_idx[0] + named_component_height, named_component_idx[1] : named_component_idx[1] + named_component_row_length]
@@ -641,7 +622,7 @@ class Ship_Component:
         return self.max_loot_percentile_value >= 0.969999999999998 and (self.stats['Reverse_Engineering_Level'] not in self.usually_bad_re_lvls or self.max_loot_percentile_value >= 0.999998999999998)
         
         
-    def store_loot_in_hopper(self, item_coords, hopper_type):
+    def store_loot_in_hopper(self, item_coords, hopper_type, sorting_inventory):
         '''
         Parameters
         ----------
@@ -651,6 +632,10 @@ class Ship_Component:
         hopper_type: str
             Options are 'junk_loot', 'good_loot', 'crate'
             Determines where the item in the inventory gets placed.
+            
+        sorting_inventory: bool
+            True: You are sorting the inventory and this function will close and open the inventory
+            False: You are sorting a droid or a backpack or a pack and so this container will be activated by clicking at the bottom.
 
         Purpose
         -------
@@ -661,6 +646,7 @@ class Ship_Component:
         global non_components_hopper_i
         global collection_hopper_i
         global currently_open_hopper
+        global crate_hopper_i
         # Determine which intput hopper to open
         # Deal with multiple good loot hoppers (the index like _0, _1, etc) later.
         opened_new_hopper = False
@@ -669,8 +655,7 @@ class Ship_Component:
         elif hopper_type == 'junk_loot':
             hopper_name = 'Loot_' + str(junk_hopper_i)
         elif hopper_type == 'crate':
-            # Temporary name
-            hopper_name = 'clothing'
+            hopper_name = 'Crates_' + str(crate_hopper_i)
         elif hopper_type == 'junk_droid_interface':
             hopper_name = 'DIs_' + str(droid_interface_hopper_i)
         elif hopper_type == 'non_components':
@@ -684,36 +669,41 @@ class Ship_Component:
             time.sleep(0.2)
             opened_new_hopper = True
             currently_open_hopper = deepcopy(hopper_name)
-        # Currently only incrementing junk loot, junk DIs, and non_components
-        if hopper_type == 'junk_loot' or hopper_type == 'junk_droid_interface' or hopper_type == 'non_components':
-            # Check to see if we filled it up.
-            item_count, item_capacity = get_item_count_and_capacity(region, img_arr=None, start_row=100, start_col=880)
-            while item_count == item_capacity:
-                # Close hopper
-                close_hopper()
-                if hopper_type == 'junk_loot':
-                    junk_hopper_i += 1
-                    hopper_name = 'Loot_' + str(junk_hopper_i)
-                elif hopper_type == 'junk_droid_interface':
-                    droid_interface_hopper_i += 1
-                    hopper_name = 'DIs_' + str(droid_interface_hopper_i)
-                elif hopper_type == 'non_components':
-                    non_components_hopper_i += 1
-                    hopper_name = 'non_components_' + str(non_components_hopper_i)
-                elif hopper_type == 'collection':
-                    collection_hopper_i += 1
-                    hopper_name = 'collections_' + str(collection_hopper_i)
-                # Open new hopper
-                swg_utils.chat('/open ' + hopper_name)
-                time.sleep(0.2)
-                opened_new_hopper = True
-                currently_open_hopper = deepcopy(hopper_name)
-                item_count, item_capacity = get_item_count_and_capacity(region, img_arr=None, start_row=100, start_col=880)
+        # Check to see if we filled it up.
+        item_count, item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=100, start_col=880)
+        while item_count == item_capacity:
+            # Close hopper
+            close_hopper()
+            if hopper_type == 'junk_loot':
+                junk_hopper_i += 1
+                hopper_name = 'Loot_' + str(junk_hopper_i)
+            elif hopper_type == 'junk_droid_interface':
+                droid_interface_hopper_i += 1
+                hopper_name = 'DIs_' + str(droid_interface_hopper_i)
+            elif hopper_type == 'non_components':
+                non_components_hopper_i += 1
+                hopper_name = 'non_components_' + str(non_components_hopper_i)
+            elif hopper_type == 'collection':
+                collection_hopper_i += 1
+                hopper_name = 'collections_' + str(collection_hopper_i)
+            elif hopper_type == 'crate':
+                crate_hopper_i += 1
+                hopper_name = 'Crates_' + str(crate_hopper_i)
+            # Open new hopper
+            swg_utils.chat('/open ' + hopper_name)
+            time.sleep(0.2)
+            opened_new_hopper = True
+            currently_open_hopper = deepcopy(hopper_name)
+            item_count, item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=100, start_col=880)
         if opened_new_hopper:
-            # activate inventory window
-            swg_utils.click(coords=inventory_activation_coords, start_delay=0.1, return_delay=0.1, interval_delay=0.02, move_speed=5, duration=0.02, activate_window=False)
+            if sorting_inventory:
+                # activate inventory window
+                pdi.press('i', presses=2)
+            else:
+                # Activate container window
+                swg_utils.click(coords=caravan_activation_coords, button='left', start_delay=0.1, return_delay=0.1)
         # Drag item from inventory to the hopper.
-        drag_mouse(autoit_dir, start_coords=item_coords, end_coords=into_hopper_coords, num_drags=1, delay_return=0.75)
+        swg_utils.click_drag(start_coords=item_coords, end_coords=into_hopper_coords, num_drags=1, start_delay=0.0, return_delay=0.75)
         
         
     def get_max_loot_percentile_value_stc(self):
@@ -965,8 +955,8 @@ class Ship_Component:
                 col = first_indentation_level_col
             else:
                 col = second_indentation_level_col
-            swg_utils.find_arr_on_region(inventory_dct[stat_key], img_arr=img_arr, start_row=corner_description_idx[0], start_col=col, end_col=col, fail_gracefully=False, return_as_tuple=True)
-            row = find_str_on_image_given_col(inventory_dct[stat_key], img_arr, col, row_start=corner_description_idx[0])
+            # Subtract 1 from row number because digits have a blank line above them (so that square bracket can be found).
+            row = find_str_on_image_given_col(inventory_dct[stat_key], img_arr, col, row_start=corner_description_idx[0]) - 1
             if row is None:
                 raise Exception('Could not find', stat_key)
             # Now that the row of the stat is found, we need to get the stat value.
@@ -1198,7 +1188,7 @@ def item_radial_option(item_coords, radial_option='1'):
     Radial an item that is visible (the window is on top) in a container and
     then select the radial option provided.
     '''
-    swg_utils.click(coords=item_coords, button='right', start_delay=0.5, return_delay=1, presses=1, interval_delay=0.02, move_speed=5, duration=0.02, activate_window=False)
+    swg_utils.click(coords=item_coords, button='right')
     pdi.press(radial_option)
     time.sleep(0.2)
     
@@ -1311,16 +1301,17 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
     global starting_inventory_position
     component_type_id_dct = {'Booster_Energy':'booster', 'Capacitor_Energy':'capacitor', 'Droid_Command_Speed':'droid_interface', 'Engine_Top_Speed':'engine', 'Reactor_Generation_Rate':'reactor', 'Shield_Recharge_Rate':'shield', 'Energy_Per_Shot':'weapon'}
     # Get the top left corner indices of img_arr
-    corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, fail_gracefully=False, sharpen_threshold=130)
+    corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
     first_indentation_level_col = corner_description_idx[1] + num_cols_from_left_side_to_first_indentation_level
     second_indentation_level_col = corner_description_idx[1] + num_cols_from_left_side_to_second_indentation_level
     
-    item_count, item_capacity = get_item_count_and_capacity(region, img_arr=None)
+    item_count, item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=None)
     item_inventory_position = deepcopy(starting_inventory_position)
-    for i in range(starting_inventory_position, item_count + num_equipped_items - num_items_in_bulky_containers):
+    end_inventory_position = item_count + num_equipped_items - num_items_in_bulky_containers
+    while item_inventory_position < end_inventory_position:
         item_coords = get_item_coords(corner_description_idx, region, item_inventory_position)
         # Click on item
-        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9, interval_delay=0.02, move_speed=5, duration=0.02, activate_window=False)
+        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
         # Get screenshot
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
@@ -1344,8 +1335,8 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
                     pdi.press('i')
                     pdi.press('i')
                     # Get name header
-                    swg_utils.click(coords=item_coords, start_delay=0.05, return_delay=1.5, interval_delay=0.02, move_speed=5, duration=0.02, activate_window=False)
-                    inventory_corner_description_idx, inventory_img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, fail_gracefully=False, sharpen_threshold=130)
+                    swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=1.5)
+                    inventory_corner_description_idx, inventory_img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
                     name_header = get_name_header(inventory_corner_description_idx, img_arr=inventory_img_arr)
                     # The inventory string is offset differently than item strings so get_name_header will return '  ' if no item is selected.
                     if name_header == '  ':
@@ -1357,13 +1348,24 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
                         drop_item_and_move_up(item_coords, radial_option='3')
                     else:
                         # Move item to non-space component hopper
-                        generic_component.store_loot_in_hopper(item_coords, 'non_components')
+                        generic_component.store_loot_in_hopper(item_coords, 'non_components', True)
                         # Activate the inventory
                         pdi.press('i', presses=2)
-                        drag_mouse(autoit_dir, start_coords=item_coords, end_coords=into_hopper_coords, num_drags=1, delay_return=0.75)
+                        swg_utils.click_drag(start_coords=item_coords, end_coords=into_hopper_coords, num_drags=1, start_delay=0.0, return_delay=0.75)
                         # Activate non-space component hopper and close it.
                         close_hopper()
                 else:
+                    # Check to see whether it is a pack containing ship component loot
+                    inventory_corner_description_idx, inventory_img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
+                    if item_is_container(inventory_corner_description_idx, first_indentation_level_col, inventory_img_arr):
+                        # Sort through this pack
+                        # Open pack
+                        item_radial_option(item_coords, radial_option='1')
+                        pack_item_count, _ = get_backpack_item_count(backpack_already_open=True)
+                        # Sort pack
+                        sort_backpack(generic_component, component_dct, True)
+                        # Pack is closed at the end of sort_backpack
+                        end_inventory_position -= pack_item_count
                     # Skip
                     item_inventory_position += 1
                 continue
@@ -1379,11 +1381,11 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
                     found_name = 'armor'
         if 'crate' in found_name:
             # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'crate')
+            generic_component.store_loot_in_hopper(item_coords, 'crate', True)
             continue
         elif 'collection' in found_name:
             # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'collection')
+            generic_component.store_loot_in_hopper(item_coords, 'collection', True)
             continue
         elif found_name not in component_dct:
             continue
@@ -1393,22 +1395,26 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
         if component.worth_keeping():
             # Put into hopper.
             # (For now don't worry about whether it's full, that's a TODO for later)
-            component.store_loot_in_hopper(item_coords, 'good_loot')
+            component.store_loot_in_hopper(item_coords, 'good_loot', True)
         elif component.component_type == 'droid_interface':
-            component.store_loot_in_hopper(item_coords, 'junk_droid_interface')
+            component.store_loot_in_hopper(item_coords, 'junk_droid_interface', True)
         elif not will_sort_crates:
             # If not going to sort crates then can just keep junk items in inventory because you only need to remove junk to hopper to make way for opening crates.
             item_inventory_position += 1
         else:
-            component.store_loot_in_hopper(item_coords, 'junk_loot')
+            component.store_loot_in_hopper(item_coords, 'junk_loot', True)
         component.update_recorded_stats_df()
         component.recorded_stats_df.to_csv(component.recorded_stats_fpath, index=False)
     starting_inventory_position = deepcopy(item_inventory_position)
     close_hopper()
         
         
-def sort_backpack(generic_component, component_dct):
+def sort_backpack(generic_component, component_dct, pack):
     '''
+    pack: bool
+        True: container is a pack that is not the main backpack (65-item capacity backpack). Instead, it is a 50-capacity pack.
+        False: container is the main backpack.
+        
     Purpose
     -------
     When there are ship components, reward crates, collection items, or other 
@@ -1437,21 +1443,24 @@ def sort_backpack(generic_component, component_dct):
     
     5. Backpack is already open.
     '''
-    global starting_backpack_position
     # Get the top left corner indices of img_arr
-    corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, fail_gracefully=False, sharpen_threshold=130)
+    corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
     first_indentation_level_col = corner_description_idx[1] + num_cols_from_left_side_to_first_indentation_level
     second_indentation_level_col = corner_description_idx[1] + num_cols_from_left_side_to_second_indentation_level
 
-    item_inventory_position = deepcopy(starting_backpack_position)
-    item_count = generic_component.backpack_item_count
-    for i in range(starting_backpack_position, item_count):
+    item_inventory_position = 0
+    if pack:
+        item_count, _ = get_backpack_item_count(backpack_already_open=True)
+    else:
+        item_count = generic_component.backpack_item_count
+    for i in range(item_count):
         item_coords = get_item_coords(corner_description_idx, region, item_inventory_position)
         # Click on item
-        swg_utils.click(coords=item_coords, start_delay=0.05, return_delay=0.9, interval_delay=0.02, move_speed=5, duration=0.02, activate_window=False)
+        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
         # Get screenshot
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
+        
         found_name = None
         for name in inventory_dct:
             if '_name' not in name:
@@ -1466,30 +1475,30 @@ def sort_backpack(generic_component, component_dct):
             continue
         if 'crate' in found_name:
             # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'crate')
+            generic_component.store_loot_in_hopper(item_coords, 'crate', False)
             continue
         elif 'collection' in found_name:
             # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'collection')
+            generic_component.store_loot_in_hopper(item_coords, 'collection', False)
             continue
         elif found_name not in component_dct:
             continue
         component = component_dct[found_name]
-        component.backpack_item_count = generic_component.backpack_item_count
-        component.backpack_coords = generic_component.backpack_coords
+        if not pack:
+            component.backpack_item_count = generic_component.backpack_item_count
+            component.backpack_coords = generic_component.backpack_coords
         component.get_stats(img_arr, corner_description_idx, first_indentation_level_col, second_indentation_level_col)
         component.get_max_loot_percentile_value_stc()
         if component.worth_keeping():
             # Put into hopper.
             # (For now don't worry about whether it's full, that's a TODO for later)
-            component.store_loot_in_hopper(item_coords, 'good_loot')
+            component.store_loot_in_hopper(item_coords, 'good_loot', False)
         elif component.component_type == 'droid_interface':
-            component.store_loot_in_hopper(item_coords, 'junk_droid_interface')
+            component.store_loot_in_hopper(item_coords, 'junk_droid_interface', False)
         else:
             item_inventory_position += 1
         component.update_recorded_stats_df()
         component.recorded_stats_df.to_csv(component.recorded_stats_fpath, index=False)
-    starting_backpack_position = deepcopy(item_inventory_position)
     # Close backpack
     pdi.press('esc')
     close_hopper()
@@ -1524,16 +1533,16 @@ def sort_droid_inventory(generic_component, component_dct):
     right. The hopper windows must not go all the way to the bottom (but almost)/
     '''
     # Get the top left corner indices of img_arr
-    corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, fail_gracefully=False, sharpen_threshold=130)
+    corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
     first_indentation_level_col = corner_description_idx[1] + num_cols_from_left_side_to_first_indentation_level
     second_indentation_level_col = corner_description_idx[1] + num_cols_from_left_side_to_second_indentation_level
     
-    item_count, item_capacity = get_item_count_and_capacity(region, img_arr=None)
+    item_count, item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=None)
     item_inventory_position = 0
     for i in range(item_count):
         item_coords = get_item_coords(corner_description_idx, region, item_inventory_position)
         # Click on item
-        swg_utils.click(coords=item_coords, start_delay=0.05, return_delay=0.9, interval_delay=0.02, move_speed=5, duration=0.02, activate_window=False)
+        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
         # Get screenshot
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
@@ -1551,11 +1560,11 @@ def sort_droid_inventory(generic_component, component_dct):
             continue
         if 'crate' in found_name:
             # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'crate')
+            generic_component.store_loot_in_hopper(item_coords, 'crate', False)
             continue
         elif 'collection' in found_name:
             # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'collection')
+            generic_component.store_loot_in_hopper(item_coords, 'collection', False)
             continue
         elif found_name not in component_dct:
             continue
@@ -1565,9 +1574,9 @@ def sort_droid_inventory(generic_component, component_dct):
         if component.worth_keeping():
             # Put into hopper.
             # (For now don't worry about whether it's full, that's a TODO for later)
-            component.store_loot_in_hopper(item_coords, 'good_loot')
+            component.store_loot_in_hopper(item_coords, 'good_loot', False)
         elif component.component_type == 'droid_interface':
-            component.store_loot_in_hopper(item_coords, 'junk_droid_interface')
+            component.store_loot_in_hopper(item_coords, 'junk_droid_interface', False)
         else:
             item_inventory_position += 1
         component.update_recorded_stats_df()
@@ -1594,20 +1603,20 @@ def sort_crates(generic_component, component_dct, reopen_inventory=True):
     pdi.press('i')
     # For now, only 1 crates hopper, crates0.
     # Open the crates hopper.
-    swg_utils.chat('/open clothing')
+    swg_utils.chat('/open Crates_')
     time.sleep(0.3)
     # Get the number of crates in there.
-    item_count, item_capacity = get_item_count_and_capacity(region, img_arr=None, start_row=25, start_col=600)
+    item_count, item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=25, start_col=600)
     for i in range(item_count):
-        corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, fail_gracefully=False, sharpen_threshold=130)
+        corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
         crate_coords = get_item_coords(corner_description_idx, region, 0)
         # Pick up crate (place into inventory)
         item_radial_option(crate_coords, radial_option='1')
         # Open inventory
         pdi.press('i')
         time.sleep(0.4)
-        corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, fail_gracefully=False, sharpen_threshold=130)
-        inventory_item_count, inventory_item_capacity = get_item_count_and_capacity(region, img_arr=img_arr)
+        corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
+        inventory_item_count, inventory_item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=img_arr)
         # Open crate
         starting_inventory_position = max(starting_inventory_position, 0)
         item_coords = get_item_coords(corner_description_idx, region, starting_inventory_position)
@@ -1623,23 +1632,22 @@ def sort_crates(generic_component, component_dct, reopen_inventory=True):
     close_hopper()
     
     
-def get_backpack_item_count():
+def get_backpack_item_count(backpack_already_open=False):
     '''
     Purpose
     -------
     Open the backpack and get the backpack_item_count so you can then run sort_inventory using the backpack.
-    
-    Notes
-    -----
-    1. Assumes inventory is already open before calling this function.
     '''
-    corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, fail_gracefully=False, sharpen_threshold=130)
-    backpack_coords = get_item_coords(corner_description_idx, region, backpack_inventory_position)
-    # Open the backpack
-    item_radial_option(backpack_coords, radial_option='1')
-    time.sleep(0.4)
-    corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, fail_gracefully=False, sharpen_threshold=130)
-    backpack_item_count, item_capacity = get_item_count_and_capacity(region, img_arr=img_arr)
+    if not backpack_already_open:
+        corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
+        backpack_coords = get_item_coords(corner_description_idx, region, backpack_inventory_position)
+        # Open the backpack
+        item_radial_option(backpack_coords, radial_option='1')
+        time.sleep(0.2)
+    else:
+        backpack_coords = None
+    corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
+    backpack_item_count, item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=img_arr)
     return backpack_item_count, backpack_coords
     
 
@@ -1660,7 +1668,6 @@ def put_junk_into_caravan(backpack_coords=None):
     1. Inventory must be open before calling this function.
     2. If you're calling this function for an inventory droid, then its inventory must be open (or at least, the droid must be out and located at into_inventory_coords)
     '''
-    print('entered caravan function')
     global junk_hopper_i, all_done
     done = False
     if backpack_coords is not None:
@@ -1668,22 +1675,20 @@ def put_junk_into_caravan(backpack_coords=None):
         item_radial_option(backpack_coords, radial_option='1')
     while not done:
         # Get number of items that can be put into caravan still
-        caravan_item_count, caravan_item_capacity = get_item_count_and_capacity(region)
+        caravan_item_count, caravan_item_capacity, down_arrow_idx = get_item_count_and_capacity(region)
         caravan_items_remaining = caravan_item_capacity - caravan_item_count
         # Open junk hopper
         swg_utils.chat('/open Loot_' + str(junk_hopper_i))
         time.sleep(0.4)
         # Get number of items in hopper
-        hopper_item_count, hopper_item_capacity = get_item_count_and_capacity(region, img_arr=None, start_row=25, start_col=600)
+        hopper_item_count, hopper_item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=25, start_col=600)
         all_done = hopper_item_count == 0
-        print('caravan_item_count, caravan_item_capacity, caravan_items_remaining', caravan_item_count, caravan_item_capacity, caravan_items_remaining)
         num_items_to_move_from_hopper_to_caravan = min(caravan_items_remaining, hopper_item_count)
-        print('hopper_item_count, hopper_item_capacity, num_items_to_move_from_hopper_to_caravan', hopper_item_count, hopper_item_capacity, num_items_to_move_from_hopper_to_caravan)
-        corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, fail_gracefully=False, sharpen_threshold=130)
+        corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
         item_coords = get_item_coords(corner_description_idx, region, 0)
         for i in range(num_items_to_move_from_hopper_to_caravan):
             # Move items into caravan
-            drag_mouse(autoit_dir, start_coords=item_coords, end_coords=into_inventory_coords, num_drags=1, delay_return=0.5)
+            swg_utils.click_drag(start_coords=item_coords, end_coords=into_inventory_coords, num_drags=1, start_delay=0.0, return_delay=0.5)
         # Close hopper
         pdi.press('esc')
         # If number of items in junk hopper was the number to move, then the caravan had at least enough space or more. Thus all items in
@@ -1719,7 +1724,8 @@ def open_droid_inventory():
     pdi.moveTo(mouse_x + 105, mouse_y - 55, duration=0.1)
     time.sleep(1.1)
     mouse_x, mouse_y = pag.position()
-    swg_utils.click(coords=[mouse_x, mouse_y - 45], start_delay=0.5, return_delay=1.5, interval_delay=0.02, move_speed=5, duration=0.02, activate_window=False)
+    swg_utils.click(coords=[mouse_x, mouse_y - 45], return_delay=1.5)
+    
     
         
 def deal_with_droids(generic_component, component_dct):
@@ -1750,12 +1756,12 @@ def deal_with_droids(generic_component, component_dct):
         # Open inventory
         pdi.press('i')
         starting_inventory_position -= 1
-        # Sort inventory to destroy collection items
+        # Sort inventory to move collection items
         sort_inventory(generic_component, component_dct)
         # unpack and sort crates in the hopper
         sort_crates(generic_component, component_dct, reopen_inventory=False)
         # Move junk to droid
-        put_junk_into_caravan()
+        #put_junk_into_caravan()   For now I want to use droids for only storing good loot
         # store the droid
         swg_utils.chat('/ui action toolbarSlot' + str(d).zfill(2))
         # Close droid inventory
@@ -1839,7 +1845,7 @@ def get_value_of_desired_percentile(component=None, stats_dct=None, component_ty
     print('stat_value', round(stat_value,1))
     
     
-def orient():
+def orient(open_inventory=True, zoom_in=True):
     '''
     pit_droid_pane: int
         The toolbar pane that has all your inventory droids placed in the slots in contiguous order.
@@ -1862,32 +1868,626 @@ def orient():
     pdi.keyDown('ctrl')
     pdi.press(str(pit_droid_pane))
     pdi.keyUp('ctrl')
-    # Scroll (zoom) all the way in
-    for _ in range(50):
-        pag.scroll(100)
+    if zoom_in:
+        # Scroll (zoom) all the way in
+        for _ in range(50):
+            pag.scroll(100)
     # Get to free-moving mouse mode
     pdi.press('alt')
-    # Drag mouse so that you are facing directly down
-    #drag_mouse(autoit_dir=autoit_dir,
-    #        start_coords=[int(rect.left + rect.width()/2), rect.top + rect.height()],
-    #        end_coords=[int(rect.left + rect.width()/2), int(rect.top + 2.5 * rect.height())],
-    #        num_drags=1)
+    time.sleep(0.1)
+    swg_utils.moveTo(window=swg_window, region=region, coords_idx=[region['height'] - 1, int(region['width']/2)], return_delay=0.1)
     
-    
-    pdi.moveRel(xOffset=0, yOffset=-50)
-    
+    pdi.moveRel(xOffset=0, yOffset=250)
+    time.sleep(0.1)
     # Get back out of free-move mouse mode
     pdi.press('alt')
-    # Open inventory
-    pdi.press('i')
-    # activate inventory window
-    swg_utils.click(coords=inventory_activation_coords, start_delay=0.3, return_delay=0.3, interval_delay=0.02, move_speed=5, duration=0.02, activate_window=False)
+    if open_inventory:
+        # Open inventory
+        pdi.press('i')
+        # activate inventory window
+        swg_utils.click(coords=inventory_activation_coords, button='left', start_delay=0.1, return_delay=0.1)
+
+
+class Container_Calibrator:
+    def __init__(self):
+        '''
+        capacity: int
+            Number of items the container can hold. This is used to find the lower right corner.
+            
+        desired_lower_right_corner_idx: list of int
+            [row, col] of the final position of the lower right corner of the container window.
+            
+        desired_upper_left_corner_idx: list of int
+            [row, col] of the final position of the upper left corner of the container window.
+        '''
+        self.lower_right_corner_to_start_of_item_count_offset = np.array([-110, -60])
+        self.toggle_to_corner_description_offset = np.array([8, 1]) #np.array([8, -3])
+        self.toggle_to_upper_left_corner_offset = np.array([-28, -11])
+        self.upper_left_corner_to_corner_description_offset = self.toggle_to_corner_description_offset - self.toggle_to_upper_left_corner_offset
+        self.corner_description_idx = self.desired_upper_left_corner_idx + self.upper_left_corner_to_corner_description_offset
+        self.first_indentation_level_col = self.corner_description_idx[1] + num_cols_from_left_side_to_first_indentation_level
+        self.second_indentation_level_col = self.corner_description_idx[1] + num_cols_from_left_side_to_second_indentation_level
+        self.item_position = 0
+        
+        
+    def get_attributes(self, item_position=0, end_item_position_addition=0, fail_gracefully=False):
+        self.item_count, self.item_capacity, self.down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, 
+                    start_row=self.desired_lower_right_corner_idx[0] + self.lower_right_corner_to_start_of_item_count_offset[0], 
+                    start_col=self.desired_lower_right_corner_idx[1] + self.lower_right_corner_to_start_of_item_count_offset[1],
+                    fail_gracefully=fail_gracefully)
+        
+        self.item_position = deepcopy(item_position)
+        self.end_item_position = self.item_count + end_item_position_addition
+
+    
+    def get_lower_right_dragable_idx(self):
+        item_count, item_capacity, self.down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=0, start_col=0)
+        # Try rows first
+        while item_capacity != self.capacity and self.down_arrow_idx is not None:
+            item_count, item_capacity, self.down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=self.down_arrow_idx[0] + 1, start_col=0)
+        if self.down_arrow_idx is None:
+            item_count, item_capacity, self.down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=0, start_col=0)
+            # Now try cols
+            while item_capacity != self.capacity:
+                item_count, item_capacity, self.down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=0, start_col=self.down_arrow_idx[1] + 1)
+        # At this point, we've found the lower right corner of the container.
+        
+        self.dragable_idx = self.down_arrow_idx + down_arrow_to_lower_right_corner_offset
     
     
+    def calibrate_container_position(self):
+        '''
+        Returns
+        -------
+        None
+    
+        Purpose
+        -------
+        A container may have a position/sizing that is undesirable such as for tasks that require dragging items from one container to another. 
+        This function puts the bottom right and top left corners of the window with given capacity into the desired places. This automation is nice
+        if (e.g.) there are many containers that all need to be resized/re-positioned.
+        
+        Methods
+        -------
+        1. This function starts by seeing if the toggle button is visible. If so, the upper left corner is panned to be made visible (if necessary) and dragged to the
+            desired location.
+        2. If toggle is not visible then tries to pan and drag the lower corner, and then returns to seeing if the toggle is visible for upper left movement.
+        
+        Notes
+        -----
+        1. Call the container in question C.
+        2. C must have (*/50) visible (and have a little space underneath it to click-drag) (if given capacity is 50) OR toggle for showing description is visible and a little space to the right of it to drag.
+        3. If another open container has the same capacity, then the capacity string (e.g. 10/50) for C must be found first.
+        4. If another open container has a toggle button showing, then the toggle button for C must be found first.
+        5. If desired_lower_right_corner_idx and desired_upper_left_corner_idx are too close together, this function might still work, but only place one of the two corners in the desired location.
+        '''
+        global win_pressed
+        win_pressed = False
+        def on_win_press(key):
+            global win_pressed
+            if key == Key.cmd_l:
+                win_pressed = True
+
+
+        def on_release(key):
+            pass
+        
+        
+        def wait_for_press(thing_visible):
+            global win_pressed
+            print(thing_visible + ' not found. Move the container window so that it is visible, then press Windows key.')
+            while not win_pressed:
+                time.sleep(0.1)
+            win_pressed = False
+            
+        
+        with Listener(on_press=on_win_press, on_release=on_release) as listener:
+            swg_utils.idx_checks(region=region, idx=self.desired_lower_right_corner_idx, fail_gracefully=False)
+            swg_utils.idx_checks(region=region, idx=self.desired_upper_left_corner_idx, fail_gracefully=False)
+            dragged_lower_right = False
+            dragged_upper_left = False
+            i = -1
+            while i < 10 and not (dragged_upper_left and dragged_lower_right):
+                i += 1
+                if not dragged_upper_left:
+                    # Find upper left corner
+                    description_toggle_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['show_description_toggle_100_threshold'], region=region, sharpen_threshold=100, fail_gracefully=True)
+                    if description_toggle_idx is None:
+                        wait_for_press('Description toggle button')
+                        continue
+                    self.dragable_idx = description_toggle_idx + self.toggle_to_upper_left_corner_offset
+                    if not swg_utils.idx_checks(region=region, idx=self.dragable_idx, fail_gracefully=True):
+                        wait_for_press('Container upper left corner')
+                        continue
+                    if abs(np.sum(self.dragable_idx) - np.sum(self.desired_upper_left_corner_idx)) > 4:
+                        swg_utils.click_drag(start_idx=self.dragable_idx, end_idx=self.desired_upper_left_corner_idx, region=region, num_drags=1, start_delay=0.1, return_delay=0.75)
+                    dragged_upper_left = True
+                if not dragged_lower_right:
+                    self.get_lower_right_dragable_idx()
+                    if not swg_utils.idx_checks(region=region, idx=self.dragable_idx, fail_gracefully=True):
+                        wait_for_press('Container lower right corner')
+                        continue
+                    if abs(np.sum(self.dragable_idx) - np.sum(self.desired_lower_right_corner_idx)) > 4:
+                        swg_utils.click_drag(start_idx=self.dragable_idx, end_idx=self.desired_lower_right_corner_idx, region=region, num_drags=1, start_delay=0.1, return_delay=0.75)
+                    dragged_lower_right = True
+                
+            
+class Inventory_Calibrator(Container_Calibrator):
+    def __init__(self):
+        self.capacity = 80
+        self.desired_upper_left_corner_idx = [0,0]
+        self.desired_lower_right_corner_idx = [region['height'] - 10, 900]
+        super(Inventory_Calibrator, self).__init__()
+        
+    
+class Backpack_Calibrator(Container_Calibrator):
+    def __init__(self):
+        self.capacity = 65
+        self.desired_upper_left_corner_idx = [0,0]
+        self.desired_lower_right_corner_idx = [region['height'] - 1, 900]
+        super(Backpack_Calibrator, self).__init__()
+        
+
+class Droid_Calibrator(Container_Calibrator):
+    def __init__(self):
+        self.capacity = 30
+        self.desired_upper_left_corner_idx = [0,0]
+        self.desired_lower_right_corner_idx = [region['height'] - 1, 900]
+        super(Droid_Calibrator, self).__init__()
+        
+
+class Hopper_Calibrator(Container_Calibrator):
+    def __init__(self):
+        self.capacity = 100
+        self.desired_upper_left_corner_idx = [0,0]
+        self.desired_lower_right_corner_idx = [250, region['width'] - 1]
+        super(Hopper_Calibrator, self).__init__()
+        
+        
+class Pack_Calibrator(Container_Calibrator):
+    def __init__(self):
+        self.capacity = 50
+        self.desired_upper_left_corner_idx = [0,0]
+        self.desired_lower_right_corner_idx = [region['height'] - 1, 900]
+        super(Pack_Calibrator, self).__init__()
+        
+        
+class Loot_Box_Calibrator(Container_Calibrator):
+    def __init__(self):
+        self.capacity = 75
+        self.desired_upper_left_corner_idx = [255, 0]
+        self.desired_lower_right_corner_idx = [505, region['width'] - 1]
+        super(Loot_Box_Calibrator, self).__init__()
+        
+        
+class Good_Loot_Calibrator(Container_Calibrator):
+    def __init__(self):
+        self.capacity = 100
+        self.desired_upper_left_corner_idx = [0,0]
+        self.desired_lower_right_corner_idx = [region['height'] - 10, region['width'] - 1]
+        super(Good_Loot_Calibrator, self).__init__()
+        
+      
+def calibrate_containers(calibration_desires_dct={
+            'inventory': True,
+            'backpack': True,
+            'droids': True,
+            'hopper': True,
+            'pack': True,
+            'loot_box': True,
+            'good_loot': True}):
+    '''
+    calibration_desires_dct: dict
+        What to calibrate. Options are.
+        'inventory': bool
+        'backpack': bool
+        'droids': bool
+        'hopper': bool
+        'pack': bool
+        'loot_box': bool
+        'good_loot': bool
+        
+    user_input_before_calibrations: bool
+        True: wait for user to give an input after opening the container and before 
+            calibrating it so that the user has the chance to resize/re-position the 
+            window such that the program will not fail when trying to calibrate it.
+            e.g. If a window is too large, then the program will not be able to grab
+            both upper left and lower right corners and so will fail. So, the user
+            must make the window size smaller manually.
+            
+        False: Assume each container will not have an error when trying to calibrate its
+            position and size.
+        
+    Returns
+    -------
+    None.
+
+    Purpose
+    -------
+    Cycle through and calibrate window position of all windows of the types desired.
+    
+    Methods
+    -------
+    For each type in calibration_desires_dct, open each container of the type desired and calibrate its position.
+    For inventory, open inventory, calibrate position, close inventory.
+    For backpack, use backpack_inventory_position to open backpack, calibrate, close.
+    For droids, orient(), then use pit_droid_pane and num_pit_droids to open/calibrate/close them one at a time.
+    For hopper, go through Loot_0-Loot9, collections_0-collections_1, DIs_0-DIs_5, non_components_0-non_components_4
+    For pack, open inventory, start at the position you would start looking for loot, go through each item. Each item that is a container gets opened, inventory closed, pack calibrated, pack closed, inventory opened.
+    For loot_box, (in the gunship) open Loot Box, calibrate, close.
+    For good_loot, go through A0-A9, B0-B9, ..., W0-W9
+    
+    Notes
+    -----
+    1. Have no containers open at the time this function is called.
+    '''
+    # Orient so we zoom in so that no pixel changes, otherwise my toon breathing/shuffling around will indicate a pixel change.
+    orient(open_inventory=False)
+    ic = Inventory_Calibrator()
+    bc = Backpack_Calibrator()
+    dc = Droid_Calibrator()
+    hc = Hopper_Calibrator()
+    pc = Pack_Calibrator()
+    lc = Loot_Box_Calibrator()
+    gc = Good_Loot_Calibrator()
+    calibrated_inventory = False
+    if calibration_desires_dct['droids']:
+        orient(open_inventory=False, zoom_in=True)
+    for container_type, calibrate_container_type in calibration_desires_dct.items():
+        if not calibrate_container_type:
+            continue
+        if (container_type == 'inventory' or container_type == 'backpack' or container_type == 'pack') and not calibrated_inventory:
+            # Open inventory
+            pdi.press('i')
+            time.sleep(0.1)
+            ic.calibrate_container_position()
+            # Close inventory
+            pdi.press('i')
+            calibrated_inventory = True
+        if container_type == 'backpack':
+            # Open inventory
+            pdi.press('i')
+            time.sleep(0.2)
+            corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
+            backpack_coords = get_item_coords(corner_description_idx, region, backpack_inventory_position)
+            # Open backpack
+            item_radial_option(backpack_coords, radial_option='1')
+            # Close inventory
+            pdi.press('i')
+            time.sleep(0.2)
+            bc.calibrate_container_position()
+            # Close backpack
+            pdi.press('esc')
+        elif container_type == 'droids':
+            for d in range(pit_droid_i, num_pit_droids):
+                orient(open_inventory=False, zoom_in=False)
+                # call the droid
+                swg_utils.chat('/ui action toolbarSlot' + str(d).zfill(2))
+                time.sleep(2)
+                # open the droid's inventory
+                open_droid_inventory()
+                time.sleep(0.5)
+                dc.calibrate_container_position()
+                # Close droid's inventory
+                pdi.press('esc')
+                time.sleep(0.2)
+                # Store the droid
+                swg_utils.chat('/ui action toolbarSlot' + str(d).zfill(2))
+                time.sleep(0.5)
+        elif container_type == 'hopper':
+            hopper_dct = {'DIs_': 6, 'non_components_': 5, 'loot_': 10, 'collections_': 2, 'Crates_': 5, 'Temporary_good_loot_': 1}
+            for hopper_type, num_hoppers in hopper_dct.items():
+                for hopper_i in range(num_hoppers):
+                    hopper_name = hopper_type + str(hopper_i)
+                    before_img_arr = swg_utils.take_grayscale_screenshot(window=swg_window, region=region, set_focus=False, sharpen=False)
+                    # Open hopper
+                    swg_utils.chat('/open ' + hopper_name, start_delay=0.1, return_delay=0.1)
+                    after_img_arr = swg_utils.take_grayscale_screenshot(window=swg_window, region=region, set_focus=False, sharpen=False)
+                    # Use only a section of the window to exclude the radar and chat log (which might have a change in pixel value despite the container not being opened)
+                    if np.all(before_img_arr[200:580,:] == after_img_arr[200:580,:]):
+                        # No container with hopper_name was in range. Skip.
+                        continue
+                    hc.calibrate_container_position()
+                    # Close hopper
+                    pdi.press('esc')
+        elif container_type == 'pack':
+            # Open inventory
+            pdi.press('i')
+            corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
+            first_indentation_level_col = corner_description_idx[1] + num_cols_from_left_side_to_first_indentation_level
+            item_count, item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=None)
+            i = starting_inventory_position
+            end_by_i = item_count + num_equipped_items - num_items_in_bulky_containers
+            while i < end_by_i:
+                item_coords = get_item_coords(corner_description_idx, region, i)
+                # Click on item
+                swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
+                # Get screenshot
+                img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
+                        scale_to=255, sharpen=True, set_focus=False)
+                
+                if not item_is_container(corner_description_idx, first_indentation_level_col,  img_arr):
+                    i += 1
+                    continue
+                # Open pack
+                item_radial_option(item_coords, radial_option='1')
+                # Close inventory
+                pdi.press('i')
+                pc.calibrate_container_position()
+                pack_item_count, pack_item_capacity, pack_down_arrow_idx = get_item_count_and_capacity(region, img_arr=None)
+                # Close pack
+                pdi.press('esc')
+                # Open inventory
+                pdi.press('i')
+                i += 1
+                end_by_i -= pack_item_count
+            # Close inventory
+            pdi.press('i')
+        elif container_type == 'loot_box':
+            # Open Loot Box
+            swg_utils.chat('/open Loot')
+            lc.calibrate_container_position()
+            # Close Loot Box
+            pdi.press('esc')
+        elif container_type == 'good_loot':
+            for first_letter in ['A', 'B', 'C', 'D', 'E', 'R', 'S', 'W']:
+                for re_lvl in range(10):
+                    hopper_name = first_letter + str(re_lvl) + '_0'
+                    # Open hopper
+                    swg_utils.chat('/open ' + hopper_name)
+                    gc.calibrate_container_position()
+                    # Close hopper
+                    pdi.press('esc')
+                    
+                        
+def sort_loot_when_in_POB(keep_DI_frequency=0):
+    '''
+    keep_DI_frequency: float
+        Fraction of the time to keep droid interfaces (for use in convoy flight plans). Float between 0 and 1.
+        Setting this as a high value may fill up the pit droids quickly. Set at 0 if you don't want to do convoys.
+        
+    Returns
+    -------
+    None
+    
+    Purpose
+    -------
+    As loot drops into the Loot Container in a POB, sort it.
+    
+    Method
+    ------
+    1. Begin with an inventory full (or even overloaded) with packs which begin at the same
+        location that you would start sorting loot if in house. These packs have 50 item capacity each.
+    2. Also, have an equipped backpack with 65 item capacity (refer to this as backpack) which
+        has at least 51 empty spaces initially.
+    3. Previous to running this function, run
+    calibrate_containers(calibration_desires_dct={
+                'inventory': True,
+                'backpack': True,
+                'droids': True,
+                'hopper': True,
+                'pack': True,
+                'loot_box': True,
+                'good_loot': False})
+
+    Notes
+    -----
+    1. You are already in the POB and in the room with the Loot Container
+    2. You do not have inventory or any other windows open at the start of the function
+    3. Start out with 1 pack in your backpack (which is for space loot).
+    4. Start out with no items in packs in your inventory. (Some items can be in the pack in the backpack)
+    '''
+    global starting_inventory_position, pit_droid_i
+    generic_component = Ship_Component()
+    # Set up an object for each component type
+    component_dct = {'armor': Armor(), 'booster': Booster(), 'capacitor': Capacitor(), 'droid_interface': Droid_Interface(),
+                'engine': Engine(), 'reactor': Reactor(), 'shield': Shield(), 'weapon': Weapon()}
+    
+    orient()
+    
+    component_type_id_dct = {'Booster_Energy':'booster', 'Capacitor_Energy':'capacitor', 'Droid_Command_Speed':'droid_interface', 'Engine_Top_Speed':'engine', 'Reactor_Generation_Rate':'reactor', 'Shield_Recharge_Rate':'shield', 'Energy_Per_Shot':'weapon'}
+    ic = Inventory_Calibrator()
+    bc = Backpack_Calibrator()
+    pc = Pack_Calibrator()
+    lc = Loot_Box_Calibrator()
+    dc = Droid_Calibrator()
+    hc = Hopper_Calibrator()
+    # Inventory attributes
+    ic.get_attributes(item_position=starting_inventory_position, end_item_position_addition=num_equipped_items - num_items_in_bulky_containers)
+    # Backpack attributes
+    backpack_coords = get_item_coords(ic.corner_description_idx, region, backpack_inventory_position)
+    # Open backpack
+    item_radial_option(backpack_coords, radial_option='1')
+    bc.get_attributes()
+    # Find pack position
+    bc.pack_position = None
+    while bc.item_position < bc.end_item_position:
+        item_coords = get_item_coords(bc.corner_description_idx, region, bc.item_position)
+        # Click on item
+        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
+        # Get screenshot
+        img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
+                scale_to=255, sharpen=True, set_focus=False)
+        
+        # Check to see whether it is a pack
+        if item_is_container(bc.corner_description_idx, bc.first_indentation_level_col, img_arr):
+            bc.pack_position = deepcopy(bc.item_position)
+            break
+        bc.item_position = bc.item_position + 1
+    if bc.pack_position is None:
+        raise Exception('Need a 50-item pack in the 65-item backpack')
+    # Open pack
+    bc.pack_coords = get_item_coords(bc.corner_description_idx, region, bc.pack_position)
+    item_radial_option(bc.pack_coords, radial_option='1')
+    # Pack attributes
+    pc.get_attributes()
+    # Open collection hopper
+    collections_i = 0
+    swg_utils.chat('/open collections_' + str(collections_i))
+    hc.get_attributes()
+    if hc.item_count >= hc.item_capacity - 1:
+        pdi.press('esc')
+        collections_i += 1
+        swg_utils.chat('/open collections_' + str(collections_i))
+        hc.get_attributes()
+    # Open Loot Container
+    swg_utils.chat('/open Loot')
+    lc.get_attributes()
+    lc.second_item_coords = get_item_coords(lc.corner_description_idx, region, 1)
+    while ic.item_position < ic.end_item_position:
+        # The credit chip will always occupy the 1st spot in the Loot container.
+        # First check if a piece of loot occupies position 2
+        lc.get_attributes()
+        if lc.item_count > 1:
+            # Determine if it is a collection item or not
+            # Click on item
+            swg_utils.click(coords=lc.second_item_coords, button='left', start_delay=0.05, return_delay=0.9)
+            # Get screenshot
+            img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
+                    scale_to=255, sharpen=True, set_focus=False)
+            
+            if find_str_on_image_given_col(inventory_dct['collection_name'], img_arr, lc.first_indentation_level_col, row_start=lc.corner_description_idx[0]) is not None:
+                # Move collection item to collection hopper
+                hc.get_attributes()
+                if hc.item_count >= hc.item_capacity:
+                    swg_utils.chat('/open collections_' + str(collections_i))
+                    pdi.press('esc')
+                    collections_i += 1
+                    swg_utils.chat('/open collections_' + str(collections_i))
+                swg_utils.click_drag(start_coords=lc.second_item_coords, end_coords=into_hopper_coords, num_drags=1, start_delay=0.0, return_delay=0.75)
+            else:
+                pc.get_attributes()
+                if pc.item_count >= pc.item_capacity:
+                    # Pack is full, get a new pack.
+                    # Start by closing the collection and Loot containers
+                    swg_utils.chat('/open collections_' + str(collections_i))
+                    pdi.press('esc')
+                    swg_utils.chat('/open Loot')
+                    pdi.press('esc')
+                    # Close pack
+                    pdi.press('esc')
+                    # Equip pack
+                    item_radial_option(bc.pack_coords, radial_option='2')
+                    # Close backpack
+                    pdi.press('esc')
+                    # Equip backpack
+                    item_radial_option(backpack_coords, radial_option='2')
+                    # Move new pack to backpack
+                    # Go through inventory positions until a pack is found
+                    ic.item_coords = get_item_coords(ic.corner_description_idx, region, ic.item_position)
+                    swg_utils.click(coords=ic.item_coords, button='left', start_delay=0.05, return_delay=0.9)
+                    # Get screenshot
+                    img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
+                            scale_to=255, sharpen=True, set_focus=False)
+                    
+                    if item_is_container(ic.corner_description_idx, ic.first_indentation_level_col,  img_arr):
+                        # Open pack
+                        item_radial_option(ic.item_coords, radial_option='1')
+                        pc.get_attributes()
+                        if pc.item_count < pc.item_capacity:
+                            # Close pack
+                            pdi.press('esc')
+                            # Move pack to backpack
+                            swg_utils.click_drag(start_coords=ic.item_coords, end_coords=backpack_coords, num_drags=1, start_delay=0.0, return_delay=0.75)
+                            # Open backpack
+                            item_radial_option(backpack_coords, radial_option='1')
+                            # Open pack
+                            item_radial_option(bc.pack_coords, radial_option='1')
+                        else:
+                            ic.item_position += 1
+                    else:
+                        ic.item_position += 1
+                    # Open collection hopper and Loot Container
+                    swg_utils.chat('/open collections_' + str(collections_i))
+                    swg_utils.chat('/open Loot')
+                else:
+                    # Move loot item to pack
+                    swg_utils.click_drag(start_coords=lc.second_item_coords, end_coords=into_inventory_coords, num_drags=1, start_delay=0.0, return_delay=0.75)
+                    # Activate pack window
+                    swg_utils.click(window=swg_window, region=region, coords_idx=pc.desired_lower_right_corner_idx, button='left', start_delay=0.1, return_delay=0.1, activate_window=False)
+                    # Click on and then find out if stats are good
+                    # Find item position
+                    pc.get_attributes()
+                    pc.item_position = pc.item_count - 1
+                    pc.item_coords = get_item_coords(pc.corner_description_idx, region, pc.item_position)
+                    swg_utils.click(coords=pc.item_coords, button='left', start_delay=0.05, return_delay=0.1, activate_window=False)
+                    # Get component type (name)
+                    found_name = None
+                    for name in inventory_dct:
+                        if '_name' not in name:
+                            continue
+                        img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
+                                scale_to=255, sharpen=True, set_focus=False)
+                        
+                        if find_str_on_image_given_col(inventory_dct[name], img_arr, pc.first_indentation_level_col, row_start=pc.corner_description_idx[0]) is not None:
+                            # Remove the '_name' portion
+                            found_name = name[:-5]
+                            break
+                    if found_name is not None:
+                        component = component_dct[found_name]
+                        component.get_stats(img_arr, pc.corner_description_idx, pc.first_indentation_level_col, pc.second_indentation_level_col)
+                        component.get_max_loot_percentile_value_stc()
+                        if component.worth_keeping() or random.random() < keep_DI_frequency:
+                            # Move loot item to droid
+                            # To do this, first open temporary hopper, put it in there, then open droid and put it in droid
+                            swg_utils.chat('/open Temporary_good_loot_0')
+                            # Activate pack
+                            swg_utils.click(region=region, window=swg_window, coords_idx=pc.desired_lower_right_corner_idx, button='left', start_delay=0.05, return_delay=0.1, activate_window=False)
+                            # Drag item to temporary hopper
+                            swg_utils.click_drag(start_coords=pc.item_coords, end_coords=into_hopper_coords, num_drags=1, start_delay=0.05, return_delay=0.75)
+                            # Open droid inventory
+                            # Close out all other windows to open droid
+                            pdi.press('esc', presses=8)
+                            # Iterate through the droids on the toolbar
+                            while pit_droid_i < num_pit_droids:
+                                # call the droid
+                                swg_utils.chat('/ui action toolbarSlot' + str(pit_droid_i).zfill(2), return_delay=2)
+                                open_droid_inventory()
+                                # See if droid full
+                                dc.get_attributes()
+                                if dc.item_count >= dc.item_capacity:
+                                    # Full, try the next one.
+                                    # Close droid inventory
+                                    pdi.press('esc')
+                                    # Store droid
+                                    swg_utils.chat('/ui action toolbarSlot' + str(pit_droid_i).zfill(2), return_delay=2)
+                                    pit_droid_i += 1
+                                    continue
+                                break
+                            if pit_droid_i >= num_pit_droids:
+                                # No more space to put good loot, stop.
+                                return False
+                            # Activate hopper
+                            swg_utils.chat('/open Temporary_good_loot_0', return_delay=0.3)
+                            # Put item into droid
+                            hc.get_attributes()
+                            hc.item_coords = get_item_coords(hc.corner_description_idx, region, 0)
+                            swg_utils.click_drag(start_coords=hc.item_coords, end_coords=into_inventory_coords, num_drags=1, start_delay=0.05, return_delay=0.75)
+                            # Store droid
+                            swg_utils.chat('/ui action toolbarSlot' + str(pit_droid_i).zfill(2), return_delay=2)
+                            # Close hopper
+                            pdi.press('esc')
+                            time.sleep(0.2)
+                            # Close droid
+                            pdi.press('esc')
+                            time.sleep(0.2)
+                            # Open inventory
+                            pdi.press('i')
+                            # Open backpack
+                            item_radial_option(backpack_coords, radial_option='1')
+                            # Open pack
+                            item_radial_option(bc.pack_coords, radial_option='1')
+                    # Activate collection hopper and Loot Container
+                    swg_utils.chat('/open collections_' + str(collections_i))
+                    swg_utils.chat('/open Loot')
+                    
+                    
+           
+        
 def sort_loot_when_in_house(sorting_desires_dct):
     '''
     sorting_desires_dct: dict
-    What to sort.
+        What to sort.
     'inventory': bool
     'backpack': bool
     'crates': bool
@@ -1935,14 +2535,15 @@ def sort_loot_when_in_house(sorting_desires_dct):
         sort_crates(generic_component, component_dct, reopen_inventory=True)
     if sorting_desires_dct['backpack']:
         # Open backpack and then sort it as if it were the inventory
-        backpack_item_count, backpack_coords = get_backpack_item_count()
+        backpack_item_count, backpack_coords = get_backpack_item_count(backpack_already_open=False)
         generic_component.backpack_item_count = backpack_item_count
         generic_component.backpack_coords = backpack_coords
-        sort_backpack(generic_component, component_dct)
+        sort_backpack(generic_component, component_dct, False)
         if sorting_desires_dct['crates']:
             sort_crates(generic_component, component_dct, reopen_inventory=True)
-    # Now, put as much junk loot from the hoppers into the backpack as possible.
-    put_junk_into_caravan(generic_component.backpack_coords)
+    if sorting_desires_dct['backpack']:
+        # Now, put as much junk loot from the hoppers into the backpack as possible.
+        put_junk_into_caravan(generic_component.backpack_coords)
     if sorting_desires_dct['droids']:
         # Now, sort droid inventories
         deal_with_droids(generic_component, component_dct)
@@ -1950,26 +2551,6 @@ def sort_loot_when_in_house(sorting_desires_dct):
     put_junk_into_caravan()
     # Close inventory
     pdi.press('esc')
-    
-    
-def calibrate_container_position(capacity=50):
-    '''
-    Returns
-    -------
-    None
-
-    Purpose
-    -------
-    Opening a new 
-    
-    Notes
-    -----
-    1. Call the container in question C.
-    2. C must have (*/50) visible (and have a little space underneath it to click-drag) (if given capcity is 50)
-    3. C must be the only container open that has copacity specified.
-    4. C must not be wider than the swg_window
-    '''
-    get_item_count_and_capacity(region, img_arr=None, start_row=600, start_col=600)
 # Global vars set by user
 '''
 sorting_desires_dct: dict
@@ -2002,9 +2583,6 @@ num_pit_droids: int
 pit_droid_pane: int
         The toolbar pane that has all your inventory droids placed in the slots in contiguous order.
         
-starting_backpack_position: int
-    Position in the backpack (0-indexed) of the first space related item (as opposed to other things in the inventory like clothing).
-    
 junk_hopper_i: int
     The lowest junk loot hopper name index (e.g. 0 for Loot_0) that is not full.
     
@@ -2019,9 +2597,6 @@ non_components_hopper_i: int
     
 backpack_inventory_position:
     Position in the inventory (0-indexed) of the equipped backpack.
-    
-autoit_dir: str
-    Path of the directory containing drag_mouse.exe which is an autoit program for dragging the mouse.
     
 Constants
 ---------
@@ -2044,11 +2619,8 @@ num_inventory_cols: int
 num_hopper_cols: int
     The number of columns of items in the appropriately placed and sized hopper panes. (See notes)
 
-num_cols_from_right_corner_col_to_start_of_item_count: int
-    Number of pixels from the column (in the pixel, screenshot matrix) that lower_right_corner is found to the column to the left that can be used as the start column to search for the item count of an open container.
-    
-num_rows_from_right_corner_row_to_start_of_item_count: int
-    Number of pixels from the row (in the pixel, screenshot matrix) that lower_right_corner is found to the row below that can be used as the start row to search for the item count of an open container.
+down_arrow_to_start_of_item_count_offset: list of int
+    [row_offset, col_offset] to get from down arrow idx to upper left corner of the line arr for getting item count and capacity of a container.
     
 into_hopper_coords: list of int
     [x,y] coordinates on the screen where items can be dragged into a hopper window.
@@ -2056,8 +2628,8 @@ into_hopper_coords: list of int
 into_inventory_coords: list of int
     [x,y] coordinates on the screen where items can be dragged into an inventory window.
     
-inventory_activation_coords: list of int
-    [x,y] coordinates on the screen where an inventory window can be clicked to activate it (bring it to foreground).
+caravan_activation_coords: list of int
+    [x,y] coordinates on the screen where a caravan window (such as droid inventory, backpack, pack, but not inventory because this can mess with backpack sorting) can be clicked to activate it (bring it to foreground).
     
 currently_open_hopper: str or None
     If None, no hopper is currently open. Else, this will be the name of the open hopper. There should only be 1 hopper open at a time.
@@ -2075,84 +2647,77 @@ Notes
     
 3. The storage hopper windows should be sized and placed such that the height is minimize, the width is maximized, and the top left corner of the description pane is visible.
 '''
-starting_inventory_position = 26
+starting_inventory_position = 27
 num_equipped_items = 24
-num_items_in_bulky_containers = 13
-num_pit_droids = 22
+num_items_in_bulky_containers = 0
+num_pit_droids = 19
 pit_droid_pane = 6
-starting_backpack_position = 0
 junk_hopper_i = 0
+crate_hopper_i = 0
 # Index of starting droid to investigate. num_droids is still total number of droids including those not wished to be investigated (minus any at the end that don't have space stuff, if any)
-pit_droid_i = 15
+pit_droid_i = 0
 droid_interface_hopper_i = 0
 non_components_hopper_i = 0
 collection_hopper_i = 0
 backpack_inventory_position = 0
-autoit_dir=r'D:\autoit\swg\REing'
 # Constants
-digit_height = 7
+digit_height = 8
 num_cols_from_left_side_to_first_indentation_level = 7
 num_cols_from_left_side_to_second_indentation_level = 27
 width_of_description_pane = 263
 num_inventory_cols = 9
 num_hopper_cols = 10
-num_cols_from_right_corner_col_to_start_of_item_count = 60
-num_rows_from_right_corner_row_to_start_of_item_count = 25
+down_arrow_to_start_of_item_count_offset = np.array([23, 75])
+down_arrow_to_lower_right_corner_offset = np.array([83, 16])
 # Coords of where to drag items into a hopper
-into_hopper_coords = [region['left'] + 950, region['top'] + 50]
+into_hopper_coords = [region['left'] + 950, region['top'] + 60]
 # Coords of where to drag items into an inventory
-into_inventory_coords = [region['left'] + 500, region['top'] + 350]
-inventory_activation_coords = [region['left'] + 50, region['top'] + 763]
+into_inventory_coords = [region['left'] + 500, region['top'] + 600]
+caravan_activation_coords = [region['left'] + 50, region['top'] + 763]
+inventory_activation_coords = [region['left'] + 50, region['top'] + 753]
+# more initial values
 currently_open_hopper = None
 all_done = False
+first_time = True
 extreme_avg_and_modifier_dct = get_extreme_avg_and_modifier_combo_for_stats(extreme_avg_and_modifier_json_dir=r'D:\python_scripts\swg\loot_tables\extreme_values', 
         loot_table_dir=r'D:\python_scripts\swg\dsrc\sku.0\sys.server\compiled\game\datatables\ship\components')
 
+
 if __name__ == '__main__':
-    '''
-    sorting_desires_dct = {
-'inventory': True, 'backpack': True, 'crates': False, 'droids': True
-    }
-    sort_loot_when_in_house(sorting_desires_dct)
-    '''
     swg_window.set_focus()
-    time.sleep(0.5)
-    #pdi.press('alt')
-    #pdi.moveRel(xOffset=0, yOffset=10)
-    #pdi.press('alt')
-    #orient()
+    time.sleep(1)
+    calibrate_containers(calibration_desires_dct={
+                'inventory': False,
+                'backpack': False,
+                'droids': False,
+                'hopper': False,
+                'pack': False,
+                'loot_box': False,
+                'good_loot': False})
+    #raise Exception('done')
     sorting_desires_dct = {
-'inventory': True, 'backpack': True, 'crates': True, 'droids': False
+'inventory': True, 'backpack': True, 'crates': False, 'droids': False
     }
+    sort_loot_when_in_POB()
+    '''
     round_trip_i = 0
     while not all_done:
         sort_loot_when_in_house(sorting_desires_dct)
-        if all_done:
+        if all_done and not first_time:
             break
+        first_time = False
         go_to_chassis_dealer.go_to_chassis_dealer(calibrate_to_north=round_trip_i == 0)
         round_trip_i += 1
+    '''
     #pass
     #for lvl in list(range(1,11))[::-1]:
     #    for percentile in [0.95, 0.96, 0.97, 0.98, 0.99, 0.999, 0.9999, 0.99999]:
     #        get_value_of_desired_percentile(component_type='droid_interface', re_lvl=str(lvl), stat_key='Droid_Command_Speed', desired_percentile=percentile, iterator_magnitude=0.1, start_value=50)
 '''
-Done
-. Check the number of items in a crate container (e.g. travel pack). Note, containers that can be examined have a "Item Count" attribute and "/exmaine crates0" works.
-. Check the number of items in a given input hopper.
-
 TODO
-. Make invnentory, backpack, and droid inventories be 10 rows by 9 cols with the upper left corner of description section showing as well as the bottom edge along the bottom of the screen. This needs to encapsulate all contents without scrolling.
-. Make input hopper or other containers have 10 rows and 10 cols with upper left corner of description section showing and the right edge along the right edge of the screen. The capcity numbers must be showing at the bottom right.
-#. The examine window (gotten by /examine name) must have the upper left corner of description section showing and be wide enough that "Item Count" value can be read on the same line.
-. Make input hoppers for junk that will be put back into pit droids be 1 row and 10 columns
-
-. Start with the inventory, putting crates into bags (or ideally another hopper).
-. Put junk parts in inventory into separate container (another hopper).
-. When inventory is empty of space stuff, one at a time, put a crate into inventory and sort.
-. When all crates in hopper are gone, sort backpack as if it were the inventory.
-. When backpack is empty of space stuff, fill it with as much junk loot as possible.
-. One at a time, open a pit droid and pick up all its contents and then sort the inventory. Before moving on to the next droid, fill its inventor with junk parts.
-
+. Make it so you can scroll through container contents (so you can store, more packs, for example.)
 . Deal with full good loot hoppers, junk loot hoppers, non-space hoppers, or crate hoppers
 . Deal with when house is full (could happen if sorting crates).
+. sort_crates can eventually have more than 1 Crates hopper
+. Make get_item_coords not have hard-coded number of columns, but this is determined based on item width, height, and on window position and size.
 '''

@@ -25,6 +25,7 @@ import swg_utils
 import pandas as pd
 os = file_utils.os
 import random
+import sort_space_components as ssc
 
 
 class SWG:
@@ -442,10 +443,15 @@ class Pilot(Space):
         self.full_speed_when_booster_on = full_speed_when_booster_on
         self.full_speed = full_speed
         self.enemy_full_speed = enemy_full_speed
+        # CONSTANTS
+        self.ship_details_reactor_idx = np.array([65, 923])
+        self.ship_details_spacing = 24
+        self.num_components = 16
+        self.ship_details_line_arr_additions = [8, 175]
+        self.ship_details_armor_value_idx = np.array([550, 815])
         # INITIAL VALUES
         self.active_waypoint_idx = None
-        self.target_location_idx = None
-        self.autopilot_to_idx = None
+        self.active_wp_dct = {'Target_Location': {'idx': None, 'autopilot_to_idx': None}, 'zeros': {'idx': None, 'autopilot_to_idx': None}}
         self.mission_critical_dropdown_idx = None
         self.autopilot_to_enemy_idx = None
         self.target_dist_idx = None
@@ -453,6 +459,25 @@ class Pilot(Space):
         pdi.press('n')
         time.sleep(0.5)
         
+        
+    def is_damaged(self):
+        # Open component details window
+        pdi.press('v')
+        time.sleep(1)
+        # Iterate through components and check if armor is not equal to max armor
+        for component_i in range(self.num_components):
+            component_idx = self.ship_details_reactor_idx + np.array([component_i * self.ship_details_spacing, 0])
+            swg_utils.click(coords_idx=component_idx, region=self.swg_region, window=self.swg_window)
+            img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=130,
+                        scale_to=255, set_focus=False, sharpen=True)
+            
+            line_arr = img_arr[self.ship_details_armor_value_idx[0] : self.ship_details_armor_value_idx[0] + self.ship_details_line_arr_additions[0], 
+                               self.ship_details_armor_value_idx[1] : self.ship_details_armor_value_idx[1] + self.ship_details_line_arr_additions[1]]
+            
+            current_armor, max_armor = ssc.get_number_from_arr(line_arr, numeric_type=float)
+            if current_armor != max_armor:
+                return True
+            
         
     def boost_to_target(self):
         # Approximately 100m per second for 1000 speed.
@@ -469,7 +494,7 @@ class Pilot(Space):
         pdi.press('b')
         
         
-    def go_to_space_station(self, space_station_name='Naboo'):
+    def go_to_space_station(self, space_station_name='Rori'):
         swg_utils.chat('/tar ' + space_station_name)
         time.sleep(0.2)
         if self.get_target_dist() < 1000:
@@ -508,19 +533,19 @@ class Pilot(Space):
         return img_arr[self.mission_critical_dropdown_idx[0], self.mission_critical_dropdown_idx[1]] == 0
     
     
-    def get_target_location_idx(self):
-        get_target_location_i = 0
-        if self.target_location_idx is None:
-            target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=None)
-        while self.target_location_idx is None and get_target_location_i < 2:
+    def get_active_wp_idx(self, active_wp_name):
+        get_active_wp_i = 0
+        if self.active_wp_dct[active_wp_name]['idx'] is None:
+            active_wp_arr = swg_utils.get_search_arr(active_wp_name, dir_path=self.dir_path, mask_int=None)
+        while self.active_wp_dct[active_wp_name]['idx'] is None and get_active_wp_i < 2:
             if self.active_waypoint_idx is None:
                 start_row = 0
                 start_col = 0
             else:
               start_row = self.active_waypoint_idx[0]
               start_col = self.active_waypoint_idx[1]
-            self.target_location_idx, img_arr = swg_utils.find_arr_on_region(target_location_arr, region=self.swg_region, start_row=start_row, start_col=start_col, fail_gracefully=True, sharpen_threshold=194)
-            if self.target_location_idx is None:
+            self.active_wp_dct[active_wp_name]['idx'], img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, start_row=start_row, start_col=start_col, fail_gracefully=True, sharpen_threshold=194)
+            if self.active_wp_dct[active_wp_name]['idx'] is None:
                 if self.active_waypoint_idx is None:
                     active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
                     self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194)
@@ -529,43 +554,43 @@ class Pilot(Space):
                 if img_arr[self.dropdown_arrow_idx[0], self.dropdown_arrow_idx[1]] == 0:
                     swg_utils.click(button='left', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.dropdown_arrow_idx, activate_window=False)
                     time.sleep(0.3)
-            get_target_location_i += 1
+            get_active_wp_i += 1
                     
                     
-    def autopilot_to_target_location(self):
+    def autopilot_to_wp(self, active_wp_name):
         time.sleep(0.2)
-        self.get_target_location_idx()
-        self.target_location_clickable_idx = [self.target_location_idx[0] + 7, self.target_location_idx[1] + 25]
+        self.get_active_wp_idx(active_wp_name)
+        self.target_location_clickable_idx = [self.active_wp_dct[active_wp_name]['idx'][0] + 7, self.active_wp_dct[active_wp_name]['idx'][1] + 25]
         swg_utils.click(button='right', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.target_location_clickable_idx, activate_window=False)
-        if self.autopilot_to_idx is None:
+        if self.active_wp_dct[active_wp_name]['autopilot_to_idx'] is None:
             autopilot_to_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=None)
-            self.autopilot_to_idx, img_arr = swg_utils.find_arr_on_region(autopilot_to_arr, region=self.swg_region, start_row=max(self.target_location_idx[0] - 100, 0), start_col=max(self.target_location_idx[1] - 100, 0), fail_gracefully=False, sharpen_threshold=194)
-        swg_utils.click(button='left', start_delay=0.1, return_delay=0.4, window=self.swg_window, region=self.swg_region, coords_idx=self.autopilot_to_idx, activate_window=False)
+            self.active_wp_dct[active_wp_name]['autopilot_to_idx'], img_arr = swg_utils.find_arr_on_region(autopilot_to_arr, region=self.swg_region, start_row=max(self.active_wp_dct[active_wp_name]['idx'][0] - 100, 0), start_col=max(self.active_wp_dct[active_wp_name]['idx'][1] - 100, 0), fail_gracefully=False, sharpen_threshold=194)
+        swg_utils.click(button='left', start_delay=0.1, return_delay=0.4, window=self.swg_window, region=self.swg_region, coords_idx=self.active_wp_dct[active_wp_name]['autopilot_to_idx'], activate_window=False)
         pdi.moveTo(x=self.swg_region['left'] + 51, y=self.swg_region['top'] + 51)
         time.sleep(0.3)
         
         
     def get_away_from_space_station(self):
-        self.autopilot_to_target_location()
+        self.autopilot_to_wp('Target_Location')
         time.sleep(7)
         while self.mission_critical_dropdown_gone():
             swg_utils.chat('/throttle 1.0')
             swg_utils.press('b')
             time.sleep(7)
-            self.autopilot_to_target_location()
+            self.autopilot_to_wp('Target_Location')
             time.sleep(7)
             
             
     def got_mission(self):
-        if self.target_location_idx is None:
-            self.get_target_location_idx()
-        if self.target_location_idx is None:
+        if self.active_wp_dct['Target_Location']['idx'] is None:
+            self.get_active_wp_idx('Target_Location')
+        if self.active_wp_dct['Target_Location']['idx'] is None:
             return False
         target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=None)
         img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194, scale_to=255, set_focus=False, sharpen=True)
         # If the "Target Location" isn't there anymore, then the duty mission is over. Get new mission.
-        if not np.all(img_arr[self.target_location_idx[0] : self.target_location_idx[0] + target_location_arr.shape[0], 
-                self.target_location_idx[1] : self.target_location_idx[1] + target_location_arr.shape[1]] ==
+        if not np.all(img_arr[self.active_wp_dct['Target_Location']['idx'][0] : self.active_wp_dct['Target_Location']['idx'][0] + target_location_arr.shape[0], 
+                self.active_wp_dct['Target_Location']['idx'][1] : self.active_wp_dct['Target_Location']['idx'][1] + target_location_arr.shape[1]] ==
                 target_location_arr):
             
             # Wait a bit to make sure
@@ -573,11 +598,11 @@ class Pilot(Space):
         else:
             return True
             
-        return (np.all(img_arr[self.target_location_idx[0] : self.target_location_idx[0] + target_location_arr.shape[0], 
-                self.target_location_idx[1] : self.target_location_idx[1] + target_location_arr.shape[1]] ==
+        return (np.all(img_arr[self.active_wp_dct['Target_Location']['idx'][0] : self.active_wp_dct['Target_Location']['idx'][0] + target_location_arr.shape[0], 
+                self.active_wp_dct['Target_Location']['idx'][1] : self.active_wp_dct['Target_Location']['idx'][1] + target_location_arr.shape[1]] ==
                 target_location_arr) or 
                 
-                swg_utils.find_arr_on_region(target_location_arr, region=self.swg_region, start_row=max(self.target_location_idx[0] - 200, 0), start_col=max(self.target_location_idx[1] - 200, 0), fail_gracefully=True, sharpen_threshold=194)[0] is not None
+                swg_utils.find_arr_on_region(target_location_arr, region=self.swg_region, start_row=max(self.active_wp_dct['Target_Location']['idx'][0] - 200, 0), start_col=max(self.active_wp_dct['Target_Location']['idx'][1] - 200, 0), fail_gracefully=True, sharpen_threshold=194)[0] is not None
                 )
             
     
@@ -585,7 +610,10 @@ class Pilot(Space):
         if self.got_mission():
             return
         self.go_to_space_station()
-        swg_utils.chat('/macro repairAndGetMission')
+        if self.is_damaged():
+            swg_utils.chat('/macro repairAndGetMission')
+        else:
+            swg_utils.chat('/macro GetMission')
         time.sleep(10)
         self.get_away_from_space_station()
         
@@ -662,7 +690,7 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
         start_time = time.time()
         while not self.mission_critical_dropdown_gone():  
             if time.time() - start_time > 45:
-                self.autopilot_to_target_location()
+                self.autopilot_to_wp('zeros')
                 start_time = time.time()
             pdi.press(self.target_closest_enemy_hotkey)
             # Get distance from enemy so you know whether to slow down or speed up
@@ -691,7 +719,7 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
                 self.get_duty_mission_from_space_station()
             i = 1
             while self.mission_critical_dropdown_gone():
-                self.autopilot_to_target_location()
+                self.autopilot_to_wp('Target_Location')
                 if i % 10 == 0:
                     swg_utils.chat('/throttle 1.0')
                 i += 1
@@ -700,7 +728,7 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
                 swg_utils.click(button='left', start_delay=0.02, return_delay=0.1, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
             self.optimize_speed()
             swg_utils.click(button='left', start_delay=0.02, return_delay=0.1, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
-            self.autopilot_to_target_location()
+            self.autopilot_to_wp('Target_Location')
 
     
 def main_duty_mission_rear_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):

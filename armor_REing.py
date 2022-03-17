@@ -91,15 +91,6 @@ def find_top_left_of_corner_description(swg_window_region):
     return None, None, None
 
 
-def drag_item(autoit_dir, start_coords, end_coords, delay=1):
-    time.sleep(0.5)
-    file_utils.write_rows_to_csv(os.path.join(autoit_dir, 'drag_coords.csv'), 
-            [start_coords, end_coords])
-    
-    os.system(os.path.join(autoit_dir, 'drag_mouse.exe'))
-    time.sleep(delay)
-    
-    
 def click(coords, button='left', delay=1):
     time.sleep(0.5)
     pdi.moveTo(coords[0], coords[1])
@@ -314,14 +305,14 @@ class REing:
         
         
     def put_power_bit_into_RE_tool(self):
-        swg_utils.click_drag(self.free_item_coords, self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
+        swg_utils.click_drag(start_coords=self.free_item_coords, end_coords=self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
         
 
     def get_power_bit(self):
         # Pick up a new statted loot.
         press_item_radial_option(self.next_statted_loot_coords, '1')
         # Move statted loot to inside the RE tool
-        swg_utils.click_drag(self.free_item_coords, self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
+        swg_utils.click_drag(start_coords=self.free_item_coords, end_coords=self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
         # RE
         press_item_radial_option(self.bit_RE_tool_coords, '5')
         # Put power bit into RE tool
@@ -333,7 +324,7 @@ class REing:
         # RE to get new mod bit
         press_item_radial_option(self.junk_RE_tool_coords, '5')
         # Move mod bit to the bit RE tool
-        swg_utils.click_drag(self.free_item_coords, self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
+        swg_utils.click_drag(start_coords=self.free_item_coords, end_coords=self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
         self.num_junk_loots -= 1
 
 
@@ -343,7 +334,7 @@ class REing:
         
         
     def attach_SEA_to_knife(self):
-        swg_utils.click_drag(self.free_item_coords, self.knife_coords, start_delay=0.5, return_delay=0.6)
+        swg_utils.click_drag(start_coords=self.free_item_coords, end_coords=self.knife_coords, start_delay=0.5, return_delay=0.6)
         swg_utils.click(self.ok_coords, button='left')
 
 
@@ -368,7 +359,7 @@ class REing:
             if item_count == 0:
                 # Pick up new crate
                 press_item_radial_option(self.next_crate_of_knives_coords, '1')
-                swg_utils.click_drag(self.knife_coords, self.crate_of_knives_coords, start_delay=0.5, return_delay=1)
+                swg_utils.click_drag(start_coords=self.knife_coords, end_coords=self.crate_of_knives_coords, start_delay=0.5, return_delay=1)
                 self.num_crates_of_knives -= 1
             sockets_available = self.get_stat_value('sockets_available', self.knife_coords, fail_gracefully=True)
             if sockets_available is None:
@@ -380,7 +371,7 @@ class REing:
 
     def RE_knife(self):
         # Move knife into RE tool
-        swg_utils.click_drag(self.free_item_coords, self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
+        swg_utils.click_drag(start_coords=self.free_item_coords, end_coords=self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
         # RE
         press_item_radial_option(self.bit_RE_tool_coords, '5')
         
@@ -391,12 +382,12 @@ class REing:
         # If power 35, move power bit into backpack else, move it into RE tool
         if self.get_stat_value('Power', self.free_item_coords) == 35:
             # Move poewr bit into backpack
-            swg_utils.click_drag(self.free_item_coords, self.backpack_coords, start_delay=0.5, return_delay=1)
+            swg_utils.click_drag(start_coords=self.free_item_coords, end_coords=self.backpack_coords, start_delay=0.5, return_delay=1)
             self.space_remaining_in_backpack -= 1
             # Get new power bit
             self.get_power_bit()
         else:
-            swg_utils.click_drag(self.free_item_coords, self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
+            swg_utils.click_drag(start_coords=self.free_item_coords, end_coords=self.bit_RE_tool_coords, start_delay=0.5, return_delay=1)
     
     
 def main():

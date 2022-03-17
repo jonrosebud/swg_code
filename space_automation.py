@@ -476,7 +476,9 @@ class Pilot(Space):
             
             current_armor, max_armor = ssc.get_number_from_arr(line_arr, numeric_type=float)
             if current_armor != max_armor:
+                pdi.press('v')
                 return True
+        pdi.press('v')
         return False
             
         

@@ -448,7 +448,7 @@ class Pilot(Space):
         self.ship_details_spacing = 24
         self.num_components = 16
         self.ship_details_line_arr_additions = [8, 175]
-        self.ship_details_armor_value_idx = np.array([550, 815])
+        self.ship_details_armor_value_idx = np.array([549, 815])
         # INITIAL VALUES
         self.active_waypoint_idx = None
         self.active_wp_dct = {'Target_Location': {'idx': None, 'autopilot_to_idx': None}, 'zeros': {'idx': None, 'autopilot_to_idx': None}}
@@ -477,6 +477,7 @@ class Pilot(Space):
             current_armor, max_armor = ssc.get_number_from_arr(line_arr, numeric_type=float)
             if current_armor != max_armor:
                 return True
+        return False
             
         
     def boost_to_target(self):

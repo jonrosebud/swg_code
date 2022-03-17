@@ -524,8 +524,8 @@ class Pilot(Space):
     def mission_critical_dropdown_gone(self):
         if self.active_waypoint_idx is None:
             active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
-            self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=130) # Used to be 194
-        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=130, # Used to be 194
+            self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194) # Used to be 194
+        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194, # Used to be 194
                     scale_to=255, set_focus=False, sharpen=True)
         
         if self.mission_critical_dropdown_idx is None:
@@ -590,7 +590,7 @@ class Pilot(Space):
         if self.active_wp_dct['Target_Location']['idx'] is None:
             return False
         target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=None)
-        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=130, scale_to=255, set_focus=False, sharpen=True) # Used to be 194
+        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=130, scale_to=255, set_focus=False, sharpen=True) # Used to be jjjjjjjjjjjjjj
         # If the "Target Location" isn't there anymore, then the duty mission is over. Get new mission.
         if not np.all(img_arr[self.active_wp_dct['Target_Location']['idx'][0] : self.active_wp_dct['Target_Location']['idx'][0] + target_location_arr.shape[0], 
                 self.active_wp_dct['Target_Location']['idx'][1] : self.active_wp_dct['Target_Location']['idx'][1] + target_location_arr.shape[1]] ==
@@ -624,8 +624,8 @@ class Pilot(Space):
     def mission_critical_dropped_down(self):
         if self.active_waypoint_idx is None:
             active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
-            self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=130) # Used to be 194
-        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=130, # Used to be 194
+            self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194) # Used to be 194
+        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194, # Used to be 194
                     scale_to=255, set_focus=False, sharpen=True)
         
         if self.mission_critical_dropdown_idx is None:

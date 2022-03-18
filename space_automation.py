@@ -450,7 +450,7 @@ class Pilot(Space):
         self.ship_details_line_arr_additions = [8, 175]
         self.ship_details_armor_value_idx = np.array([549, 815])
         # INITIAL VALUES
-        self.active_waypoint_idx = None
+        self.active_waypoints_idx = None
         self.active_wp_dct = {'Target_Location': {'idx': None, 'autopilot_to_idx': None}, 'zeros': {'idx': None, 'autopilot_to_idx': None}}
         self.mission_critical_dropdown_idx = None
         self.autopilot_to_enemy_idx = None
@@ -517,19 +517,26 @@ class Pilot(Space):
                 swg_utils.chat('/throttle 0.1')
         # Never go 0 speed due to swg bug that can make distances be extremely off.
         swg_utils.chat('/throttle 0.01')
-        while self.get_target_dist() > 1000:
-            time.sleep(0.5)
+        current_dist = self.get_target_dist()
+        while current_dist > 1000:
+            time.sleep(1)
+            if self.get_target_dist() > current_dist:
+                # Something is wrong, follow the station
+                swg_utils.chat('/tar ' + space_station_name, return_delay=0.3)
+                swg_utils.chat('/fol', return_delay=1)
+                swg_utils.chat('/throttle 0.01')
+            current_dist = self.get_target_dist()
             
             
     def mission_critical_dropdown_gone(self):
-        if self.active_waypoint_idx is None:
+        if self.active_waypoints_idx is None:
             active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
-            self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194) # Used to be 194
+            self.active_waypoints_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194) # Used to be 194
         img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194, # Used to be 194
                     scale_to=255, set_focus=False, sharpen=True)
         
         if self.mission_critical_dropdown_idx is None:
-            self.mission_critical_dropdown_idx = [self.active_waypoint_idx[0] - 22, self.active_waypoint_idx[1] - 14]
+            self.mission_critical_dropdown_idx = [self.active_waypoints_idx[0] - 22, self.active_waypoints_idx[1] - 14]
         if self.mission_critical_dropdown_idx[0] < 0 or self.mission_critical_dropdown_idx[1] < 0:
             raise Exception('Mission Critical window not visible enough or at all.')
         # If 0 then mission critical dropdown arrow is gone (because no more enemies)
@@ -541,19 +548,19 @@ class Pilot(Space):
         if self.active_wp_dct[active_wp_name]['idx'] is None:
             active_wp_arr = swg_utils.get_search_arr(active_wp_name, dir_path=self.dir_path, mask_int=None)
         while self.active_wp_dct[active_wp_name]['idx'] is None and get_active_wp_i < 2:
-            if self.active_waypoint_idx is None:
+            if self.active_waypoints_idx is None:
                 start_row = 0
                 start_col = 0
             else:
-              start_row = self.active_waypoint_idx[0]
-              start_col = self.active_waypoint_idx[1]
+              start_row = self.active_waypoints_idx[0]
+              start_col = self.active_waypoints_idx[1]
             self.active_wp_dct[active_wp_name]['idx'], img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, start_row=start_row, start_col=start_col, fail_gracefully=True, sharpen_threshold=130) # Used to be 194
             if self.active_wp_dct[active_wp_name]['idx'] is None:
-                if self.active_waypoint_idx is None:
-                    active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
-                    self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=130) # Used to be 194
+                if self.active_waypoints_idx is None:
+                    active_waypoints_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
+                    self.active_waypoints_idx, img_arr = swg_utils.find_arr_on_region(active_waypoints_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=130) # Used to be 194
                 # If Active Waypoints dropdown is closed, open it
-                self.dropdown_arrow_idx = [self.active_waypoint_idx[0], self.active_waypoint_idx[1] - 4]
+                self.dropdown_arrow_idx = [self.active_waypoints_idx[0], self.active_waypoints_idx[1] - 4]
                 if img_arr[self.dropdown_arrow_idx[0], self.dropdown_arrow_idx[1]] == 0:
                     swg_utils.click(button='left', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.dropdown_arrow_idx, activate_window=False)
                     time.sleep(0.3)
@@ -563,8 +570,8 @@ class Pilot(Space):
     def autopilot_to_wp(self, active_wp_name):
         time.sleep(0.2)
         self.get_active_wp_idx(active_wp_name)
-        self.target_location_clickable_idx = [self.active_wp_dct[active_wp_name]['idx'][0] + 7, self.active_wp_dct[active_wp_name]['idx'][1] + 25]
-        swg_utils.click(button='right', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.target_location_clickable_idx, activate_window=False)
+        self.active_wp_clickable_idx = [self.active_wp_dct[active_wp_name]['idx'][0] + 7, self.active_wp_dct[active_wp_name]['idx'][1] + 25]
+        swg_utils.click(button='right', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.active_wp_clickable_idx, activate_window=False)
         if self.active_wp_dct[active_wp_name]['autopilot_to_idx'] is None:
             autopilot_to_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=None)
             self.active_wp_dct[active_wp_name]['autopilot_to_idx'], img_arr = swg_utils.find_arr_on_region(autopilot_to_arr, region=self.swg_region, start_row=max(self.active_wp_dct[active_wp_name]['idx'][0] - 100, 0), start_col=max(self.active_wp_dct[active_wp_name]['idx'][1] - 100, 0), fail_gracefully=False, sharpen_threshold=130) # Used to be 194
@@ -590,7 +597,7 @@ class Pilot(Space):
         if self.active_wp_dct['Target_Location']['idx'] is None:
             return False
         target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=None)
-        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=130, scale_to=255, set_focus=False, sharpen=True) # Used to be jjjjjjjjjjjjjj
+        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=130, scale_to=255, set_focus=False, sharpen=True) # Used to be 194
         # If the "Target Location" isn't there anymore, then the duty mission is over. Get new mission.
         if not np.all(img_arr[self.active_wp_dct['Target_Location']['idx'][0] : self.active_wp_dct['Target_Location']['idx'][0] + target_location_arr.shape[0], 
                 self.active_wp_dct['Target_Location']['idx'][1] : self.active_wp_dct['Target_Location']['idx'][1] + target_location_arr.shape[1]] ==
@@ -622,14 +629,14 @@ class Pilot(Space):
         
         
     def mission_critical_dropped_down(self):
-        if self.active_waypoint_idx is None:
+        if self.active_waypoints_idx is None:
             active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
-            self.active_waypoint_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194) # Used to be 194
+            self.active_waypoints_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194) # Used to be 194
         img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194, # Used to be 194
                     scale_to=255, set_focus=False, sharpen=True)
         
         if self.mission_critical_dropdown_idx is None:
-            self.mission_critical_dropdown_idx = [self.active_waypoint_idx[0] - 22, self.active_waypoint_idx[1] - 14]
+            self.mission_critical_dropdown_idx = [self.active_waypoints_idx[0] - 22, self.active_waypoints_idx[1] - 14]
         if self.mission_critical_dropdown_idx[0] < 0 or self.mission_critical_dropdown_idx[1] < 0:
             raise Exception('Mission Critical window not visible enough or at all.')
         return img_arr[self.mission_critical_dropdown_idx[0], self.mission_critical_dropdown_idx[1] + 10] == 255
@@ -692,8 +699,9 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
     def optimize_speed(self):
         start_time = time.time()
         while not self.mission_critical_dropdown_gone():  
-            if time.time() - start_time > 45:
+            if time.time() - start_time > 40:
                 self.autopilot_to_wp('zeros')
+                time.sleep(5)
                 start_time = time.time()
             pdi.press(self.target_closest_enemy_hotkey)
             # Get distance from enemy so you know whether to slow down or speed up
@@ -723,8 +731,9 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
             i = 1
             while self.mission_critical_dropdown_gone():
                 self.autopilot_to_wp('Target_Location')
-                if i % 10 == 0:
+                if i % 3 == 0:
                     swg_utils.chat('/throttle 1.0')
+                    time.sleep(4)
                 i += 1
             # Enemies enaging
             if self.mission_critical_dropped_down():

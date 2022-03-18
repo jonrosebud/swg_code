@@ -421,6 +421,11 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
         True: If the desired matrix is not found, return None, None
         False: If the desired matrix is not found, raise an Exception stating this.
         
+    sharpen_threshold: int or list of int or None
+        Value, below which all pixels values will be converted to 0, otherwise converted to scale_to.
+        If list, see if you can find the arr using the first value as sharpen_threshold, if not, try the next value in the list and so on.
+        If None, the img_arr will not be sharpened.
+        
     return_as_tuple: bool
         True: return row, col, img_arr
         False: return [row, col], img_arr
@@ -444,48 +449,54 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
     Notes
     -----
     '''
-    if img_arr is None:
-        # sharpen_threshold of 130 is for inventory_dct
-        img_arr = take_grayscale_screenshot(region=region, sharpen_threshold=sharpen_threshold,
-                scale_to=255, sharpen=sharpen_threshold is not None, set_focus=False)
-
-    if end_row is None:
-        end_row = img_arr.shape[0] - search_arr.shape[0] - 1
-    if end_col is None:
-        end_col = img_arr.shape[1] - search_arr.shape[1] - 1
-    end_row = min(img_arr.shape[0] - search_arr.shape[0] - 1, end_row)
-    end_col = min(img_arr.shape[1] - search_arr.shape[1] - 1, end_col)
-    end_row = max(end_row, 0)
-    end_col = max(end_col, 0)
-    search_where_mat = list_utils.where_mat(search_arr > 0)
-    offset_idx = search_where_mat.sum(axis=1).argmin()
-    min_row, min_col = search_where_mat[offset_idx]
-        
-    where_mat = list_utils.where_mat(img_arr > 0)
-    where_mat[:,0] = where_mat[:,0] - min_row
-    where_mat[:,1] = where_mat[:,1] - min_col
-    # Negative rows or cols are invalid so remove those rows that have any negative numbers        
-    where_mat = where_mat[(where_mat >= 0).all(axis=1),:]
-    # remove rows and cols that are not in between start_row, end_row; start_col, end_col
-    where_mat = where_mat[(
-            (where_mat[:,0] >= start_row) & (where_mat[:,0] <= end_row) &
-            (where_mat[:,1] >= start_col) & (where_mat[:,1] <= end_col)),:]
-    # We now have a set of valid indices to start our search from.
-    for i, j in where_mat:
-        if np.all(img_arr[i : i + search_arr.shape[0], 
-                j : j + search_arr.shape[1]] ==
-                search_arr):
+    if not hasattr(sharpen_threshold, '__iter__'):
+        sharpen_threshold = [sharpen_threshold]
+    for k,st in enumerate(sharpen_threshold):
+        if img_arr is None:
+            # sharpen_threshold of 130 is for inventory_dct
+            img_arr = take_grayscale_screenshot(region=region, sharpen_threshold=st,
+                    scale_to=255, sharpen=st is not None, set_focus=False)
+    
+        if end_row is None:
+            end_row = img_arr.shape[0] - search_arr.shape[0] - 1
+        if end_col is None:
+            end_col = img_arr.shape[1] - search_arr.shape[1] - 1
+        end_row = min(img_arr.shape[0] - search_arr.shape[0] - 1, end_row)
+        end_col = min(img_arr.shape[1] - search_arr.shape[1] - 1, end_col)
+        end_row = max(end_row, 0)
+        end_col = max(end_col, 0)
+        search_where_mat = list_utils.where_mat(search_arr > 0)
+        offset_idx = search_where_mat.sum(axis=1).argmin()
+        min_row, min_col = search_where_mat[offset_idx]
             
-            if return_as_tuple:
-                return i, j, img_arr
-            else:
-                return [i, j], img_arr
-    if not fail_gracefully:
-        raise Exception('Could not find search_arr in img_arr')
-    if return_as_tuple:
-        return None, None, img_arr
-    else:
-        return None, img_arr
+        where_mat = list_utils.where_mat(img_arr > 0)
+        where_mat[:,0] = where_mat[:,0] - min_row
+        where_mat[:,1] = where_mat[:,1] - min_col
+        # Negative rows or cols are invalid so remove those rows that have any negative numbers        
+        where_mat = where_mat[(where_mat >= 0).all(axis=1),:]
+        # remove rows and cols that are not in between start_row, end_row; start_col, end_col
+        where_mat = where_mat[(
+                (where_mat[:,0] >= start_row) & (where_mat[:,0] <= end_row) &
+                (where_mat[:,1] >= start_col) & (where_mat[:,1] <= end_col)),:]
+        # We now have a set of valid indices to start our search from.
+        for i, j in where_mat:
+            if np.all(img_arr[i : i + search_arr.shape[0], 
+                    j : j + search_arr.shape[1]] ==
+                    search_arr):
+                
+                if return_as_tuple:
+                    return i, j, img_arr
+                else:
+                    return [i, j], img_arr
+        # We did not find the search_arr in img_arr. Try the next st value unless this is the last st value.
+        if k != len(sharpen_threshold) - 1:
+            continue
+        if not fail_gracefully:
+            raise Exception('Could not find search_arr in img_arr')
+        if return_as_tuple:
+            return None, None, img_arr
+        else:
+            return None, img_arr
 
 
 def get_search_arr(fname, dir_path='.', mask_int=None):

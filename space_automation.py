@@ -530,9 +530,9 @@ class Pilot(Space):
             
     def mission_critical_dropdown_gone(self):
         if self.active_waypoints_idx is None:
-            active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
-            self.active_waypoints_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194) # Used to be 194
-        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194, # Used to be 194
+            active_waypoints_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
+            self.active_waypoints_idx, img_arr = swg_utils.find_arr_on_region(active_waypoints_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=[194,130])
+        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194,
                     scale_to=255, set_focus=False, sharpen=True)
         
         if self.mission_critical_dropdown_idx is None:
@@ -554,13 +554,16 @@ class Pilot(Space):
             else:
               start_row = self.active_waypoints_idx[0]
               start_col = self.active_waypoints_idx[1]
-            self.active_wp_dct[active_wp_name]['idx'], img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, start_row=start_row, start_col=start_col, fail_gracefully=True, sharpen_threshold=130) # Used to be 194
+            self.active_wp_dct[active_wp_name]['idx'], img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, start_row=start_row, start_col=start_col, fail_gracefully=True, sharpen_threshold=[194,130])
             if self.active_wp_dct[active_wp_name]['idx'] is None:
                 if self.active_waypoints_idx is None:
                     active_waypoints_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
-                    self.active_waypoints_idx, img_arr = swg_utils.find_arr_on_region(active_waypoints_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=130) # Used to be 194
+                    self.active_waypoints_idx, img_arr = swg_utils.find_arr_on_region(active_waypoints_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=[194,130])
                 # If Active Waypoints dropdown is closed, open it
                 self.dropdown_arrow_idx = [self.active_waypoints_idx[0], self.active_waypoints_idx[1] - 4]
+                img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194,
+                            scale_to=255, set_focus=False, sharpen=True)
+                
                 if img_arr[self.dropdown_arrow_idx[0], self.dropdown_arrow_idx[1]] == 0:
                     swg_utils.click(button='left', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.dropdown_arrow_idx, activate_window=False)
                     time.sleep(0.3)
@@ -574,7 +577,7 @@ class Pilot(Space):
         swg_utils.click(button='right', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.active_wp_clickable_idx, activate_window=False)
         if self.active_wp_dct[active_wp_name]['autopilot_to_idx'] is None:
             autopilot_to_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=None)
-            self.active_wp_dct[active_wp_name]['autopilot_to_idx'], img_arr = swg_utils.find_arr_on_region(autopilot_to_arr, region=self.swg_region, start_row=max(self.active_wp_dct[active_wp_name]['idx'][0] - 100, 0), start_col=max(self.active_wp_dct[active_wp_name]['idx'][1] - 100, 0), fail_gracefully=False, sharpen_threshold=130) # Used to be 194
+            self.active_wp_dct[active_wp_name]['autopilot_to_idx'], img_arr = swg_utils.find_arr_on_region(autopilot_to_arr, region=self.swg_region, start_row=max(self.active_wp_dct[active_wp_name]['idx'][0] - 100, 0), start_col=max(self.active_wp_dct[active_wp_name]['idx'][1] - 100, 0), fail_gracefully=False, sharpen_threshold=[194,130])
         swg_utils.click(button='left', start_delay=0.1, return_delay=0.4, window=self.swg_window, region=self.swg_region, coords_idx=self.active_wp_dct[active_wp_name]['autopilot_to_idx'], activate_window=False)
         pdi.moveTo(x=self.swg_region['left'] + 51, y=self.swg_region['top'] + 51)
         time.sleep(0.3)
@@ -597,23 +600,7 @@ class Pilot(Space):
         if self.active_wp_dct['Target_Location']['idx'] is None:
             return False
         target_location_arr = swg_utils.get_search_arr('Target_Location', dir_path=self.dir_path, mask_int=None)
-        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=130, scale_to=255, set_focus=False, sharpen=True) # Used to be 194
-        # If the "Target Location" isn't there anymore, then the duty mission is over. Get new mission.
-        if not np.all(img_arr[self.active_wp_dct['Target_Location']['idx'][0] : self.active_wp_dct['Target_Location']['idx'][0] + target_location_arr.shape[0], 
-                self.active_wp_dct['Target_Location']['idx'][1] : self.active_wp_dct['Target_Location']['idx'][1] + target_location_arr.shape[1]] ==
-                target_location_arr):
-            
-            # Wait a bit to make sure
-            time.sleep(3)
-        else:
-            return True
-            
-        return (np.all(img_arr[self.active_wp_dct['Target_Location']['idx'][0] : self.active_wp_dct['Target_Location']['idx'][0] + target_location_arr.shape[0], 
-                self.active_wp_dct['Target_Location']['idx'][1] : self.active_wp_dct['Target_Location']['idx'][1] + target_location_arr.shape[1]] ==
-                target_location_arr) or 
-                
-                swg_utils.find_arr_on_region(target_location_arr, region=self.swg_region, start_row=max(self.active_wp_dct['Target_Location']['idx'][0] - 200, 0), start_col=max(self.active_wp_dct['Target_Location']['idx'][1] - 200, 0), fail_gracefully=True, sharpen_threshold=130)[0] is not None # Used to be 194
-                )
+        return swg_utils.find_arr_on_region(target_location_arr, region=self.swg_region, start_row=max(self.active_wp_dct['Target_Location']['idx'][0] - 200, 0), start_col=max(self.active_wp_dct['Target_Location']['idx'][1] - 200, 0), fail_gracefully=True, sharpen_threshold=[194,130])[0] is not None
             
     
     def get_duty_mission_from_space_station(self):
@@ -630,9 +617,9 @@ class Pilot(Space):
         
     def mission_critical_dropped_down(self):
         if self.active_waypoints_idx is None:
-            active_wp_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
-            self.active_waypoints_idx, img_arr = swg_utils.find_arr_on_region(active_wp_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=194) # Used to be 194
-        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194, # Used to be 194
+            active_waypoints_arr = swg_utils.get_search_arr('Active_Waypoints', dir_path=self.dir_path, mask_int=None)
+            self.active_waypoints_idx, img_arr = swg_utils.find_arr_on_region(active_waypoints_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=[194,130])
+        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, sharpen_threshold=194,
                     scale_to=255, set_focus=False, sharpen=True)
         
         if self.mission_critical_dropdown_idx is None:
@@ -652,7 +639,7 @@ class Pilot(Space):
             swg_utils.click(button='right', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=enemy_idx, activate_window=False)
             if self.autopilot_to_enemy_idx is None:
                 autopilot_to_enemy_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=None)
-                self.autopilot_to_enemy_idx, img_arr = swg_utils.find_arr_on_region(autopilot_to_enemy_arr, region=self.swg_region, start_row=max(enemy_idx[0] - 100, 0), start_col=max(enemy_idx[1] - 100, 0), fail_gracefully=False, sharpen_threshold=130) # Used to be 194
+                self.autopilot_to_enemy_idx, img_arr = swg_utils.find_arr_on_region(autopilot_to_enemy_arr, region=self.swg_region, start_row=max(enemy_idx[0] - 100, 0), start_col=max(enemy_idx[1] - 100, 0), fail_gracefully=False, sharpen_threshold=[194,130])
             swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.autopilot_to_enemy_idx, activate_window=False)
             time.sleep(self.interval_delay)
         if self.mission_critical_dropped_down():

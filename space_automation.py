@@ -715,7 +715,7 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
         while True:
             if not self.got_mission():
                 # CLose out of any windows
-                pdi.press('esc', presses=2)
+                pdi.press('esc', presses=3)
                 pdi.press('n')
                 time.sleep(1)
                 self.get_duty_mission_from_space_station()

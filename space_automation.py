@@ -714,14 +714,20 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
     def pilot_main(self):
         while True:
             if not self.got_mission():
+                # CLose out of any windows
+                pdi.press('esc', presses=2)
+                pdi.press('n')
+                time.sleep(1)
                 self.get_duty_mission_from_space_station()
             i = 1
-            while self.mission_critical_dropdown_gone():
+            while self.mission_critical_dropdown_gone() and self.got_mission():
                 self.autopilot_to_wp('Target_Location')
                 if i % 3 == 0:
                     swg_utils.chat('/throttle 1.0')
                     time.sleep(4)
                 i += 1
+            if not self.got_mission():
+                continue
             # Enemies enaging
             if self.mission_critical_dropped_down():
                 swg_utils.click(button='left', start_delay=0.02, return_delay=0.1, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)

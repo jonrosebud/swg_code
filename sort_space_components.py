@@ -2364,7 +2364,7 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
         if lc.item_count > 1:
             # Determine if it is a collection item or not
             # Click on item
-            swg_utils.click(coords=lc.second_item_coords, button='left', start_delay=0.05, return_delay=0.9)
+            swg_utils.click(coords=lc.second_item_coords, button='left', start_delay=0.2, return_delay=1.3)
             # Get screenshot
             img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                     scale_to=255, sharpen=True, set_focus=False)

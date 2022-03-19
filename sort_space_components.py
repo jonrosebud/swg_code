@@ -2110,15 +2110,18 @@ def calibrate_containers(calibration_desires_dct={
         'good_loot': bool
         
     user_input_before_calibrations: bool
-        True: wait for user to give an input after opening the container and before 
-            calibrating it so that the user has the chance to resize/re-position the 
-            window such that the program will not fail when trying to calibrate it.
+        True: If cannot find toggle arrow on the window after opening container,
+            wait for user to give an input before calibrating it so that the 
+            user has the chance to resize/re-position the window such that the 
+            program will not fail when trying to calibrate it.
             e.g. If a window is too large, then the program will not be able to grab
             both upper left and lower right corners and so will fail. So, the user
             must make the window size smaller manually.
             
-        False: Assume each container will not have an error when trying to calibrate its
-            position and size.
+        False: If cannot find toggle arrow on the window after opening container,
+            skip this container. Close all windows and re-open any necessary windows
+            to check the next container. Use False if you are sure all windows not
+            seen are actually not even there, or can be skipped (dangerous).
         
     Returns
     -------
@@ -2207,7 +2210,7 @@ def calibrate_containers(calibration_desires_dct={
                     after_img_arr = swg_utils.take_grayscale_screenshot(window=swg_window, region=region, set_focus=False, sharpen=False)
                     # Use only a section of the window to exclude the radar and chat log (which might have a change in pixel value despite the container not being opened)
                     if (len(np.where((after_img_arr[190:575, 262:838] >= 40) & (after_img_arr[190:575, 262:838] <= 41))[0]) - 
-                        len(np.where((before_img_arr[190:575, 262:838] >= 40) & (before_img_arr[190:575, 262:838] <= 41))[0]) < 10):
+                        len(np.where((before_img_arr[190:575, 262:838] >= 40) & (before_img_arr[190:575, 262:838] <= 41))[0]) < 100):
                         # No container with hopper_name was in range. Skip.
                         continue
                     hc.calibrate_container_position()

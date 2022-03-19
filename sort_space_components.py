@@ -2038,7 +2038,7 @@ class Inventory_Calibrator(Container_Calibrator):
     def __init__(self):
         self.capacity = 80
         self.desired_upper_left_corner_idx = [0,0]
-        self.desired_lower_right_corner_idx = [region['height'] - 10, 900]
+        self.desired_lower_right_corner_idx = [region['height'] - 10, 910]
         super(Inventory_Calibrator, self).__init__()
         
     
@@ -2046,7 +2046,7 @@ class Backpack_Calibrator(Container_Calibrator):
     def __init__(self):
         self.capacity = 65
         self.desired_upper_left_corner_idx = [0,0]
-        self.desired_lower_right_corner_idx = [region['height'] - 1, 900]
+        self.desired_lower_right_corner_idx = [region['height'] - 1, 910]
         super(Backpack_Calibrator, self).__init__()
         
 
@@ -2054,7 +2054,7 @@ class Droid_Calibrator(Container_Calibrator):
     def __init__(self):
         self.capacity = 30
         self.desired_upper_left_corner_idx = [0,0]
-        self.desired_lower_right_corner_idx = [region['height'] - 1, 900]
+        self.desired_lower_right_corner_idx = [region['height'] - 1, 910]
         super(Droid_Calibrator, self).__init__()
         
 
@@ -2070,7 +2070,7 @@ class Pack_Calibrator(Container_Calibrator):
     def __init__(self):
         self.capacity = 50
         self.desired_upper_left_corner_idx = [0,0]
-        self.desired_lower_right_corner_idx = [region['height'] - 1, 900]
+        self.desired_lower_right_corner_idx = [region['height'] - 1, 910]
         super(Pack_Calibrator, self).__init__()
         
         
@@ -2364,7 +2364,7 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
         if lc.item_count > 1:
             # Determine if it is a collection item or not
             # Click on item
-            swg_utils.click(coords=lc.second_item_coords, button='left', start_delay=0.2, return_delay=1.3)
+            swg_utils.click(coords=lc.second_item_coords, button='left', start_delay=0.2, return_delay=1.2)
             # Get screenshot
             img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                     scale_to=255, sharpen=True, set_focus=False)

@@ -639,7 +639,10 @@ class Pilot(Space):
             swg_utils.click(button='right', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=enemy_idx, activate_window=False)
             if self.autopilot_to_enemy_idx is None:
                 autopilot_to_enemy_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=None)
-                self.autopilot_to_enemy_idx, img_arr = swg_utils.find_arr_on_region(autopilot_to_enemy_arr, region=self.swg_region, start_row=max(enemy_idx[0] - 100, 0), start_col=max(enemy_idx[1] - 100, 0), fail_gracefully=False, sharpen_threshold=[194,130])
+                self.autopilot_to_enemy_idx, img_arr = swg_utils.find_arr_on_region(autopilot_to_enemy_arr, region=self.swg_region, start_row=max(enemy_idx[0] - 100, 0), start_col=max(enemy_idx[1] - 100, 0), fail_gracefully=True, sharpen_threshold=[194,130])
+                if self.autopilot_to_enemy_idx is None:
+                    print('Tried to find enemy but couldnt. Possibly the enemy died before getting to click on Autopilot To.')
+                    return
             swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.autopilot_to_enemy_idx, activate_window=False)
             time.sleep(self.interval_delay)
         if self.mission_critical_dropped_down():

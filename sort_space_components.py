@@ -2264,8 +2264,8 @@ def calibrate_containers(calibration_desires_dct={
                     gc.calibrate_container_position()
                     # Close hopper
                     pdi.press('esc')
-        # CLose all windows (should be closed by now but just in case)
-        pdi.press('esc', presses=90)
+    # CLose all windows (should be closed by now but just in case)
+    pdi.press('esc', presses=90)
                     
                         
 def sort_loot_when_in_POB(keep_DI_frequency=0):
@@ -2736,11 +2736,11 @@ def main(sorting_task, calibration_desires_dct, sorting_desires_dct):
 if __name__ == '__main__':
     main('POB', {
         'inventory': True,
-        'backpack': False,
+        'backpack': True,
         'droids': False,
-        'hopper': False,
-        'pack': False,
-        'loot_box': False,
+        'hopper': True,
+        'pack': True,
+        'loot_box': True,
         'good_loot': False}, 
         {
         'inventory': True, 

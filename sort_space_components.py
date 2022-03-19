@@ -2261,6 +2261,8 @@ def calibrate_containers(calibration_desires_dct={
                     gc.calibrate_container_position()
                     # Close hopper
                     pdi.press('esc')
+        # CLose all windows (should be closed by now but just in case)
+        pdi.press('esc', presses=90)
                     
                         
 def sort_loot_when_in_POB(keep_DI_frequency=0):

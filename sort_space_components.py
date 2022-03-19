@@ -2209,8 +2209,8 @@ def calibrate_containers(calibration_desires_dct={
                     swg_utils.chat('/open ' + hopper_name, start_delay=0.1, return_delay=0.2)
                     after_img_arr = swg_utils.take_grayscale_screenshot(window=swg_window, region=region, set_focus=False, sharpen=False)
                     # Use only a section of the window to exclude the radar and chat log (which might have a change in pixel value despite the container not being opened)
-                    if (len(np.where((after_img_arr[190:575, 262:838] >= 40) & (after_img_arr[190:575, 262:838] <= 41))[0]) - 
-                        len(np.where((before_img_arr[190:575, 262:838] >= 40) & (before_img_arr[190:575, 262:838] <= 41))[0]) < 100):
+                    if (len(np.where((after_img_arr[180:575, 262:838] >= 40) & (after_img_arr[180:575, 262:838] <= 41))[0]) - 
+                        len(np.where((before_img_arr[180:575, 262:838] >= 40) & (before_img_arr[180:575, 262:838] <= 41))[0]) < 80):
                         # No container with hopper_name was in range. Skip.
                         continue
                     hc.calibrate_container_position()
@@ -2264,8 +2264,6 @@ def calibrate_containers(calibration_desires_dct={
                     gc.calibrate_container_position()
                     # Close hopper
                     pdi.press('esc')
-    # CLose all windows (should be closed by now but just in case)
-    pdi.press('esc', presses=90)
                     
                         
 def sort_loot_when_in_POB(keep_DI_frequency=0):

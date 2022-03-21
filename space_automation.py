@@ -94,13 +94,14 @@ class Turret(Space):
         '''
         # Leave turret
         pdi.press('l')
-        time.sleep(4)
+        time.sleep(2.5)
         # Reset turret orientation
         self.horizontal_movements_cum, self.vertical_movements_cum = 0, 0
         # Re-enter turret
         swg_utils.chat('/tar Turret')
         swg_utils.chat('/ui action radialMenu')
         pdi.press('2')
+        time.sleep(2.5)
         
         
     def run_droid_commands(self):
@@ -704,9 +705,10 @@ class POB_Pilot(Pilot):
         '''
         # Leave pilot station
         pdi.press('l')
-        time.sleep(4)
+        time.sleep(2.5)
         # Enter pilot station
         swg_utils.chat('/pilot')
+        time.sleep(2.5)
         
     
 class Duty_Mission_Pilot(Pilot):

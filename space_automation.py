@@ -63,7 +63,7 @@ class Space(SWG):
         
 
 class Turret(Space):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=100, num_none_target_max=5):
         super(Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path)
         self.max_movements = max_movements
         self.num_none_target_max = num_none_target_max
@@ -82,6 +82,24 @@ class Turret(Space):
         self.g_target_upper_bound = 103
         self.r_target_upper_bound = 255
         # SETUP
+        
+        
+    def reset_station(self):
+        '''
+        Purpose
+        -------
+        It is suspected that being in the space view too long can cause issues 
+        such as the toon is logged out or crashing. A possible remedy is to 
+        exit current station and re-enter it.
+        '''
+        # Leave turret
+        pdi.press('l')
+        # Reset turret orientation
+        self.horizontal_movements_cum, self.vertical_movements_cum = 0, 0
+        # Re-enter turret
+        swg_utils.chat('/tar Turret')
+        swg_utils.chat('/ui action radialMenu')
+        pdi.press('2')
         
         
     def run_droid_commands(self):
@@ -360,14 +378,18 @@ class Turret(Space):
 
     
     def operate_turret(self):
+        time_of_last_reset = time.time()
         while True:
+            if time.time() - time_of_last_reset > 600:
+                self.reset_station()
+                time_of_last_reset = time.time()
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
             self.hunt_target(target_type='crosshairs')
             self.hunt_white_arrow()
 
         
 class Rear_Turret(Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=100, num_none_target_max=5):
         super(Rear_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
         # CONSTANTS
         self.max_horizontal_movements = 507
@@ -377,7 +399,7 @@ class Rear_Turret(Turret):
         
 
 class Deck_Turret(Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=100, num_none_target_max=5):
         super(Deck_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
         # CONSTANTS
         self.max_horizontal_movements = np.inf
@@ -387,7 +409,7 @@ class Deck_Turret(Turret):
         
         
 class Duty_Mission_Turret(Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=100, num_none_target_max=5):
         super(Duty_Mission_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
         
         
@@ -428,12 +450,12 @@ class Duty_Mission_Turret(Turret):
         
         
 class Duty_Mission_Rear_Turret(Duty_Mission_Turret, Rear_Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=100, num_none_target_max=5):
         super(Duty_Mission_Rear_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
         
         
 class Duty_Mission_Deck_Turret(Duty_Mission_Turret, Deck_Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=100, num_none_target_max=5):
         super(Duty_Mission_Deck_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
 
         
@@ -670,6 +692,20 @@ class POB_Pilot(Pilot):
         self.interval_delay = 1
         self.time_to_reach_full_speed = 5
         
+        
+    def reset_station(self):
+        '''
+        Purpose
+        -------
+        It is suspected that being in the space view too long can cause issues 
+        such as the toon is logged out or crashing. A possible remedy is to 
+        exit current station and re-enter it.
+        '''
+        # Leave pilot station
+        pdi.press('l')
+        # Enter pilot station
+        swg_utils.chat('/pilot')
+        
     
 class Duty_Mission_Pilot(Pilot):
     def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), full_speed_when_booster_on=1843, full_speed=1350, enemy_full_speed=600):
@@ -739,14 +775,14 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
             self.autopilot_to_wp('Target_Location')
 
     
-def main_duty_mission_rear_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+def main_duty_mission_rear_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=100, num_none_target_max=5):
     turret = Duty_Mission_Rear_Turret(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
     # For now, assume only need to run commands once (which assumes the ship doesn't get destroyed etc)
     turret.run_droid_commands()
     turret.operate_turret()
 
 
-def main_duty_mission_deck_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=70, num_none_target_max=5):
+def main_duty_mission_deck_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=100, num_none_target_max=5):
     turret = Duty_Mission_Deck_Turret(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
     # For now, assume only need to run commands once (which assumes the ship doesn't get destroyed etc)
     #turret.run_droid_commands() # Let rear turreter do it.

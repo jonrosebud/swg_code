@@ -14,7 +14,7 @@ sys.path.append(r'D:\python_scripts\pdi_tmr')
 import pdi_tmr
 def rapid_fire():
     running = True
-    joystick = [pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count())][1]
+    joystick = [pygame.joystick.Joystick(i) for i in range(pygame.joystick.get_count())][0]
     joystick.init()
     weapon_groups = '123'
     rapid_fire_mode = True

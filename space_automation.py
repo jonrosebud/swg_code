@@ -751,7 +751,14 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
         
         
     def pilot_main(self):
+        time_of_last_reset = time.time()
         while True:
+            if time.time() - time_of_last_reset > 600:
+                self.reset_station()
+                # CLose out of any windows
+                pdi.press('esc', presses=3)
+                pdi.press('n')
+                time_of_last_reset = time.time()
             if not self.got_mission():
                 # CLose out of any windows
                 pdi.press('esc', presses=3)

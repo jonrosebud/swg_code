@@ -94,6 +94,7 @@ class Turret(Space):
         '''
         # Leave turret
         pdi.press('l')
+        time.sleep(4)
         # Reset turret orientation
         self.horizontal_movements_cum, self.vertical_movements_cum = 0, 0
         # Re-enter turret
@@ -703,6 +704,7 @@ class POB_Pilot(Pilot):
         '''
         # Leave pilot station
         pdi.press('l')
+        time.sleep(4)
         # Enter pilot station
         swg_utils.chat('/pilot')
         

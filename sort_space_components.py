@@ -2368,6 +2368,7 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
             # Determine if it is a collection item or not
             # Click on item
             swg_utils.click(coords=lc.second_item_coords, button='left', start_delay=0.2, return_delay=1.2)
+            swg_utils.click(coords=lc.second_item_coords, button='left', start_delay=0.2, return_delay=1.2)
             # Get screenshot
             img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                     scale_to=255, sharpen=True, set_focus=False)
@@ -2734,11 +2735,11 @@ def main(sorting_task, calibration_desires_dct, sorting_desires_dct):
 if __name__ == '__main__':
     main('POB', {
         'inventory': True,
-        'backpack': True,
+        'backpack': False,
         'droids': False,
-        'hopper': True,
-        'pack': True,
-        'loot_box': True,
+        'hopper': False,
+        'pack': False,
+        'loot_box': False,
         'good_loot': False}, 
         {
         'inventory': True, 

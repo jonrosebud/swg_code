@@ -626,7 +626,9 @@ class Pilot(Space):
     def got_mission(self):
         complete_idx, _ = swg_utils.find_arr_on_region(self.complete_arr, region=self.swg_region, fail_gracefully=True, sharpen_threshold=[194,130])
         if complete_idx is not None:
-            swg_utils.click(button='left', start_delay=0.1, return_delay=0.9, window=self.swg_window, region=self.swg_region, coords_idx=complete_idx, activate_window=False)
+            swg_utils.click(button='left', start_delay=0.1, return_delay=0.9, window=self.swg_window, region=self.swg_region, coords_idx=complete_idx, activate_window=False, presses=3)
+            pdi.press('esc', presses=8)
+            pdi.press('n')
             return False
         if self.active_wp_dct['Target_Location']['idx'] is None:
             self.get_active_wp_idx('Target_Location')

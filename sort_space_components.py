@@ -1203,7 +1203,7 @@ def item_radial_option(item_coords, radial_option='1'):
     Radial an item that is visible (the window is on top) in a container and
     then select the radial option provided.
     '''
-    swg_utils.click(coords=item_coords, button='right')
+    swg_utils.click(coords=item_coords, button='right', return_delay=0.8)
     pdi.press(radial_option)
     time.sleep(0.2)
     
@@ -1331,7 +1331,7 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
     while item_inventory_position < end_inventory_position:
         item_coords = get_item_coords(corner_description_idx, region, item_inventory_position)
         # Click on item
-        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
+        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=1.3)
         # Get screenshot
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
@@ -1480,7 +1480,7 @@ def sort_backpack(generic_component, component_dct, pack):
     while item_inventory_position < end_inventory_position:
         item_coords = get_item_coords(corner_description_idx, region, item_inventory_position)
         # Click on item
-        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
+        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=1.3)
         # Get screenshot
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
@@ -1579,7 +1579,7 @@ def sort_droid_inventory(generic_component, component_dct):
     for i in range(item_count):
         item_coords = get_item_coords(corner_description_idx, region, item_inventory_position)
         # Click on item
-        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
+        swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=1.3)
         # Get screenshot
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
@@ -2067,7 +2067,7 @@ class Container_Calibrator:
         while self.item_position < self.end_item_position:
             item_coords = get_item_coords(self.corner_description_idx, region, self.item_position)
             # Click on item
-            swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
+            swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=1.3)
             # Get screenshot
             img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                     scale_to=255, sharpen=True, set_focus=False)
@@ -2276,7 +2276,7 @@ def calibrate_containers(calibration_desires_dct={
             while i < end_by_i:
                 item_coords = get_item_coords(corner_description_idx, region, i)
                 # Click on item
-                swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=0.9)
+                swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=1.3)
                 # Get screenshot
                 img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                         scale_to=255, sharpen=True, set_focus=False)
@@ -2392,7 +2392,7 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
         lc.get_attributes()
         if lc.item_count > 1:
             # Click on item
-            swg_utils.click(coords=lc.second_item_coords, button='left', start_delay=0.05, return_delay=0.9)
+            swg_utils.click(coords=lc.second_item_coords, button='left', start_delay=0.05, return_delay=1.3)
             # Get screenshot
             img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                     scale_to=255, sharpen=True, set_focus=False)
@@ -2495,7 +2495,7 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
                     # Move new pack to backpack
                     # Go through inventory positions until a pack is found
                     ic.item_coords = get_item_coords(ic.corner_description_idx, region, ic.item_position)
-                    swg_utils.click(coords=ic.item_coords, button='left', start_delay=0.05, return_delay=0.9)
+                    swg_utils.click(coords=ic.item_coords, button='left', start_delay=0.05, return_delay=1.3)
                     # Get screenshot
                     img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                             scale_to=255, sharpen=True, set_focus=False)

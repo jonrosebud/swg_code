@@ -2693,7 +2693,7 @@ Notes
 '''
 starting_inventory_position = 2
 num_equipped_items = 2
-num_items_in_bulky_containers = 0
+num_items_in_bulky_containers = 50
 num_pit_droids = 24
 pit_droid_pane = 6
 junk_hopper_i = 0

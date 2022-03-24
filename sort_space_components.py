@@ -2520,6 +2520,8 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
                     if ic.item_position >= ic.end_item_position:
                         # No more packs to get. Return.
                         return False
+                    # Open loot box
+                    swg_utils.chat('/open Loot')
                 # Put into pack
                 swg_utils.click_drag(start_coords=lc.second_item_coords, end_coords=into_inventory_coords, num_drags=1, start_delay=0.05, return_delay=0.75)
             component.update_recorded_stats_df()
@@ -2752,9 +2754,9 @@ if __name__ == '__main__':
         'inventory': True,
         'backpack': False,
         'droids': False,
-        'hopper': True,
+        'hopper': False,
         'pack': False,
-        'loot_box': True,
+        'loot_box': False,
         'good_loot': False}, 
         {
         'inventory': True, 

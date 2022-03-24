@@ -2265,8 +2265,6 @@ def calibrate_containers(calibration_desires_dct={
                     hc.calibrate_container_position()
                     # Close hopper
                     pdi.press('esc')
-                    print('closed hopper')
-                    time.sleep(5)
         elif container_type == 'pack':
             # Open inventory
             pdi.press('i')
@@ -2709,9 +2707,9 @@ if __name__ == '__main__':
         'inventory': True,
         'backpack': False,
         'droids': False,
-        'hopper': False,
+        'hopper': True,
         'pack': False,
-        'loot_box': False,
+        'loot_box': True,
         'good_loot': False}, 
         {
         'inventory': True, 

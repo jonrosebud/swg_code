@@ -26,6 +26,7 @@ import pandas as pd
 os = file_utils.os
 import random
 import sort_space_components as ssc
+from copy import deepcopy
 
 
 class SWG:
@@ -483,6 +484,7 @@ class Pilot(Space):
         self.target_dist_idx = None
         # SETUP
         self.target_mission_enemy_frequency = 0.3
+        self.autopilot_to_enemy_frequency = 0.02
         pdi.press('n')
         time.sleep(0.5)
         
@@ -661,24 +663,23 @@ class Pilot(Space):
     
     
     def find_enemy(self, find_task='Autopilot_To'):
-        find_task_dct = {'Autopilot_To': {'idx': 'autopilot_to_idx', 'num_iterations': self.num_times_to_click_autopilot_to_enemy},
-                         'target_this': {'idx': 'target_this_idx', 'num_iterations': 1}}
+        find_task_dct = {'Autopilot_To': {'idx': 'autopilot_to_idx'},
+                         'target_this': {'idx': 'target_this_idx'}}
         
         if self.mission_critical_dropdown_gone():
             return
         if not self.mission_critical_dropped_down():
             swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
         self.mission_enemies[0]['idx'] = [self.mission_critical_dropdown_idx[0] + 30, self.mission_critical_dropdown_idx[1] + 50]
-        for _ in range(find_task_dct[find_task]['num_iterations']):
-            swg_utils.click(button='right', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_enemies[0]['idx'], activate_window=False)
+        swg_utils.click(button='right', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_enemies[0]['idx'], activate_window=False)
+        if self.mission_enemies[0][find_task_dct[find_task]['idx']] is None:
+            autopilot_to_enemy_arr = swg_utils.get_search_arr(find_task, dir_path=self.dir_path, mask_int=None)
+            self.mission_enemies[0][find_task_dct[find_task]['idx']], img_arr = swg_utils.find_arr_on_region(autopilot_to_enemy_arr, region=self.swg_region, start_row=max(self.mission_enemies[0]['idx'][0] - 100, 0), start_col=max(self.mission_enemies[0]['idx'][1] - 100, 0), fail_gracefully=True, sharpen_threshold=[194,130])
             if self.mission_enemies[0][find_task_dct[find_task]['idx']] is None:
-                autopilot_to_enemy_arr = swg_utils.get_search_arr(find_task, dir_path=self.dir_path, mask_int=None)
-                self.mission_enemies[0][find_task_dct[find_task]['idx']], img_arr = swg_utils.find_arr_on_region(autopilot_to_enemy_arr, region=self.swg_region, start_row=max(self.mission_enemies[0]['idx'][0] - 100, 0), start_col=max(self.mission_enemies[0]['idx'][1] - 100, 0), fail_gracefully=True, sharpen_threshold=[194,130])
-                if self.mission_enemies[0][find_task_dct[find_task]['idx']] is None:
-                    print('Tried to find enemy but couldnt. Possibly the enemy died before getting to click on ', find_task)
-                    return
-            swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_enemies[0][find_task_dct[find_task]['idx']], activate_window=False)
-            time.sleep(self.interval_delay)
+                print('Tried to find enemy but couldnt. Possibly the enemy died before getting to click on ', find_task)
+                return
+        swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_enemies[0][find_task_dct[find_task]['idx']], activate_window=False)
+        time.sleep(self.interval_delay)
         if self.mission_critical_dropped_down():
             swg_utils.click(button='left', start_delay=0.02, return_delay=0.15, window=self.swg_window, region=self.swg_region, coords_idx=self.mission_critical_dropdown_idx, activate_window=False)
         
@@ -738,6 +739,7 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
     
     def optimize_speed(self):
         start_time = time.time()
+        prev_dist_to_enemy = 0
         while not self.mission_critical_dropdown_gone():  
             if time.time() - start_time > 40:
                 self.autopilot_to_wp('zeros')
@@ -765,11 +767,25 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
                     pdi.press('s', presses=2)
             else:
                 pdi.press('w')
-            if dist_to_enemy > 2000:
-                # Possibly disabled, autopilot to the enemy
-                for _ in range(10):
+            for _ in range(self.num_times_to_click_autopilot_to_enemy):
+                dist_to_enemy = self.get_target_dist(fail_gracefully=True)
+                if dist_to_enemy > 2000:
+                    autopilot_to_enemy = True
+                elif dist_to_enemy > 1000:
+                    autopilot_to_enemy = random.random() < self.autopilot_to_enemy_frequency
+                else:
+                    autopilot_to_enemy = False
+                if autopilot_to_enemy:
+                    # Possibly disabled, autopilot to the enemy
                     self.find_enemy(find_task='Autopilot_To')
-                swg_utils.chat('/throttle 1.0')
+                    swg_utils.chat('/throttle 1.0', start_delay=4)
+            # The following is to prevent the situation where the enemy is less than 1000m, but
+            # yet stationary for some reason (which would make us stationary as well if also
+            # greater than 700m), and so we both sit stationary forever.
+            if prev_dist_to_enemy == dist_to_enemy:
+                self.autopilot_to_wp('zeros')
+                swg_utils.chat('/throttle 1.0', start_delay=4, return_delay=2)
+                prev_dist_to_enemy = deepcopy(dist_to_enemy)
         
         
     def pilot_main(self):

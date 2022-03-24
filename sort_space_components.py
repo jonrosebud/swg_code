@@ -2476,6 +2476,51 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
                 swg_utils.chat('/open Loot', return_delay=0.3)
             else:
                 # Put into pack
+                # First check to see whether the pack is full already
+                pc.get_attributes()
+                while pc.item_count >= pc.item_capacity:
+                    # Pack is full, get a new pack.
+                    # Start by closing the collection and Loot containers
+                    close_hopper()
+                    swg_utils.chat('/open Loot')
+                    pdi.press('esc')
+                    # Close pack
+                    pdi.press('esc')
+                    # Equip pack
+                    item_radial_option(bc.pack_coords, radial_option='2')
+                    # Close backpack
+                    pdi.press('esc')
+                    # Equip backpack
+                    item_radial_option(backpack_coords, radial_option='2')
+                    # Move new pack to backpack
+                    # Go through inventory positions until a pack is found
+                    ic.item_coords = get_item_coords(ic.corner_description_idx, region, ic.item_position)
+                    swg_utils.click(coords=ic.item_coords, button='left', start_delay=0.05, return_delay=0.9)
+                    # Get screenshot
+                    img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
+                            scale_to=255, sharpen=True, set_focus=False)
+
+                    if item_is_container(ic.corner_description_idx, ic.first_indentation_level_col,  img_arr):
+                        # Open pack
+                        item_radial_option(ic.item_coords, radial_option='1')
+                        pc.get_attributes()
+                        if pc.item_count < pc.item_capacity:
+                            # Close pack
+                            pdi.press('esc')
+                            # Move pack to backpack
+                            swg_utils.click_drag(start_coords=ic.item_coords, end_coords=backpack_coords, num_drags=1, start_delay=0.0, return_delay=0.75)
+                            # Open backpack
+                            item_radial_option(backpack_coords, radial_option='1')
+                            # Open pack
+                            item_radial_option(bc.pack_coords, radial_option='1')
+                        else:
+                            ic.item_position += 1
+                    else:
+                        ic.item_position += 1
+                    if ic.item_position >= ic.end_item_position:
+                        # No more packs to get. Return.
+                        return False
+                # Put into pack
                 swg_utils.click_drag(start_coords=lc.second_item_coords, end_coords=into_inventory_coords, num_drags=1, start_delay=0.05, return_delay=0.75)
             component.update_recorded_stats_df()
             component.recorded_stats_df.to_csv(component.recorded_stats_fpath, index=False)

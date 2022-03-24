@@ -769,6 +769,8 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
                 pdi.press('w')
             for _ in range(self.num_times_to_click_autopilot_to_enemy):
                 dist_to_enemy = self.get_target_dist(fail_gracefully=True)
+                if dist_to_enemy is None:
+                    continue
                 if dist_to_enemy > 2000:
                     autopilot_to_enemy = True
                 elif dist_to_enemy > 1000:

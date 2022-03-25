@@ -714,6 +714,8 @@ class POB_Pilot(Pilot):
         such as the toon is logged out or crashing. A possible remedy is to 
         exit current station and re-enter it.
         '''
+        if not self.got_mission():
+            return
         # Leave pilot station
         pdi.press('l')
         time.sleep(4.5)

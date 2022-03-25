@@ -344,15 +344,14 @@ class Turret(Space):
     def hunt_target(self, target_type='crosshairs'):
         self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
         self.RDU_lst = []
-        img_arr = self.get_target(target_type=target_type)
+        _ = self.get_target(target_type=target_type)
         if self.target is None:
             return
         self.get_RDU_0()
         self.RDU_lst.append(self.RDU_0)
         num_none_target = 0
         hunt_start_time = time.time()
-        found_white_arrow, _, _ = self.find_white_arrow(img_arr)
-        while num_none_target < self.num_none_target_max and time.time() - hunt_start_time < 20 and found_white_arrow is None:
+        while num_none_target < self.num_none_target_max and time.time() - hunt_start_time < 20:
             self.get_trained_RDU_0()
             self.get_remaining_gamma_phi()
             self.get_aligning_movements()
@@ -363,12 +362,12 @@ class Turret(Space):
             self.horizontal_movements_cum += self.horizontal_movements_12
             self.vertical_movements_cum += self.vertical_movements_12
             self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
-            img_arr = self.get_target(target_type)
+            _ = self.get_target(target_type)
             while self.target is None:
                 num_none_target += 1
                 if num_none_target >= self.num_none_target_max:
                     break
-                img_arr = self.get_target(target_type)
+                _ = self.get_target(target_type)
             if num_none_target >= self.num_none_target_max:
                 break
             if num_none_target > 0 and len(self.RDU_lst) > 0:
@@ -379,7 +378,6 @@ class Turret(Space):
                 del self.RDU_lst[0]
             self.get_RDU_0()
             self.RDU_lst.append(self.RDU_0)
-            found_white_arrow, _, _ = self.find_white_arrow(img_arr)
 
     
     def operate_turret(self):

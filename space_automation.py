@@ -736,6 +736,8 @@ class POB_Pilot(Pilot):
         such as the toon is logged out or crashing. A possible remedy is to 
         exit current station and re-enter it.
         '''
+        # If you just completed a mission but have not yet clicked the "Complete" button, then leaving pilot station will
+        # bug out the completion window such that you cannot click on it anymore.
         if not self.got_mission():
             return
         # Leave pilot station

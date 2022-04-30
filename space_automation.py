@@ -13,7 +13,7 @@ config.get_config_dct()
 import sys
 python_utils_path = config.config_dct['main']['python_utils_path']
 sys.path.append(r"" + python_utils_path)
-from python_utils import file_utils
+from python_utils import file_utils, list_utils
 import time
 import numpy as np
 git_path = config.config_dct['main']['git_path']
@@ -27,6 +27,9 @@ os = file_utils.os
 import random
 import sort_space_components as ssc
 from copy import deepcopy
+from scipy.spatial import distance
+import matplotlib.pyplot as plt
+from pprint import pprint
 
 
 class SWG:
@@ -47,6 +50,8 @@ class Space(SWG):
         self.space_target_distance_digits = {digit: swg_utils.get_search_arr('space_target_distance_digit_' + str(digit), dir_path=self.dir_path, mask_int=0) for digit in range(10)}
         self.complete_arr = swg_utils.get_search_arr('complete', dir_path=self.dir_path, mask_int=None)
         self.target_this_arr = swg_utils.get_search_arr('target_this', dir_path=self.dir_path, mask_int=None)
+        self.vertical_triangle_side_arr = swg_utils.get_search_arr('vertical_triangle_side_arr', dir_path=self.dir_path, mask_int=None)
+        self.horizontal_triangle_side_arr = swg_utils.get_search_arr('horizontal_triangle_side_arr', dir_path=self.dir_path, mask_int=None)
         # INITIAL VALUES
         self.target_dist_idx = None
         
@@ -63,7 +68,7 @@ class Space(SWG):
                 scale_to=255, set_focus=False, sharpen=True)
         
         return swg_utils.get_int_from_line_arr(line_arr, self.space_target_distance_digits, fail_gracefully=fail_gracefully)
-        
+
 
 class Turret(Space):
     def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=200, num_none_target_max=25):
@@ -239,12 +244,15 @@ class Turret(Space):
         
     def get_crosshairs(self):
         crosshairs = [None, None]
+        b_lead_reticle = 212
+        g_lead_reticle = 0
+        r_lead_reticle = 255
+        crosshairs = [None, None]
         img_arr = swg_utils.take_screenshot(region=self.swg_region)
         # Find the indices of the matrix that correspond to the reticle's upper and lower hairs (vertical).
         # We are using the vertical hairs because they seem to be a constant color value as opposed to the horizontal
         # hairs which appear to have a range of values for R, G, and B.
-        where_arr = np.where((img_arr[:,:,self.b] >= self.b_target_lower_bound) & (img_arr[:,:,self.g] >= self.g_target_lower_bound) & (img_arr[:,:,self.r] >= self.r_target_lower_bound)
-                             & (img_arr[:,:,self.b] <= self.b_target_upper_bound) & (img_arr[:,:,self.g] <= self.g_target_upper_bound) & (img_arr[:,:,self.r] <= self.r_target_upper_bound))
+        where_arr = swg_utils.find_pixels_on_BGR_arr(img_arr, b=b_lead_reticle, g=g_lead_reticle, r=r_lead_reticle)
         
         unique_cols_found = sorted(list(set(where_arr[1])))
         num_unique_cols_found = len(unique_cols_found)
@@ -314,7 +322,7 @@ class Turret(Space):
         while theta < 2 * np.pi:
             y = int(self.green_dot[0] - r * np.sin(theta))
             x = int(self.green_dot[1] + r * np.cos(theta))
-            if img_arr[y, x, 0] > 130 and img_arr[y, x, 0] == img_arr[y, x, 2] and np.abs(img_arr[y, x, 0] - img_arr[y, x, 1]) < 5:
+            if img_arr[y, x, 0] == 204 and img_arr[y, x, 1] == 0 and img_arr[y, x, 2] == 204:
                 # Found it
                 return y, x, theta
             theta += 0.008
@@ -474,7 +482,7 @@ class Duty_Mission_Turret(Turret):
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
             self.hunt_white_arrow()
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
-            self.hunt_target(target_type='brown_avg')
+            #self.hunt_target(target_type='brown_avg')
 
         
 class Duty_Mission_Rear_Turret(Duty_Mission_Turret, Rear_Turret):
@@ -892,8 +900,18 @@ def main(task_type='duty_mission', turret_type='None', pilot_type='None'):
         raise Exception('Invalid task_type')
     
 if __name__ == '__main__':
+    
     task_type = config.get_value('space', 'task_type', desired_type=str, required_to_be_in_conf=False, default_value='duty_mission')
     turret_type = config.get_value('space', 'turret_type', desired_type=str, required_to_be_in_conf=False, default_value='None')
     pilot_type = config.get_value('space', 'pilot_type', desired_type=str, required_to_be_in_conf=False, default_value='None')
     main(task_type=task_type, turret_type=turret_type, pilot_type=pilot_type)
-    
+    '''
+    spacer = Space()
+    #spacer.get_red_center_idx()
+    start_time = time.time()
+    while time.time() - start_time < 0.4:
+        target_center_idx = spacer.get_target_center_idx()
+    #target_center_idx = spacer.get_target_center_idx()
+    print(time.time() - start_time)
+    #print(target_center_idx)
+    '''

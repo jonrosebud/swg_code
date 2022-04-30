@@ -188,7 +188,8 @@ def take_grayscale_screenshot(window=None, region=None, sharpen_threshold=200,
 def find_pixels_on_BGR_arr(img_arr, b=None, g=None, r=None, 
             b_lower_bound=0, b_upper_bound=255, g_lower_bound=0, 
             g_upper_bound=255, r_lower_bound=0, r_upper_bound=255, start_row=0,
-            end_row=None, start_col=0, end_col=None, return_as_set=False):
+            end_row=None, start_col=0, end_col=None, return_as_set=False,
+            return_as_rect_arr=False):
     
     if end_row is None:
         end_row = img_arr[:,:,0].shape[0]
@@ -249,6 +250,8 @@ def find_pixels_on_BGR_arr(img_arr, b=None, g=None, r=None,
                                    (r_arr == r))
     if return_as_set:
         return set(tuple(zip(where_arr[0], where_arr[1])))
+    elif return_as_rect_arr:
+        return np.array(tuple(zip(where_arr[0], where_arr[1])))
     else:
         return where_arr
 
@@ -385,7 +388,7 @@ def chat(string, start_delay=0.2, return_delay=0.1, interval_delay=0.1):
     time.sleep(return_delay)
     
     
-def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start_col=0, end_row=None, end_col=None, fail_gracefully=False, sharpen_threshold=130, return_as_tuple=False):
+def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start_col=0, end_row=None, end_col=None, fail_gracefully=False, sharpen_threshold=130, return_as_tuple=False, n_matches=None):
     '''
     Parameters
     ----------
@@ -430,6 +433,11 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
         True: return row, col, img_arr
         False: return [row, col], img_arr
         
+    n_matches: int, str, or None
+        None: default. Return the first match, if any, otherwise, return None
+        int: Return the first n_matches number of matches, if any, in a list. If none, return [].
+        str: 'all'. This means return all found matches, if any, in a list. If none, return [].
+        
     Returns
     -------
     found_idx, img_arr
@@ -449,6 +457,7 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
     Notes
     -----
     '''
+    found_idxs = []
     if not hasattr(sharpen_threshold, '__iter__'):
         sharpen_threshold = [sharpen_threshold]
     for k,st in enumerate(sharpen_threshold):
@@ -457,6 +466,8 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
             img_arr = take_grayscale_screenshot(region=region, sharpen_threshold=st,
                     scale_to=255, sharpen=st is not None, set_focus=False)
     
+        start_row = min(max(start_row, 0), img_arr.shape[0] - 1)
+        start_col = min(max(start_col, 0), img_arr.shape[1] - 1)
         if end_row is None:
             end_row = img_arr.shape[0] - search_arr.shape[0] - 1
         if end_col is None:
@@ -486,18 +497,26 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
                 
                 if return_as_tuple:
                     return i, j, img_arr
+                elif n_matches is None:
+                    return [i,j], img_arr
+                elif n_matches != 'all' and len(found_idxs) + 1 == n_matches:
+                    found_idxs.append([i,j])
+                    return found_idxs, img_arr
                 else:
-                    return [i, j], img_arr
-        # We did not find the search_arr in img_arr. Try the next st value unless this is the last st value.
-        if k != len(sharpen_threshold) - 1:
-            continue
-        if not fail_gracefully:
-            raise Exception('Could not find search_arr in img_arr')
-        if return_as_tuple:
-            return None, None, img_arr
-        else:
-            return None, img_arr
-
+                    found_idxs.append([i,j])
+        if n_matches is None or n_matches == 'all' or len(found_idxs) != n_matches:
+            # We did not find the search_arr in img_arr. Try the next st value unless this is the last st value.
+            if k != len(sharpen_threshold) - 1:
+                continue
+        if len(found_idxs) == 0:
+            if not fail_gracefully:
+                raise Exception('Could not find search_arr in img_arr')
+            if return_as_tuple:
+                return None, None, img_arr
+            else:
+                return None, img_arr
+    return found_idxs, img_arr
+        
 
 def get_search_arr(fname, dir_path='.', mask_int=None):
     '''
@@ -659,3 +678,48 @@ def idx_checks(region=None, idx=None, fail_gracefully=False):
         else:
             raise Exception('idx is too far right. (col greater than region width). idx:', idx, 'region:', region)
     return True
+
+
+def filter_img_arr(img_arr, BGR_dct, exclude=[]):
+    '''
+    
+
+    Parameters
+    ----------
+    img_arr : TYPE
+        DESCRIPTION.
+    BGR_dct : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    img_arr : TYPE
+        DESCRIPTION.
+
+    Purpose
+    -------
+    Return a matrix of the same shape as img_arr[:,:,0] which has all 0s except for 1s where 
+    img_arr[:,:,0] has values btwn (and including) the B min and max, AND
+    img_arr[:,:,1] has values btwn (and including) the G min and max, AND
+    img_arr[:,:,2] has values btwn (and including) the R min and max
+    '''
+    for exclude_dct in exclude:
+        img_arr[exclude_dct['top']:exclude_dct['bottom'],exclude_dct['left']:exclude_dct['right']] = 0
+        
+    where_arr = find_pixels_on_BGR_arr(img_arr,
+                b_lower_bound=BGR_dct['B']['min'], b_upper_bound=BGR_dct['B']['max'], g_lower_bound=BGR_dct['G']['min'], 
+                g_upper_bound=BGR_dct['G']['max'], r_lower_bound=BGR_dct['R']['min'], r_upper_bound=BGR_dct['R']['max'])
+    
+    img_arr = np.zeros(img_arr[:,:,0].shape)
+    img_arr[where_arr] = 1
+    return img_arr
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

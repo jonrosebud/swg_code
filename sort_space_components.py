@@ -60,12 +60,10 @@ region: dict
     Values: ints describing the y coord, x coord of the top left corner of the img_arr matrix (which is the screenshot and will not include the window header).
     
 '''
-inventory_arr_dir = 'inventory_dir'
+inventory_arr_dir = os.path.join(git_path, 'inventory_dir')
 inventory_dct = {
          fname : file_utils.read_csv(os.path.join(inventory_arr_dir, fname + '.csv'), dtype=int)
-        for fname in ['armor_name', 'booster_name', 'capacitor_name', 'droid_interface_name',
-        'engine_name', 'reactor_name', 'shield_name', 'weapon_name', 'cargo_crate_name',
-        'military_crate_name', 'collection_name',
+        for fname in ['cargo_crate_name', 'military_crate_name', 'collection_name',
         'Armor', 'Mass', 'Reverse_Engineering_Level', 'Reactor_Energy_Drain', 'Reactor_Generation_Rate',
         'Booster_Energy', 'Booster_Recharge_Rate', 'Booster_Energy_Consumption_Rate',
         'Acceleration', 'Top_Booster_Speed', 'Capacitor_Energy', 'Recharge_Rate',
@@ -78,11 +76,11 @@ inventory_dct = {
         list(map(str, range(10)))
         }
 
-character_arr_dir = 'character_dir'
+character_arr_dir = os.path.join(git_path, 'character_dir')
 character_names_dct = {
     fname : file_utils.read_csv(os.path.join(character_arr_dir, fname + '.csv'), dtype=int)
         for fname in list(string.ascii_uppercase) + list(map(str, range(10))) 
-        + ['and', 'open_parenthesis', 'close_parenthesis', 'dash', 'period', 'slash']
+        + ['and', 'open_parenthesis', 'close_parenthesis', 'dash', 'period', 'slash', 'space']
     }
 
 swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
@@ -170,122 +168,54 @@ def find_str_on_image_given_col(str_arr, img_arr, col, row_start=0):
 
 
 def get_number_from_arr(line_arr, numeric_type=int):
-        '''
-        line_arr: 2D np.array
-            This matrix must be the same height (number of rows) as the stored
-            digit matrices in digit_dct. line_arr contains some of the
-            digit matrices in digit_dct which will be read sequentially
-            to get the overall (single) number.
-            
-        Returns
-        -------
-        digits: int
-            The number as read from the line_arr.
+    '''
+    line_arr: 2D np.array
+        This matrix must be the same height (number of rows) as the stored
+        digit matrices in digit_dct. line_arr contains some of the
+        digit matrices in digit_dct which will be read sequentially
+        to get the overall (single) number.
         
-        Purpose
-        -------
-        Given a matrix that contains digit matrices separated by columns of all
-        0's (or all are 0's except one), concatenate the digits in the order they 
-        appear to return the overall number represented by line_arr.
-        
-        Method
-        ------
-        Iterate through each column of line_arr until there's a column of not all 
-        zeros or all but one is zero. If the sum of the column is greater than 255 
-        (assuming there are only 255 and 0 entries), this means we have found the 
-        column index, i, of the beginning of a new digit. Continue iterating 
-        through the columns with j until you find the first column after i that is 
-        all zeros (or all but one is zeros). The slice in between is the matrix of 
-        one of the digits. Try each digit matrix until one of them matches. Append 
-        the digit to the overall digits string. Convert to a number at the end.
+    Returns
+    -------
+    digits: int
+        The number as read from the line_arr.
     
-        Notes
-        -----
-        1. The reason we are splitting by all zeros or all but one being 0 is 
-            because '4' has a non-zero value sticking out to the right, such that
-            the next digit begins on the very next column without a break (no
-            all-zero column).
-            
-        2. The reason we do not make each digit a common width and use a step
-            size of this width is because there could be other terms like
-            a decimal point or a negative sign.
-        '''
-        # First, check for whether there is a slash or a dash because these are
-        # treated differently. i.e. a slash means just get the value after the
-        # slash, and a dash means return a list or 2 values (one before the dash
-        # and one after).
-        dash_position = False
-        slash_position = False
-        square_bracket_position = False
-        for key in ['slash', 'dash', 'square_bracket']:
-            i = 0
-            # Iterate through the columns of line_arr
-            while i < line_arr.shape[1] - inventory_dct[key].shape[1]:
-                target_arr = line_arr[:, i : i + inventory_dct[key].shape[1]]
-                if np.all(inventory_dct[key] == target_arr):
-                    if key == 'dash':
-                        dash_position = deepcopy(i)
-                    elif key == 'slash':
-                        slash_position = deepcopy(i)
-                    elif key == 'square_bracket':
-                        square_bracket_position = deepcopy(i)
-                    break
-                i += 1
-        if square_bracket_position is False:
-            square_bracket_position = line_arr.shape[1]
-        i = 0
-        result = []
-        digits = ''
-        # Iterate through the columns of line_arr
-        while i < line_arr.shape[1] and i < square_bracket_position:
-            # If the ith col is not all zeros then we've found the beginning of
-            # a digit.
-            if np.sum(line_arr[:, i]) > 255:
-                j = deepcopy(i)
-                # Continue iterating through the columns of line_arr until you
-                # find a column of all zeros (or all but one being 0) which 
-                # represents the space in between digits and thus marks the end of 
-                # the digit.
-                while j < line_arr.shape[1] and np.sum(line_arr[:, j]) > 255:
-                    j += 1
-                # The digit we want to find a match to, target_digit, is the slice
-                # from col i to col j.
-                target_arr = line_arr[:, i : j].astype(int)
-                # Increase i so it is starting on a column of all zeros and thus
-                # ready to find the next digit.
-                i += j - i
-                # Iterate through all the stored digit matrices to see if one
-                # matches.
-                for key, arr in inventory_dct.items():
-                    if key not in ['period'] + list(map(str, range(10))):
-                        continue
-                    # If the digit_arr doesn't have the same shape as target_arr,
-                    # it can't be the target digit so skip it.
-                    if arr.shape != target_arr.shape:
-                        continue
-                    # If it's a perfect match, then we know which digit the
-                    # target_arr is so append the digit string to the overall
-                    # string.
-                    if np.all(arr == target_arr):
-                        if key == 'period':
-                            digits += '.'
-                        else:
-                            digits += key
-            if dash_position is not False and i == dash_position:
-                result.append(numeric_type(digits))
-                digits = ''
-            if slash_position is not False and i == slash_position:
-                result.append(numeric_type(digits))
-                digits = ''
-            i += 1
-        if dash_position is not False or slash_position is not False:
-            result.append(numeric_type(digits))
-        else:
-            # Convert the digit string into a number.
-            result = numeric_type(digits)
-        return result
+    Purpose
+    -------
+    Given a matrix that contains digit matrices separated by columns of all
+    0's (or all are 0's except one), concatenate the digits in the order they 
+    appear to return the overall number represented by line_arr.
     
     
+    '''
+    digits = ''
+    for i in range(line_arr.shape[1]):
+        for digit_key in ['slash', 'dash', 'square_bracket', 'period'] + list(map(str,range(10))):
+           target_arr = line_arr[:, i: i + inventory_dct[digit_key].shape[1]]
+           if target_arr.shape[1] != inventory_dct[digit_key].shape[1]:
+               continue
+           if np.all(target_arr == inventory_dct[digit_key]):
+               if digit_key == 'slash':
+                   digits += '/'
+               elif digit_key == 'dash':
+                   digits += '-'
+               elif digit_key == 'square_bracket':
+                   # Should only get here when looking at a container
+                   digits = digits.split('/')
+                   return [numeric_type(digits[0]), numeric_type(digits[1])]
+               elif digit_key == 'period':
+                   digits += '.'
+               else:
+                   digits += digit_key
+    if '/' in digits:
+        digits = digits.split('/')
+        return [numeric_type(digits[0]), numeric_type(digits[1])]
+    if '-' in digits:
+        digits = digits.split('-')
+        return [numeric_type(digits[0]), numeric_type(digits[1])]
+    return numeric_type(digits)
+
+
 def get_str_from_arr(line_arr):
         '''
         line_arr: 2D np.array
@@ -308,54 +238,38 @@ def get_str_from_arr(line_arr):
         char_end_col = 0
         result = ''
         # Iterate through the columns of line_arr
-        while i < line_arr.shape[1]:
-            # If the ith col has at least one 0 then we've found the beginning of
-            # a character.
-            if len(np.where(line_arr[:, i] == 0)[0]) > 0:
-                char_start_col = deepcopy(i)
-                if  char_start_col - char_end_col > 4:
-                    # space character
-                    result += ' '
-                j = deepcopy(i)
-                # Continue iterating through the columns of line_arr until you
-                # find a column with no zeros which 
-                # represents the space in between characters and thus marks the end of 
-                # the character.
-                while j < line_arr.shape[1] and len(np.where(line_arr[:, j] == 0)[0]) > 0:
-                    j += 1
-                char_end_col = j - 1
-                # The character we want to find a match to, target_characte_arrr, is the slice
-                # from col i to col j.
-                target_arr = line_arr[:, i : j].astype(int)
-                # Increase i so it is starting on a column of all zeros and thus
-                # ready to find the next character.
-                i += j - i
-                # Iterate through all the stored character matrices to see if one
-                # matches.
-                for key, arr in character_names_dct.items():
-                    # If the character_arr doesn't have the same shape as target_character_arr,
-                    # it can't be the target character so skip it.
-                    if arr.shape != target_arr.shape:
-                        continue
-                    # If it's a perfect match, then we know which character the
-                    # target_arr is so append the character string to the overall
-                    # string.
-                    if np.all(arr == target_arr):
-                        if key == 'period':
-                            result += '.'
-                        elif key == 'slash':
-                            result += '/'
-                        elif key == 'dash':
-                            result += '-'
-                        elif key == 'and':
-                            result += '&'
-                        elif key == 'open_parenthesis':
-                            result += '('
-                        elif key == 'close_parenthesis':
-                            result += ')'
-                        else:
-                            result += key
-            i += 1
+        for i in range(line_arr.shape[1]):
+            # Iterate through all the stored character matrices to see if one
+            # matches.
+            for key, arr in character_names_dct.items():
+                # Generate target_arr as the portion of line_arr with the same shape as arr
+                target_arr = line_arr[:,i:i+arr.shape[1]]
+                # If still doesnt have the same shape, then you are nearing the end of the line_arr.
+                if arr.shape[1] != target_arr.shape[1]:
+                    continue
+                # If it's a perfect match, then we know which character the
+                # target_arr is so append the character string to the overall
+                # string.
+                if np.all(arr == target_arr):
+                    if key == 'period':
+                        result += '.'
+                    elif key == 'slash':
+                        result += '/'
+                    elif key == 'dash':
+                        result += '-'
+                    elif key == 'and':
+                        result += '&'
+                    elif key == 'open_parenthesis':
+                        result += '('
+                    elif key == 'close_parenthesis':
+                        result += ')'
+                    elif key == 'space':
+                        result += ' '
+                    else:
+                        result += key
+        result = np.array(result.split(' '))
+        result = list(result[np.where(result != '')])
+        result = ' '.join(result)
         return result
     
     
@@ -388,6 +302,8 @@ def get_item_count_and_capacity(region, img_arr=None, start_row=600, start_col=6
     -------
     Get item_count and item_capacity for a given selected container.
     '''
+    # Move to bottom of the window so cursor wont cause something to appear over the numbers.
+    swg_utils.moveTo(coords=[region['left'] + region['width'] - 10, region['top'] + region['height'] - 10])
     time.sleep(0.5)
     # Get lower right corner indices of container window in img_arr
     down_arrow_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['container_down_arrow_130_thresh'], region=region, img_arr=img_arr, start_row=start_row, start_col=start_col, sharpen_threshold=130, fail_gracefully=fail_gracefully)
@@ -509,12 +425,12 @@ def get_name_header(corner_description_idx, img_arr=None):
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
     # Offset to [row, col]
-    named_component_offset = np.array([-33, -2])
+    named_component_offset = np.array([-33, -3])
     named_component_idx = named_component_offset + corner_description_idx
     named_component_row_length = 800
     named_component_height = 10
     line_arr = img_arr[named_component_idx[0] : named_component_idx[0] + named_component_height, named_component_idx[1] : named_component_idx[1] + named_component_row_length]
-    result = get_str_from_arr(line_arr)
+    result = get_str_from_arr(line_arr).strip()
     return result
 
 
@@ -599,6 +515,8 @@ class Ship_Component:
             # The sub-classes will take care of instantiating it.
             self.recorded_stats_df = None
         self.recorded_stats_names = list(self.stats.keys())
+        # Default
+        self.REable = True
             
         
     def stats_dct_init(self):
@@ -659,7 +577,12 @@ class Ship_Component:
         elif hopper_type == 'junk_droid_interface':
             hopper_name = 'DIs_' + str(droid_interface_hopper_i)
         elif hopper_type == 'non_components':
-            hopper_name = 'non_components_' + str(non_components_hopper_i)
+            # Check if it is a stackable item and if so, put it in that bin instead of non_components hopper
+            name_header = get_name_header(calibrator.corner_description_idx, img_arr=None)
+            if 'CONVOY FLIGHT PLAN' in name_header:
+                hopper_name = 'stackable_crate_loot_0'
+            else:
+                hopper_name = 'non_components_' + str(non_components_hopper_i)
         elif hopper_type == 'collection':
             num_tiers_per_collection_hopper = 2
             found_collection_name = None
@@ -674,7 +597,8 @@ class Ship_Component:
                     found_collection_name = collection_name
                     break
             if found_collection_name is None:
-                raise Exception('Could not find type of collection item.')
+                # Collection name is not in the space collection list. Assume it is a non-space collection item and destroy it.
+                item_radial_option(item_coords, radial_option='3')
             collection_hopper_i = int(collection_i / num_tiers_per_collection_hopper)
             hopper_name = 'collections_' + str(collection_hopper_i)
         if currently_open_hopper != hopper_name:
@@ -971,8 +895,11 @@ class Ship_Component:
             else:
                 col = second_indentation_level_col
             # Subtract 1 from row number because digits have a blank line above them (so that square bracket can be found).
-            row = find_str_on_image_given_col(inventory_dct[stat_key], img_arr, col, row_start=corner_description_idx[0]) - 1
+            row = find_str_on_image_given_col(inventory_dct[stat_key], img_arr, col, row_start=corner_description_idx[0]) # - 1
             if row is None:
+                if stat_key == 'Reverse_Engineering_Level':
+                    self.REable = False
+                    return
                 raise Exception('Could not find', stat_key)
             # Now that the row of the stat is found, we need to get the stat value.
             # The stat value will be somewhere to the right of the right edge of inventory_dct[stat_key] and will be to the
@@ -982,7 +909,7 @@ class Ship_Component:
                 col += 3
             else:
                 col += inventory_dct[stat_key].shape[1]
-            line_arr = img_arr[row : row + inventory_dct['period'].shape[0], col : width_of_description_pane + corner_description_idx[1]]
+            line_arr = img_arr[row : row + inventory_dct[stat_key].shape[0], col : width_of_description_pane + corner_description_idx[1]]
             digits = get_number_from_arr(line_arr, numeric_type=float)
             if type(digits) is list:
                 # This usually happens when a slash is encountered. We're only interested in the number after the slash in this case so take the 1th element.
@@ -1030,6 +957,9 @@ class Ship_Component:
         Append a new row to recorded_stats_df which contains the values of the stats on the current loot piece. Delete any duplicate rows in the dataframe. A duplicate row is most likely due to running the program
         on the same loot piece more than once, because every stat value and name would have to match for the row to be a duplicate.
         '''
+        if self.stats['named_component'] is None or self.stats['named_component'] == '' or self.stats['named_component'] == np.nan:
+            print('Got an unnamed component with self.stats:', self.stats)
+            return
         self.recorded_stats_df = self.recorded_stats_df.append(self.stats, ignore_index=True)
         self.recorded_stats_df.drop_duplicates(subset=None, keep='first', inplace=True)
         
@@ -1208,31 +1138,6 @@ def item_radial_option(item_coords, radial_option='1'):
     time.sleep(0.2)
     
     
-def drop_item_and_move_up(item_coords, radial_option='2'):
-    '''
-    Parameters
-    ----------
-    item_coords : TYPE
-        DESCRIPTION.
-    radial_option : TYPE, optional
-        DESCRIPTION. The default is '2'.
-
-    Returns
-    -------
-    None.
-
-    '''
-    item_radial_option(item_coords, radial_option=radial_option)
-    # Close inventory
-    pdi.press('i')
-    # Put mouse into non-free moving mode
-    pdi.press('alt')
-    # Move item to ceiling to get it out of the way. We cannot just put into a bin since sometimes bulky items (containers) come out of crates.
-    swg_utils.chat('/move up 250')
-    # Re-open inventory
-    pdi.press('i')
-        
-        
 def item_is_container(corner_description_idx, first_indentation_level_col,  img_arr):
     '''
     Parameters
@@ -1309,7 +1214,7 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
     3. It is assumed you are in the house containing the containers for the 
     various types of items, and that you are nearby these containers.
     
-    4. Make invnentory, backpack, and droid inventories be 10 rows by 9 cols
+    4. Make inventory, backpack, and droid inventories be 10 rows by 9 cols
     with the upper left corner of description section showing as well as the 
     bottom edge along the bottom of the screen. This needs to encapsulate all 
     contents without scrolling.
@@ -1319,6 +1224,7 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
     right. The hopper windows must not go all the way to the bottom (but almost)/
     '''
     global starting_inventory_position
+    calibrator = Inventory_Calibrator()
     component_type_id_dct = {'Booster_Energy':'booster', 'Capacitor_Energy':'capacitor', 'Droid_Command_Speed':'droid_interface', 'Engine_Top_Speed':'engine', 'Reactor_Generation_Rate':'reactor', 'Shield_Recharge_Rate':'shield', 'Energy_Per_Shot':'weapon'}
     # Get the top left corner indices of img_arr
     corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
@@ -1339,78 +1245,48 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
         # Check to see whether it is a pack containing ship component loot
         inventory_corner_description_idx, inventory_img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
         if item_is_container(inventory_corner_description_idx, first_indentation_level_col, inventory_img_arr):
-            # Sort through this pack
-            # Open pack
-            item_radial_option(item_coords, radial_option='1')
-            pack_item_count, _ = get_backpack_item_count(backpack_already_open=True)
-            # Sort pack
-            sort_backpack(generic_component, component_dct, True)
-            # Pack is closed at the end of sort_backpack
-            end_inventory_position -= pack_item_count
-            item_inventory_position += 1
-            continue
-        found_name = None
-        for name in inventory_dct:
-            if '_name' not in name:
-                continue
-            if find_str_on_image_given_col(inventory_dct[name], img_arr, first_indentation_level_col, row_start=corner_description_idx[0]) is not None:
-                # Remove the '_name' portion
-                found_name = name[:-5]
-                break
-        if found_name is None:
-            # First check to see if it has Reverse_Engineering_Level stat (cuz all loot components will have this stat). It's possible that there is no description such that found_name is None but it actually is a component.
-            col = first_indentation_level_col
-            row = find_str_on_image_given_col(inventory_dct['Reverse_Engineering_Level'], img_arr, col, row_start=corner_description_idx[0])
-            if row is None:
-                # Non-space related item or no item at all.
-                if sorting_crates:
-                    # See if no item at all
-                    # Close and re-open inventory
-                    pdi.press('i')
-                    pdi.press('i')
-                    # Get name header
-                    swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=1.5)
-                    inventory_corner_description_idx, inventory_img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
-                    name_header = get_name_header(inventory_corner_description_idx, img_arr=inventory_img_arr)
-                    # The inventory string is offset differently than item strings so get_name_header will return '  ' if no item is selected.
-                    if name_header == '  ':
-                        # There was truly no item at all there.
-                        item_inventory_position += 1
-                        break
-                    if item_is_container(inventory_corner_description_idx, first_indentation_level_col, inventory_img_arr):
-                        # This will be unnecessary when use a hopper which can contain containers
-                        drop_item_and_move_up(item_coords, radial_option='3')
-                    else:
-                        # Move item to non-space component hopper
-                        generic_component.store_loot_in_hopper(item_coords, 'non_components', True)
-                        # Activate the inventory
-                        pdi.press('i', presses=2)
-                        swg_utils.click_drag(start_coords=item_coords, end_coords=into_hopper_coords, num_drags=1, start_delay=0.0, return_delay=0.75)
-                        # Activate non-space component hopper and close it.
-                        close_hopper()
-                else:
-                    # Skip
-                    item_inventory_position += 1
-                continue
+            # If sorting_crates, then container is likely a cargo container that needs to be stored.
+            if sorting_crates:
+                # Move container to non-space component hopper
+                generic_component.store_loot_in_hopper(item_coords, 'non_components', True, calibrator=calibrator)
             else:
-                # It is a space component. Find out which type.
-                for stat_key in component_type_id_dct:
-                    row = find_str_on_image_given_col(inventory_dct[stat_key], img_arr, col, row_start=corner_description_idx[0])
-                    if row is not None:
-                        found_name = component_type_id_dct[stat_key]
-                        break
-                # Armor only has mass and armor which are common to all other components and so must be identified separately.
-                if found_name is None:
-                    found_name = 'armor'
-        if 'crate' in found_name:
-            # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'crate', True)
+                # Sort through this pack
+                # Open pack
+                item_radial_option(item_coords, radial_option='1')
+                pack_item_count, _ = get_backpack_item_count(backpack_already_open=True)
+                # Sort pack
+                sort_backpack(generic_component, component_dct, True)
+                # Pack is closed at the end of sort_backpack
+                end_inventory_position -= pack_item_count
+                item_inventory_position += 1
+                continue
+        found_name = get_name(img_arr, calibrator, 'house', item_coords)
+        if found_name is None:
+            # Non-space related item or no item at all.
+            if sorting_crates or will_sort_crates:
+                # See if no item at all
+                # Close and re-open inventory
+                pdi.press('i')
+                pdi.press('i')
+                # Get name header
+                swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=1.5)
+                inventory_corner_description_idx, inventory_img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
+                name_header = get_name_header(inventory_corner_description_idx, img_arr=inventory_img_arr)
+                # The inventory string is offset differently than item strings so get_name_header will return '  ' if no item is selected.
+                if name_header == '  ':
+                    # There was truly no item at all there.
+                    break
+                # Move item to non-space component hopper
+                generic_component.store_loot_in_hopper(item_coords, 'non_components', True, calibrator=calibrator)
+                # Activate non-space component hopper and close it.
+                close_hopper()
+                end_inventory_position -= 1
+            else:
+                # Skip
+                item_inventory_position += 1
             continue
-        elif 'collection' in found_name:
-            # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'collection', True)
-            continue
-        elif found_name not in component_dct:
+        elif found_name in ['crate', 'collection']:
+            end_inventory_position -= 1
             continue
         component = component_dct[found_name]
         component.get_stats(img_arr, corner_description_idx, first_indentation_level_col, second_indentation_level_col)
@@ -1418,14 +1294,17 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
         if component.worth_keeping():
             # Put into hopper.
             # (For now don't worry about whether it's full, that's a TODO for later)
-            component.store_loot_in_hopper(item_coords, 'good_loot', True)
+            component.store_loot_in_hopper(item_coords, 'good_loot', True, calibrator=calibrator)
+            end_inventory_position -= 1
         elif component.component_type == 'droid_interface':
-            component.store_loot_in_hopper(item_coords, 'junk_droid_interface', True)
+            component.store_loot_in_hopper(item_coords, 'junk_droid_interface', True, calibrator=calibrator)
+            end_inventory_position -= 1
         elif not will_sort_crates:
             # If not going to sort crates then can just keep junk items in inventory because you only need to remove junk to hopper to make way for opening crates.
             item_inventory_position += 1
         else:
-            component.store_loot_in_hopper(item_coords, 'junk_loot', True)
+            component.store_loot_in_hopper(item_coords, 'junk_loot', True, calibrator=calibrator)
+            end_inventory_position -= 1
         component.update_recorded_stats_df()
         component.recorded_stats_df.to_csv(component.recorded_stats_fpath, index=False)
     starting_inventory_position = deepcopy(item_inventory_position)
@@ -1455,7 +1334,7 @@ def sort_backpack(generic_component, component_dct, pack):
     3. It is assumed you are in the house containing the containers for the 
     various types of items, and that you are nearby these containers.
     
-    4. Make invnentory, backpack, and droid inventories be 10 rows by 9 cols
+    4. Make inventory, backpack, and droid inventories be 10 rows by 9 cols
     with the upper left corner of description section showing as well as the 
     bottom edge along the bottom of the screen. This needs to encapsulate all 
     contents without scrolling.
@@ -1474,8 +1353,10 @@ def sort_backpack(generic_component, component_dct, pack):
     item_inventory_position = 0
     if pack:
         item_count, _ = get_backpack_item_count(backpack_already_open=True)
+        calibrator = Pack_Calibrator()
     else:
         item_count = generic_component.backpack_item_count
+        calibrator = Backpack_Calibrator()
     end_inventory_position = deepcopy(item_count)
     while item_inventory_position < end_inventory_position:
         item_coords = get_item_coords(corner_description_idx, region, item_inventory_position)
@@ -1498,40 +1379,31 @@ def sort_backpack(generic_component, component_dct, pack):
             end_inventory_position -= pack_item_count
             item_inventory_position += 1
             continue
-        found_name = None
-        for name in inventory_dct:
-            if '_name' not in name:
-                continue
-            if find_str_on_image_given_col(inventory_dct[name], img_arr, first_indentation_level_col, row_start=corner_description_idx[0]) is not None:
-                # Remove the '_name' portion
-                found_name = name[:-5]
-                break
+        
+        found_name = get_name(img_arr, calibrator, 'house', item_coords)
         if found_name is None:
             # Non-space related item. Skip
             item_inventory_position += 1
             continue
-        if 'crate' in found_name:
-            # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'crate', False)
+        elif found_name in ['crate', 'collection']:
+            end_inventory_position -= 1
             continue
-        elif 'collection' in found_name:
-            # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'collection', False)
-            continue
-        elif found_name not in component_dct:
-            continue
+        
         component = component_dct[found_name]
         if not pack:
             component.backpack_item_count = generic_component.backpack_item_count
             component.backpack_coords = generic_component.backpack_coords
         component.get_stats(img_arr, corner_description_idx, first_indentation_level_col, second_indentation_level_col)
+        if not component.REable:
+            item_inventory_position += 1
+            continue
         component.get_max_loot_percentile_value_stc()
         if component.worth_keeping():
             # Put into hopper.
             # (For now don't worry about whether it's full, that's a TODO for later)
-            component.store_loot_in_hopper(item_coords, 'good_loot', False)
+            component.store_loot_in_hopper(item_coords, 'good_loot', False, calibrator=calibrator)
         elif component.component_type == 'droid_interface':
-            component.store_loot_in_hopper(item_coords, 'junk_droid_interface', False)
+            component.store_loot_in_hopper(item_coords, 'junk_droid_interface', False, calibrator=calibrator)
         else:
             item_inventory_position += 1
         component.update_recorded_stats_df()
@@ -1560,7 +1432,7 @@ def sort_droid_inventory(generic_component, component_dct):
     3. It is assumed you are in the house containing the containers for the 
     various types of items, and that you are nearby these containers.
     
-    4. Make invnentory, backpack, and droid inventories be 10 rows by 9 cols
+    4. Make inventory, backpack, and droid inventories be 10 rows by 9 cols
     with the upper left corner of description section showing as well as the 
     bottom edge along the bottom of the screen. This needs to encapsulate all 
     contents without scrolling.
@@ -1573,53 +1445,44 @@ def sort_droid_inventory(generic_component, component_dct):
     corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
     first_indentation_level_col = corner_description_idx[1] + num_cols_from_left_side_to_first_indentation_level
     second_indentation_level_col = corner_description_idx[1] + num_cols_from_left_side_to_second_indentation_level
+    dc = Droid_Calibrator()
+    gc = Good_Loot_Calibrator()
+    hc = Hopper_Calibrator()
     
     item_count, item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=None)
     item_inventory_position = 0
-    for i in range(item_count):
+    end_inventory_position = item_count
+    while item_inventory_position < end_inventory_position:
         item_coords = get_item_coords(corner_description_idx, region, item_inventory_position)
         # Click on item
         swg_utils.click(coords=item_coords, button='left', start_delay=0.05, return_delay=1.3)
         # Get screenshot
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
-        found_name = None
-        for name in inventory_dct:
-            if '_name' not in name:
-                continue
-            if find_str_on_image_given_col(inventory_dct[name], img_arr, first_indentation_level_col, row_start=corner_description_idx[0]) is not None:
-                # Remove the '_name' portion
-                found_name = name[:-5]
-                break
+        
+        found_name = get_name(img_arr, dc, 'house', item_coords)
         if found_name is None:
             # Non-space related item. Skip
             item_inventory_position += 1
             continue
-        if 'crate' in found_name:
-            # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'crate', False)
+        elif found_name in ['crate', 'collection']:
+            end_inventory_position -= 1
             continue
-        elif 'collection' in found_name:
-            # Move crate to crate container.
-            generic_component.store_loot_in_hopper(item_coords, 'collection', False)
-            continue
-        elif found_name not in component_dct:
-            continue
+        
         component = component_dct[found_name]
         component.get_stats(img_arr, corner_description_idx, first_indentation_level_col, second_indentation_level_col)
         component.get_max_loot_percentile_value_stc()
         if component.worth_keeping():
             # Put into hopper.
             # (For now don't worry about whether it's full, that's a TODO for later)
-            component.store_loot_in_hopper(item_coords, 'good_loot', False)
+            component.store_loot_in_hopper(item_coords, 'good_loot', False, calibrator=gc)
         elif component.component_type == 'droid_interface':
-            component.store_loot_in_hopper(item_coords, 'junk_droid_interface', False)
+            component.store_loot_in_hopper(item_coords, 'junk_droid_interface', False, calibrator=hc)
         else:
             item_inventory_position += 1
         component.update_recorded_stats_df()
         component.recorded_stats_df.to_csv(component.recorded_stats_fpath, index=False)
     close_hopper()
-    
     
     
 def sort_crates(generic_component, component_dct, reopen_inventory=True):
@@ -1720,6 +1583,7 @@ def put_junk_into_caravan(backpack_coords=None):
         # Get number of items in hopper
         hopper_item_count, hopper_item_capacity, down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=25, start_col=600)
         all_done = hopper_item_count == 0
+        print('all_done', all_done)
         num_items_to_move_from_hopper_to_caravan = min(caravan_items_remaining, hopper_item_count)
         corner_description_idx, img_arr = swg_utils.find_arr_on_region(inventory_dct['top_left_corner_of_description_section_130_threshold'], region=region, sharpen_threshold=130)
         item_coords = get_item_coords(corner_description_idx, region, 0)
@@ -1882,7 +1746,7 @@ def get_value_of_desired_percentile(component=None, stats_dct=None, component_ty
     print('stat_value', round(stat_value,1))
     
     
-def orient(open_inventory=True, zoom_in=True):
+def orient(open_inventory=True, zoom_in=True, orient_method=0):
     '''
     pit_droid_pane: int
         The toolbar pane that has all your inventory droids placed in the slots in contiguous order.
@@ -1912,9 +1776,15 @@ def orient(open_inventory=True, zoom_in=True):
     # Get to free-moving mouse mode
     pdi.press('alt')
     time.sleep(0.1)
-    swg_utils.moveTo(window=swg_window, region=region, coords_idx=[region['height'] - 1, int(region['width']/2)], return_delay=0.1)
     
-    pdi.moveRel(xOffset=0, yOffset=250)
+    if orient_method == 0:
+        pdi.press('alt')
+        time.sleep(0.1)
+        pdi.moveRel(xOffset=0, yOffset=250)
+    elif orient_method == 1:
+        swg_utils.moveTo(window=swg_window, region=region, coords_idx=[region['height'] - 1, int(region['width']/2)], return_delay=0.1)
+        
+        pdi.moveRel(xOffset=0, yOffset=250)
     time.sleep(0.1)
     # Get back out of free-move mouse mode
     pdi.press('alt')
@@ -1962,6 +1832,8 @@ class Container_Calibrator:
         Notes
         -----
         1. Requires self.capacity to equal item_capacity gotten. Thus all containers of type self must have the same capacity.
+            This is more safe but requires you to set up a different class for every type of hopper with a differeing amount of capacity,
+            or some other workaround. Easier to use get_lower_right_dragable_idx.
         '''
         item_count, item_capacity, self.down_arrow_idx = get_item_count_and_capacity(region, img_arr=None, start_row=0, start_col=0)
         print('self.down_arrow_idx', self.down_arrow_idx)
@@ -2010,6 +1882,7 @@ class Container_Calibrator:
         5. If desired_lower_right_corner_idx and desired_upper_left_corner_idx are too close together, this function might still work, but only place one of the two corners in the desired location.
         '''
         global win_pressed
+        tolerance = 0
         win_pressed = False
         def on_win_press(key):
             global win_pressed
@@ -2047,7 +1920,7 @@ class Container_Calibrator:
                     if not swg_utils.idx_checks(region=region, idx=self.dragable_idx, fail_gracefully=True):
                         wait_for_press('Container upper left corner')
                         continue
-                    if abs(np.sum(self.dragable_idx) - np.sum(self.desired_upper_left_corner_idx)) > 4:
+                    if abs(np.sum(self.dragable_idx) - np.sum(self.desired_upper_left_corner_idx)) > tolerance:
                         swg_utils.click_drag(start_idx=self.dragable_idx, end_idx=self.desired_upper_left_corner_idx, region=region, num_drags=1, start_delay=0.1, return_delay=0.75)
                     dragged_upper_left = True
                 if not dragged_lower_right:
@@ -2055,7 +1928,7 @@ class Container_Calibrator:
                     if not swg_utils.idx_checks(region=region, idx=self.dragable_idx, fail_gracefully=True):
                         wait_for_press('Container lower right corner')
                         continue
-                    if abs(np.sum(self.dragable_idx) - np.sum(self.desired_lower_right_corner_idx)) > 4:
+                    if abs(np.sum(self.dragable_idx) - np.sum(self.desired_lower_right_corner_idx)) > tolerance:
                         swg_utils.click_drag(start_idx=self.dragable_idx, end_idx=self.desired_lower_right_corner_idx, region=region, num_drags=1, start_delay=0.1, return_delay=0.75)
                     dragged_lower_right = True
             if i == 10:
@@ -2249,7 +2122,7 @@ def calibrate_containers(calibration_desires_dct={
                 swg_utils.chat('/ui action toolbarSlot' + str(d).zfill(2))
                 time.sleep(0.5)
         elif container_type == 'hopper':
-            hopper_dct = {'DIs_': 6, 'non_components_': 5, 'loot_': 10, 'collections_': 3, 'Crates_': 5}
+            hopper_dct = {'DIs_': 6, 'non_components_': 5, 'loot_': 10, 'collections_': 3, 'Crates_': 5, 'stackable_crate_loot_': 1}
             for hopper_type, num_hoppers in hopper_dct.items():
                 for hopper_i in range(num_hoppers):
                     hopper_name = hopper_type + str(hopper_i)
@@ -2313,7 +2186,32 @@ def calibrate_containers(calibration_desires_dct={
                     gc.calibrate_container_position()
                     # Close hopper
                     pdi.press('esc')
+ 
                     
+def get_name(img_arr, calibrator, sorting_task, item_coords):
+    component_type_id_dct = {'Booster_Energy':'booster', 'Capacitor_Energy':'capacitor', 'Droid_Command_Speed':'droid_interface', 'Engine_Top_Speed':'engine', 'Reactor_Generation_Rate':'reactor', 'Shield_Recharge_Rate':'shield', 'Energy_Per_Shot':'weapon', 'Armor': 'armor'}
+    hopper_type_dct = {'collection': 'collection', 'cargo_crate' : 'crate', 'military_crate': 'crate'}
+    generic_component = Ship_Component()
+    # Find out which type of space component. If it is not a space component, but it is in hopper_type_dct then that will be returned. Else None is returned.
+    found_name = None
+    for stat_key in component_type_id_dct:
+        row = find_str_on_image_given_col(inventory_dct[stat_key], img_arr, calibrator.second_indentation_level_col, row_start=calibrator.corner_description_idx[0])
+        if row is not None:
+            found_name = component_type_id_dct[stat_key]
+            return found_name
+    if found_name is None:
+        for name in inventory_dct:
+            if name[-5:] != '_name':
+                continue
+            if find_str_on_image_given_col(inventory_dct[name], img_arr, calibrator.first_indentation_level_col, row_start=calibrator.corner_description_idx[0]) is not None:
+                found_name = name[:-5]
+                break
+        if found_name is None:
+            return None
+        if 'collection' == found_name or ('crate' in found_name and sorting_task != 'POB'):
+            generic_component.store_loot_in_hopper(item_coords, hopper_type_dct[found_name], False, calibrator=calibrator)
+        return found_name
+    
          
 def sort_loot_when_in_POB(keep_DI_frequency=0):
     '''
@@ -2353,14 +2251,12 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
     4. Start out with no items in packs in your inventory. (Some items can be in the pack in the backpack)
     '''
     global starting_inventory_position, pit_droid_i
-    generic_component = Ship_Component()
     # Set up an object for each component type
     component_dct = {'armor': Armor(), 'booster': Booster(), 'capacitor': Capacitor(), 'droid_interface': Droid_Interface(),
                 'engine': Engine(), 'reactor': Reactor(), 'shield': Shield(), 'weapon': Weapon()}
     
     orient()
     
-    component_type_id_dct = {'Booster_Energy':'booster', 'Capacitor_Energy':'capacitor', 'Droid_Command_Speed':'droid_interface', 'Engine_Top_Speed':'engine', 'Reactor_Generation_Rate':'reactor', 'Shield_Recharge_Rate':'shield', 'Energy_Per_Shot':'weapon'}
     ic = Inventory_Calibrator()
     bc = Backpack_Calibrator()
     pc = Pack_Calibrator()
@@ -2397,40 +2293,15 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
             img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                     scale_to=255, sharpen=True, set_focus=False)
             
-            found_name = None
-            for name in inventory_dct:
-                if '_name' not in name:
-                    continue
-                if find_str_on_image_given_col(inventory_dct[name], img_arr, lc.first_indentation_level_col, row_start=lc.corner_description_idx[0]) is not None:
-                    # Remove the '_name' portion
-                    found_name = name[:-5]
-                    break
-            if found_name is None:
-                # First check to see if it has Reverse_Engineering_Level stat (cuz all loot components will have this stat). It's possible that there is no description such that found_name is None but it actually is a component.
-                row = find_str_on_image_given_col(inventory_dct['Reverse_Engineering_Level'], img_arr, lc.first_indentation_level_col, row_start=lc.corner_description_idx[0])
-                if row is None:
-                    # Skip
-                    continue
-                else:
-                    # It is a space component. Find out which type.
-                    for stat_key in component_type_id_dct:
-                        row = find_str_on_image_given_col(inventory_dct[stat_key], img_arr, lc.first_indentation_level_col, row_start=lc.corner_description_idx[0])
-                        if row is not None:
-                            found_name = component_type_id_dct[stat_key]
-                            break
-                    # Armor only has mass and armor which are common to all other components and so must be identified separately.
-                    if found_name is None:
-                        found_name = 'armor'
-            if 'collection' in found_name:
-                # Determine which tier the collection item is.
-                generic_component.store_loot_in_hopper(lc.second_item_coords, 'collection', False, calibrator=lc)
+            
+            found_name = get_name(img_arr, lc, 'POB', lc.second_item_coords)
+            if found_name is None or found_name == 'collection':
                 continue
-            elif found_name not in component_dct:
-                continue
-            component = component_dct[found_name]
-            component.get_stats(img_arr, lc.corner_description_idx, lc.first_indentation_level_col, lc.second_indentation_level_col)
-            component.get_max_loot_percentile_value_stc()
-            if component.worth_keeping() or (component.component_type == 'droid_interface' and random.random() < keep_DI_frequency):
+            if 'crate' not in found_name:
+                component = component_dct[found_name]
+                component.get_stats(img_arr, lc.corner_description_idx, lc.first_indentation_level_col, lc.second_indentation_level_col)
+                component.get_max_loot_percentile_value_stc()
+            if 'crate' not in found_name and (component.worth_keeping() or (component.component_type == 'droid_interface' and random.random() < keep_DI_frequency)):
                 # Open droid inventory
                 # Close out all other windows to open droid
                 close_hopper()
@@ -2593,6 +2464,7 @@ def sort_loot_when_in_house(sorting_desires_dct):
         deal_with_droids(generic_component, component_dct)
     # Put as much junk loot from the hoppers into the inventory as possible
     put_junk_into_caravan()
+    print('junk was put into caravan')
     # Close inventory
     pdi.press('esc')
 # Global vars set by user
@@ -2691,9 +2563,9 @@ Notes
     
 3. The storage hopper windows should be sized and placed such that the height is minimize, the width is maximized, and the top left corner of the description pane is visible.
 '''
-starting_inventory_position = 2
-num_equipped_items = 2
-num_items_in_bulky_containers = 50
+starting_inventory_position = 29
+num_equipped_items = 24
+num_items_in_bulky_containers = 11
 num_pit_droids = 24
 pit_droid_pane = 6
 junk_hopper_i = 0
@@ -2728,7 +2600,7 @@ extreme_avg_and_modifier_dct = get_extreme_avg_and_modifier_combo_for_stats(extr
 
 
 def main(sorting_task, calibration_desires_dct, sorting_desires_dct):
-    global first_time
+    global first_time, all_done
     swg_window.set_focus()
     time.sleep(1)
     calibrate_containers(calibration_desires_dct=calibration_desires_dct)
@@ -2739,18 +2611,21 @@ def main(sorting_task, calibration_desires_dct, sorting_desires_dct):
         round_trip_i = 0
         while not all_done:
             sort_loot_when_in_house(sorting_desires_dct)
+            pdi.press('alt')
+            if first_time or not all_done:
+                orient(open_inventory=False)
+                go_to_chassis_dealer.go_to_chassis_dealer(calibrate_to_north=round_trip_i == 0)
+            round_trip_i += 1
             if all_done and not first_time:
                 break
             first_time = False
-            go_to_chassis_dealer.go_to_chassis_dealer(calibrate_to_north=round_trip_i == 0)
-            round_trip_i += 1
     elif sorting_task == 'query':
         for lvl in list(range(1,11))[::-1]:
             for percentile in [0.95, 0.96, 0.97, 0.98, 0.99, 0.999, 0.9999, 0.99999]:
                 get_value_of_desired_percentile(component_type='droid_interface', re_lvl=str(lvl), stat_key='Droid_Command_Speed', desired_percentile=percentile, iterator_magnitude=0.1, start_value=50)
 
 if __name__ == '__main__':
-    main('POB', {
+    main('house', {
         'inventory': True,
         'backpack': False,
         'droids': False,
@@ -2762,8 +2637,9 @@ if __name__ == '__main__':
         'inventory': True, 
         'backpack': True, 
         'crates': False, 
-        'droids': True
+        'droids': False
         })
+    
     
 '''
 TODO

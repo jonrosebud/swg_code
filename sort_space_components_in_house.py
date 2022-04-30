@@ -61,9 +61,7 @@ region: dict
 inventory_arr_dir = 'inventory_dir'
 inventory_dct = {
          fname : file_utils.read_csv(os.path.join(inventory_arr_dir, fname + '.csv'), dtype=int)
-        for fname in ['armor_name', 'booster_name', 'capacitor_name', 'droid_interface_name',
-        'engine_name', 'reactor_name', 'shield_name', 'weapon_name', 'cargo_crate_name',
-        'military_crate_name', 'collection_name',
+        for fname in ['cargo_crate_name', 'military_crate_name', 'collection_name',
         'Armor', 'Mass', 'Reverse_Engineering_Level', 'Reactor_Energy_Drain', 'Reactor_Generation_Rate',
         'Booster_Energy', 'Booster_Recharge_Rate', 'Booster_Energy_Consumption_Rate',
         'Acceleration', 'Top_Booster_Speed', 'Capacitor_Energy', 'Recharge_Rate',

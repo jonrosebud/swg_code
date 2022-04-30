@@ -1746,7 +1746,7 @@ def get_value_of_desired_percentile(component=None, stats_dct=None, component_ty
     print('stat_value', round(stat_value,1))
     
     
-def orient(open_inventory=True, zoom_in=True, orient_method=0):
+def orient(open_inventory=True, zoom_in=True):
     '''
     pit_droid_pane: int
         The toolbar pane that has all your inventory droids placed in the slots in contiguous order.
@@ -1776,15 +1776,10 @@ def orient(open_inventory=True, zoom_in=True, orient_method=0):
     # Get to free-moving mouse mode
     pdi.press('alt')
     time.sleep(0.1)
+
+    swg_utils.moveTo(window=swg_window, region=region, coords_idx=[region['height'] - 1, int(region['width']/2)], return_delay=0.1)
     
-    if orient_method == 0:
-        pdi.press('alt')
-        time.sleep(0.1)
-        pdi.moveRel(xOffset=0, yOffset=250)
-    elif orient_method == 1:
-        swg_utils.moveTo(window=swg_window, region=region, coords_idx=[region['height'] - 1, int(region['width']/2)], return_delay=0.1)
-        
-        pdi.moveRel(xOffset=0, yOffset=250)
+    pdi.moveRel(xOffset=0, yOffset=250)
     time.sleep(0.1)
     # Get back out of free-move mouse mode
     pdi.press('alt')
@@ -2637,7 +2632,7 @@ if __name__ == '__main__':
         'inventory': True, 
         'backpack': True, 
         'crates': False, 
-        'droids': False
+        'droids': True
         })
     
     

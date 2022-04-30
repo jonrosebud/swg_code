@@ -1,0 +1,14 @@
+0 size reticle and reticle gauges
+supposedly 1 opacity radar (but not actually)
+0 size eject, leave station, trainer buttons
+0 size fly-out component status buttons
+0 size missile lock on you (lines 2395, 2397)
+1 opacity target info (line 2813)
+1 opacity lead reticle and lead reticle out of range same color (BGR=212,0,255) and style is default one (/Styles.space.reticles.k.rs_default) (lines 4514-4546)
+0 opacity red flash when you are hit (lines 4647, 6418)
+1 opacity and non-blinking/fading target arrow which is now #CC00CC deep magenta (BGR=204,0,204) (lines 5416-5440)
+1 opacity armor and shields in ui_hud_space_radar, but it did not seem to prevent radar blips from showing thru.
+0 size radar zoom in/out in ui_hud_space_radar (called ZoomTop and ZoomBottom) (top right icon just above shields in radar).
+0 size altRadarFg in ui_hud_space_radar (top left icon just above shields in radar).
+0 size chat window
+0 size space conversation dialog boxes

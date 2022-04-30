@@ -1,0 +1,634 @@
+		<Composite
+			Location='0,125'
+MaximumSize='0,0'
+MinimumSize='0,0'
+			Name='convo'
+ScrollExtent='0,0'
+Size='0,0'
+			SpacingType='Fill'
+			UserMovable='true'
+			Visible='false'
+		>
+			<Data
+				buttonclose='close'
+				buttons='buttons'
+				focusGlow='false'
+				Name='CodeData'
+				Text='text.msgtext'
+				textpage='text'
+				viewer='viewer.viewer'
+				viewerpage='viewer'
+			/>
+			<Page
+				AbsorbsInput='false'
+	BackgroundColor='#FFFF00'
+	BackgroundTint='#FFFF00'
+MaximumSize='0,0'
+MinimumSize='0,0'
+				Name='viewer'
+				PackLocation='nfn,nfn'
+				PackSize='f,f'
+				PalBgTint='back1'
+				RStyleDefault='/Styles.New.whiteOutline_palW.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+			>
+				<CuiWidget3dObjectListViewer
+					cameralookatcenter='true'
+					CameraPitch='0.5'
+					cameratransformtoobj='true'
+					camerayaw='90'
+					dragpitchok='false'
+					dragyawok='false'
+					fieldofview='60'
+					GetsInput='false'
+					Location='35,15'
+					Name='viewer'
+					PackLocation='cfc,nfn'
+					PackSize='a,a'
+					paused='true'
+					RStyleDefault='/Styles.New.viewer.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+				/>
+				<DataSource
+					Name='vds'
+				>
+					<Data
+						appearanceTemplate='appearance/pt_ui_sparkly2.prt'
+						Name='d'
+					/>
+				</DataSource>
+				<Page
+	BackgroundColor='#FFFF00'
+					GetsInput='false'
+					Name='background'
+	OpacityRelativeMin='0.0'
+					PackSize='a,a'
+					RStyleDefault='/Styles.space.boxes.generic4.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+				>
+					<Page
+	BackgroundColor='#FFFF00'
+						GetsInput='false'
+						Name='outline'
+	OpacityRelativeMin='0.0'
+						PackLocation='cfc,cfc'
+						PackSize='a,a'
+ScrollExtent='0,0'
+Size='0,0'
+					>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='157,54'
+							Name='glowLineDiagonal'
+	Opacity='0.0'
+	OpacityRelativeMin='0.0'
+							PackLocation='fff,cfc'
+							PackSize='f,f'
+							PalBgTint='line1'
+							Rotation='0.21'
+							RStyleDefault='/Styles.space.boxes.fadedline.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+							Visible='false'
+						/>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='-21,145'
+							Name='glowLineBottom'
+	OpacityRelativeMin='0.0'
+							PackLocation='nfn,fff'
+							PackSize='f,f'
+							PalBgTint='line1'
+							RStyleDefault='/Styles.space.boxes.fadedline2.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='-21,8'
+							Name='glowLineTop'
+	Opacity='0.0'
+	OpacityRelativeMin='0.0'
+							PackLocation='nfn,nfn'
+							PackSize='f,f'
+							PalBgTint='line1'
+							RStyleDefault='/Styles.space.boxes.fadedline2.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Name='outline1'
+	OpacityRelativeMin='0.0'
+							PackLocation='cfc,cfc'
+							PackSize='a,a'
+							PalBgTint='line1'
+							RStyleDefault='/Styles.space.boxes.npc_outline.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+							Visible='false'
+						/>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Name='outline2'
+	OpacityRelativeMin='0.0'
+							PackLocation='cfc,cfc'
+							PackSize='a,a'
+							PalBgTint='back1'
+							RStyleDefault='/Styles.space.boxes.npc_outline.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+					</Page>
+					<Page
+	BackgroundTint='#FFFF00'
+						GetsInput='false'
+						Location='0,11'
+						Name='grid'
+	OpacityRelativeMin='0.0'
+						PackLocation='cfc,cfc'
+						PackSize='a,a'
+						PalBgTint='back1'
+						RStyleDefault='/Styles.space.boxes.gridTop.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+					>
+						<Page
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Name='gridTop'
+	OpacityRelativeMin='0.0'
+							PackLocation='nfn,nfn'
+							PackSize='a,f'
+							PalBgTint='back1'
+							RStyleDefault='/Styles.space.boxes.gridTop.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+						<Page
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='0,117'
+							Name='gridBottom'
+	OpacityRelativeMin='0.0'
+							PackLocation='nfn,fff'
+							PackSize='a,f'
+							PalBgTint='back1'
+							RStyleDefault='/Styles.space.boxes.gridBottom.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+					</Page>
+					<Page
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+						GetsInput='false'
+						Location='6,0'
+						Name='back2'
+	OpacityRelativeMin='0.0'
+						PackLocation='nfn,nfn'
+						PackSize='a,a'
+						PalBgTint='back1'
+						RStyleDefault='/Styles.space.boxes.npc_noShader.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+					/>
+					<Image
+	Color='#FFFF00'
+						Location='35,15'
+						Name='glow'
+	Opacity='0.0'
+						PackLocation='cfc,nfn'
+						PackSize='a,a'
+						PalColor='back1'
+ScrollExtent='0,0'
+Size='0,0'
+SourceRect='0,0,0,0'
+						SourceResource='ui_shader_add:ui_space_hud'
+					/>
+					<Image
+	Color='#FFFF00'
+						Location='0,8'
+						Name='glow'
+	Opacity='0.0'
+						PackLocation='cfc,cfc'
+						PackSize='a,a'
+						PalColor='back1'
+ScrollExtent='0,0'
+Size='0,0'
+SourceRect='0,0,0,0'
+						SourceResource='ui_shader_add:ui_space_hud'
+						Visible='false'
+					/>
+					<Page
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+						GetsInput='false'
+						Location='6,0'
+						Name='back2'
+	OpacityRelativeMin='0.0'
+						PackLocation='nfn,nfn'
+						PackSize='a,a'
+						PalBgTint='back1'
+						RStyleDefault='/Styles.space.boxes.npc_noShader.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+					/>
+				</Page>
+			</Page>
+			<Page
+				AbsorbsInput='false'
+				Location='3,150'
+MaximumSize='0,0'
+MinimumSize='0,0'
+				Name='text'
+				PackLocation='nfn,nfn'
+				PackSize='f,f'
+ScrollExtent='0,0'
+Size='0,0'
+			>
+				<Scrollbar
+					AutoVisibility='true'
+					Control='msgtext'
+					Location='217,13'
+					Name='scroll'
+					PackLocation='fff,fff'
+					PackSize='f,a'
+ScrollExtent='0,0'
+Size='0,0'
+					Style='/Styles.space.scrollbar.vHud4.style'
+				>
+				</Scrollbar>
+				<Text
+	BackgroundColor='#FFFF00'
+					ColorCarat='#FEB301'
+					ColorSelection='#FFFFFF'
+					CursorMark='54'
+					CursorPoint='54'
+					Font='bold_13'
+					GetsInput='true'
+					LocalText='The conversation text goes here. 
+
+asdf
+sadf
+asdf
+sadf
+asf
+sadf
+asdf
+sadf
+asdf
+asdf
+sdf
+asdf
+asdf
+asdf
+asdf
+asdf
+asdf
+'
+					Location='4,10'
+					Margin='4,4,4,4'
+MaximumSize='0,0'
+					Name='msgtext'
+	OpacityRelativeMin='0.0'
+					PackLocation='nfn,nfn'
+					PackSize='a,a'
+					PalText='text1'
+					RStyleDefault='/Styles.New.tool.tool_tip.rs_default'
+					RStyleDisabled='/Styles.New.thin_in.rs_default'
+					RStyleMouseOver='/Styles.New.whiteOutline.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+	TextColor='#FFFF00'
+				>The conversation text goes here. 
+
+asdf
+sadf
+asdf
+sadf
+asf
+sadf
+asdf
+sadf
+asdf
+asdf
+sdf
+asdf
+asdf
+asdf
+asdf
+asdf
+asdf
+</Text>
+				<Page
+	BackgroundColor='#FFFF00'
+					Name='background'
+	OpacityRelativeMin='0.0'
+					PackSize='a,a'
+					RStyleDefault='/Styles.space.boxes.generic4.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+				>
+					<Page
+	BackgroundColor='#FFFF00'
+						GetsInput='false'
+						Location='72,123'
+						Name='outlineBR'
+	OpacityRelativeMin='0.0'
+						PackLocation='fff,fff'
+						PackSize='p,f'
+						RStyleDefault='/Styles.space.boxes.boxlineTopLeft.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+					>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='0,10'
+							Name='outline1'
+	OpacityRelativeMin='0.0'
+							PackSize='a,a'
+							PalBgTint='line1'
+							RStyleDefault='/Styles.space.boxes.boxlinebottomRight.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='0,6'
+							Name='outline2'
+	OpacityRelativeMin='0.0'
+							PackSize='a,a'
+							PalBgTint='back1'
+							RStyleDefault='/Styles.space.boxes.boxlineglowBR.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+					</Page>
+					<Page
+	BackgroundColor='#FFFF00'
+						GetsInput='false'
+						Location='0,123'
+						Name='outlineBL'
+	OpacityRelativeMin='0.0'
+						PackLocation='nfn,fff'
+						PackSize='p,f'
+						RStyleDefault='/Styles.space.boxes.boxlineTopLeft.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+					>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='-1,10'
+							Name='outline1'
+	OpacityRelativeMin='0.0'
+							PackSize='a,a'
+							PalBgTint='line1'
+							RStyleDefault='/Styles.space.boxes.boxlinebottomLeft.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='-1,6'
+							Name='outline2'
+	OpacityRelativeMin='0.0'
+							PackSize='a,a'
+							PalBgTint='back1'
+							RStyleDefault='/Styles.space.boxes.boxlineglowBL.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+					</Page>
+					<Page
+	BackgroundColor='#FFFF00'
+						GetsInput='false'
+						Location='72,0'
+						Name='outlineTR'
+	OpacityRelativeMin='0.0'
+						PackLocation='fff,nfn'
+						PackSize='p,f'
+ScrollExtent='0,0'
+Size='0,0'
+					>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='-5,4'
+							Name='outline1'
+	OpacityRelativeMin='0.0'
+							PackSize='a,a'
+							PalBgTint='line1'
+							RStyleDefault='/Styles.space.boxes.boxlineTopRight.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='-5,-1'
+							Name='outline2'
+	OpacityRelativeMin='0.0'
+							PackSize='a,a'
+							PalBgTint='back1'
+							RStyleDefault='/Styles.space.boxes.boxlineglowTR.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+					</Page>
+					<Page
+	BackgroundColor='#FFFF00'
+						GetsInput='false'
+						Name='outlineTL'
+	OpacityRelativeMin='0.0'
+						PackLocation='nfn,nfn'
+						PackSize='p,f'
+ScrollExtent='0,0'
+Size='0,0'
+					>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='-1,4'
+							Name='outline1'
+	OpacityRelativeMin='0.0'
+							PackSize='a,a'
+							PalBgTint='line1'
+							RStyleDefault='/Styles.space.boxes.boxlineTopLeft.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+						<Page
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+							GetsInput='false'
+							Location='-1,-1'
+							Name='outline2'
+	OpacityRelativeMin='0.0'
+							PackSize='a,a'
+							PalBgTint='back1'
+							RStyleDefault='/Styles.space.boxes.boxlineglowTL.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						/>
+					</Page>
+					<Page
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+						Location='0,8'
+						Name='back2'
+	OpacityRelativeMin='0.0'
+						PackSize='a,a'
+						PalBgTint='back1'
+						RStyleDefault='/Styles.space.boxes.generic4_noSHader.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+					/>
+					<Image
+	Color='#FFFF00'
+						Location='0,7'
+						Name='glow'
+						PackLocation='cfc,cfc'
+						PackSize='a,a'
+						PalColor='back1'
+ScrollExtent='0,0'
+Size='0,0'
+SourceRect='0,0,0,0'
+						SourceResource='ui_space_hud'
+					/>
+					<Image
+	Color='#FFFF00'
+						Location='0,7'
+						Name='glow'
+	Opacity='0.0'
+						PackLocation='cfc,cfc'
+						PackSize='a,a'
+						PalColor='back1'
+ScrollExtent='0,0'
+Size='0,0'
+SourceRect='0,0,0,0'
+						SourceResource='ui_shader_add:ui_space_hud'
+					/>
+					<Page
+	BackgroundOpacity='0.0'
+	BackgroundTint='#FFFF00'
+						GetsInput='false'
+						Location='0,8'
+						Name='back2'
+	OpacityRelativeMin='0.0'
+						PackSize='a,a'
+						PalBgTint='back1'
+						RStyleDefault='/Styles.space.boxes.generic4_noSHader.rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+						Visible='false'
+					/>
+				</Page>
+			</Page>
+			<PopupMenu
+				Activated='true'
+				DataSource='test'
+				Location='0,295'
+MaximumSize='0,0'
+MinimumSize='0,0'
+				Name='buttons'
+				PackLocation='nfn,nfn'
+				PackSize='f,f'
+				RStyleDefault='rs_default'
+ScrollExtent='0,0'
+Size='0,0'
+				Style='/Styles.popupmenu.convo.styleSpace2'
+			>
+			</PopupMenu>
+			<DataSourceContainer
+				Name='test'
+			>
+				<DataSource
+					Name='text'
+					Text='text'
+				/>
+				<DataSource
+					Name='text'
+					Text='text'
+				/>
+				<DataSource
+					Name='text'
+					Text='text'
+				/>
+				<DataSource
+					Name='text'
+					Text='text'
+				/>
+				<DataSource
+					Name='text'
+					Text='text number 3'
+				/>
+				<DataSourceContainer
+					Name='test'
+				/>
+				<DataSourceContainer
+					Name='test'
+				/>
+				<DataSourceContainer
+					Name='test'
+				/>
+				<DataSourceContainer
+					Name='test'
+				/>
+				<DataSourceContainer
+					Name='test'
+				/>
+			</DataSourceContainer>
+			<Button
+	BackgroundColor='#FFFF00'
+	BackgroundOpacity='0.0'
+				IsCancelButton='true'
+				Location='-36,7'
+				Name='close'
+				PackLocation='fff,nfn'
+				PackSize='f,f'
+ScrollExtent='0,0'
+Size='0,0'
+				Style='/Styles.Frame.buttonCloseDark.style'
+				Visible='false'
+			></Button>
+		</Composite>

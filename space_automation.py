@@ -58,6 +58,8 @@ class Space(SWG):
         
     def get_target_dist(self, fail_gracefully=False):
         if self.target_dist_idx is None:
+            # Target group leader to ensure something is within range to target. Group leader should be pilot.
+            swg_utils.chat('/ui action targetGroup0')
             target_dist_right_arr = swg_utils.get_search_arr('target_dist_right_parenthesis', dir_path=self.dir_path, mask_int=0)
             target_right_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_right_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=255)
             target_dist_left_arr = swg_utils.get_search_arr('target_dist_left_parenthesis', dir_path=self.dir_path, mask_int=0)

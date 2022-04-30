@@ -2563,9 +2563,9 @@ Notes
     
 3. The storage hopper windows should be sized and placed such that the height is minimize, the width is maximized, and the top left corner of the description pane is visible.
 '''
-starting_inventory_position = 29
-num_equipped_items = 24
-num_items_in_bulky_containers = 11
+starting_inventory_position = 2
+num_equipped_items = 2
+num_items_in_bulky_containers = 0
 num_pit_droids = 24
 pit_droid_pane = 6
 junk_hopper_i = 0
@@ -2625,7 +2625,7 @@ def main(sorting_task, calibration_desires_dct, sorting_desires_dct):
                 get_value_of_desired_percentile(component_type='droid_interface', re_lvl=str(lvl), stat_key='Droid_Command_Speed', desired_percentile=percentile, iterator_magnitude=0.1, start_value=50)
 
 if __name__ == '__main__':
-    main('house', {
+    main('POB', {
         'inventory': True,
         'backpack': False,
         'droids': False,

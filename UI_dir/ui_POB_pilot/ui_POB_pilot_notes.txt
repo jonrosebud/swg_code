@@ -1,0 +1,1 @@
+1 background opacity and black (RGB=0,0,0) background for the spaceTarget gui (lines 2802-2804 in ui_hud_space)

@@ -12,3 +12,4 @@ supposedly 1 opacity radar (but not actually)
 0 size altRadarFg in ui_hud_space_radar (top left icon just above shields in radar).
 0 size chat window
 0 size space conversation dialog boxes
+1 background opacity and black (RGB=0,0,0) background for the spaceTarget gui (lines 2802-2804 in ui_hud_space)

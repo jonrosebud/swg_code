@@ -39,7 +39,7 @@ class SWG:
         # SETUP
         swm.calibrate_window_position(swm.swg_windows)
         self.swg_window.set_focus()
-        time.sleep(0.5)
+        time.sleep(1.5)
         
 
 class Space(SWG):
@@ -59,7 +59,7 @@ class Space(SWG):
     def get_target_dist(self, fail_gracefully=False):
         if self.target_dist_idx is None:
             # Target group leader to ensure something is within range to target. Group leader should be pilot.
-            swg_utils.chat('/ui action targetGroup0')
+            swg_utils.chat('/ui action OddBodkins')
             target_dist_right_arr = swg_utils.get_search_arr('target_dist_right_parenthesis', dir_path=self.dir_path, mask_int=0)
             target_right_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_right_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=255)
             target_dist_left_arr = swg_utils.get_search_arr('target_dist_left_parenthesis', dir_path=self.dir_path, mask_int=0)
@@ -115,7 +115,8 @@ class Turret(Space):
         
         
     def run_droid_commands(self):
-        swg_utils.chat('/macro dcs')
+        pdi.press('esc')
+        #############swg_utils.chat('/macro dcs')
         
         
     def get_RDU_1(self):
@@ -219,11 +220,12 @@ class Turret(Space):
         else:
             self.vertical_movements_12 = max(self.vertical_movements_12, self.min_vertical_movements - self.vertical_movements_01)
         # if not at the edge, fire
-        self.fire = not (self.horizontal_movements_12 == self.max_horizontal_movements - self.horizontal_movements_01 or
+        target_dist = self.get_target_dist(fail_gracefully=True)
+        self.fire = target_dist is not None and target_dist < 550 and not (self.horizontal_movements_12 == self.max_horizontal_movements - self.horizontal_movements_01 or
             self.horizontal_movements_12 == self.min_horizontal_movements - self.horizontal_movements_01 or
             self.vertical_movements_12 == self.max_vertical_movements - self.vertical_movements_01 or 
             self.vertical_movements_12 == self.min_vertical_movements - self.vertical_movements_01)
-
+        print(target_dist, self.fire)
             
     def get_trained_RDU_0(self):
         if len(self.RDU_lst) == 1:
@@ -242,6 +244,7 @@ class Turret(Space):
         if self.fire:
             # FIRE!!!
             swg_utils.click(start_delay=0.025, return_delay=0)
+            print('fire', random.random())
             
         
     def get_crosshairs(self):

@@ -2799,7 +2799,9 @@ radarwidget.enabled=true'
 			</Page>
 		</Page>
 		<Page
-			BackgroundColor='#0000FF'
+    		BackgroundOpacity='1.0'
+    		BackgroundTint='#000000'
+			BackgroundColor='#000000'
 			Location='820,2'
 			MaximumSize='200,217'
 			MinimumSize='200,160'

@@ -47,7 +47,7 @@ class Space(SWG):
         super(Space, self).__init__(swg_window_i=swg_window_i)
         self.dir_path = dir_path
         self.target_closest_enemy_hotkey = target_closest_enemy_hotkey
-        self.space_target_distance_digits = {digit: swg_utils.get_search_arr('space_target_distance_digit_' + str(digit), dir_path=self.dir_path, mask_int=0) for digit in range(10)}
+        self.space_target_distance_digits = {digit: swg_utils.get_search_arr('space_target_distance_digit_' + str(digit), dir_path=self.dir_path, mask_int=None) for digit in range(10)}
         self.complete_arr = swg_utils.get_search_arr('complete', dir_path=self.dir_path, mask_int=None)
         self.target_this_arr = swg_utils.get_search_arr('target_this', dir_path=self.dir_path, mask_int=None)
         self.vertical_triangle_side_arr = swg_utils.get_search_arr('vertical_triangle_side_arr', dir_path=self.dir_path, mask_int=None)
@@ -225,7 +225,6 @@ class Turret(Space):
             self.horizontal_movements_12 == self.min_horizontal_movements - self.horizontal_movements_01 or
             self.vertical_movements_12 == self.max_vertical_movements - self.vertical_movements_01 or 
             self.vertical_movements_12 == self.min_vertical_movements - self.vertical_movements_01)
-        print(target_dist, self.fire)
             
     def get_trained_RDU_0(self):
         if len(self.RDU_lst) == 1:
@@ -244,7 +243,6 @@ class Turret(Space):
         if self.fire:
             # FIRE!!!
             swg_utils.click(start_delay=0.025, return_delay=0)
-            print('fire', random.random())
             
         
     def get_crosshairs(self):

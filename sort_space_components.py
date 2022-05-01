@@ -425,7 +425,7 @@ def get_name_header(corner_description_idx, img_arr=None):
         img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
                 scale_to=255, sharpen=True, set_focus=False)
     # Offset to [row, col]
-    named_component_offset = np.array([-33, -3])
+    named_component_offset = np.array([-33, -3]) + np.array([int(config.config_dct['main']['named_component_row_offset']), 0])
     named_component_idx = named_component_offset + corner_description_idx
     named_component_row_length = 800
     named_component_height = 10
@@ -2634,7 +2634,6 @@ if __name__ == '__main__':
         'crates': False, 
         'droids': True
         })
-    
     
 '''
 TODO

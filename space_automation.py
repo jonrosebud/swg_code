@@ -116,7 +116,7 @@ class Turret(Space):
         
     def run_droid_commands(self):
         pdi.press('esc')
-        #############swg_utils.chat('/macro dcs')
+        #swg_utils.chat('/macro dcs')
         
         
     def get_RDU_1(self):
@@ -255,7 +255,10 @@ class Turret(Space):
         # Find the indices of the matrix that correspond to the reticle's upper and lower hairs (vertical).
         # We are using the vertical hairs because they seem to be a constant color value as opposed to the horizontal
         # hairs which appear to have a range of values for R, G, and B.
-        where_arr = swg_utils.find_pixels_on_BGR_arr(img_arr, b=b_lead_reticle, g=g_lead_reticle, r=r_lead_reticle)
+        where_arr = swg_utils.find_pixels_on_BGR_arr(img_arr, b=b_lead_reticle, g=g_lead_reticle, r=r_lead_reticle, fail_gracefully=True)
+        if where_arr is None:
+            self.target = None
+            return img_arr
         
         unique_cols_found = sorted(list(set(where_arr[1])))
         num_unique_cols_found = len(unique_cols_found)
@@ -358,16 +361,18 @@ class Turret(Space):
         
 
     def hunt_white_arrow(self):
-        img_arr = swg_utils.take_screenshot(region=self.swg_region)
-        y, x, theta = self.find_white_arrow(img_arr)
-        if y is None:
-            return
-        pdi.press_key_fast(self.target_closest_enemy_hotkey)
-        time.sleep(0.05)
-        self.get_target(target_type='crosshairs')
-        if self.crosshairs_found:
-            return
-        self.conditional_move(theta > 0.5 * np.pi and theta <= 1.5 * np.pi, theta <= np.pi)
+        hunt_arrow_start_time = time.time()
+        while time.time() - hunt_arrow_start_time < 5:
+            img_arr = swg_utils.take_screenshot(region=self.swg_region)
+            y, x, theta = self.find_white_arrow(img_arr)
+            if y is None:
+                return
+            pdi.press_key_fast(self.target_closest_enemy_hotkey)
+            time.sleep(0.05)
+            self.get_target(target_type='crosshairs')
+            if self.crosshairs_found:
+                return
+            self.conditional_move(theta > 0.5 * np.pi and theta <= 1.5 * np.pi, theta <= np.pi)
 
     
     def get_target(self, target_type='crosshairs'):
@@ -390,7 +395,7 @@ class Turret(Space):
         self.RDU_lst.append(self.RDU_0)
         num_none_target = 0
         hunt_start_time = time.time()
-        while num_none_target < self.num_none_target_max and time.time() - hunt_start_time < 20:
+        while num_none_target < self.num_none_target_max and time.time() - hunt_start_time < 5:
             self.get_trained_RDU_0()
             self.get_remaining_gamma_phi()
             self.get_aligning_movements()

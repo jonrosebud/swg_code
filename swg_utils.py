@@ -720,11 +720,16 @@ def filter_img_arr(img_arr, BGR_dct, exclude=[]):
     return img_arr
     
     
+def destroy_item(item_coords, swg_window, region):
+    destroy_arr = file_utils.read_csv(os.path.join('words_dir', 'Destroy.csv'), dtype=int)
+    radial_option_delta_dct = {'6': [52, -106], '5': [70, -12], '4': [52, 81], '3': [-3, 104], '2': [-59, 81]}
+    click(coords=item_coords, button='right', start_delay=0.1, return_delay=0.3)
+    img_arr = take_grayscale_screenshot(window=swg_window, region=region, sharpen_threshold=230,
+            scale_to=255, set_focus=False, sharpen=True)
     
-    
-    
-    
-    
-    
-    
-    
+    mouse_idx = [item_coords[1] - region['top'], item_coords[0] - region['left']]
+    for radial_option in radial_option_delta_dct:
+        potential_destroy_idx = [radial_option_delta_dct[radial_option][0] + mouse_idx[0], radial_option_delta_dct[radial_option][1] + mouse_idx[1]]
+        if np.all(img_arr[potential_destroy_idx[0] : potential_destroy_idx[0] + destroy_arr.shape[0], potential_destroy_idx[1] : potential_destroy_idx[1] + destroy_arr.shape[1]] == destroy_arr):
+            pdi.press(radial_option)
+    time.sleep(0.7)

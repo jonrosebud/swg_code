@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Aug 24 17:41:08 2021
-
 @author: trose
 """
 from copy import deepcopy
@@ -41,7 +40,6 @@ inventory_dct: dict
     
 character_arr_dir: str
     Path of directory which contains matrices of alphanumeric characters and certain special characters too which will be used to decipher the name of each component as it appears on the top bar of the inventory widdow.
-
 character_names_dct: dict
     Keys: strings of the character names that you want to find. e.g. 'A', 'B', ..., 'Z', '0', '1', ..., 'slash', 'dash', ...
     Values: grayscaled (and sharpened) screenshot matrices of each of the characters we want to find. The shape is just enough to encapsulate the character.
@@ -105,13 +103,11 @@ def get_item_coords(corner_description_idx, swg_window_region, item_inventory_po
         
     num_inventory_cols: int
         Number of columns of items in the visible, open inventory.
-
     Returns
     -------
     item_coords: list of int
     top_of_item: int
         [x, y] coordinate on monitor of the item located at item_inventory_position
-
     Purpose
     -------
     Find the x and y coordinates on the monitor of the item located at item_inventory_position
@@ -146,13 +142,11 @@ def find_str_on_image_given_col(str_arr, img_arr, col, row_start=0):
         
     row_start: int
         The row to start traversing img_arr from.
-
     Returns
     -------
     row: int or None
         The row index that str_arr was found within img_arr
         None: str_arr was not found withi img_arr
-
     Purpose
     -------
     Search for str_arr in img_arr given the col that should be str_arr's left edge within img_arr.
@@ -289,7 +283,6 @@ def get_item_count_and_capacity(region, img_arr=None, start_row=600, start_col=6
         
     start_col: int
         The col to start searching for the item count and capacity. The default is 600 because it's usually in the lower right corner.
-
     Returns
     -------
     item_count: int
@@ -297,7 +290,6 @@ def get_item_count_and_capacity(region, img_arr=None, start_row=600, start_col=6
         
     item_capacity: int
         The max number of items that this container can hold.
-
     Purpose
     -------
     Get item_count and item_capacity for a given selected container.
@@ -407,7 +399,6 @@ def get_name_header(corner_description_idx, img_arr=None):
     img_arr: np.array or None
         See docs above.
         None: This function will get a new screenshot to use.
-
     Returns
     -------
     result: str
@@ -554,7 +545,6 @@ class Ship_Component:
         sorting_inventory: bool
             True: You are sorting the inventory and this function will close and open the inventory
             False: You are sorting a droid or a backpack or a pack and so this container will be activated by clicking at the bottom.
-
         Purpose
         -------
         Store the loot item in the appropriate input hopper.
@@ -688,12 +678,10 @@ class Ship_Component:
             name of the stat.
             e.g.
             'Mass'
-
         Returns
         -------
         mean_value: float
             Mean of the normal distribution of the stat given the loot table values.
-
         Purpose
         -------
         Get mean_value
@@ -718,12 +706,10 @@ class Ship_Component:
             name of the stat.
             e.g.
             'Mass'
-
         Returns
         -------
         stdev_value: float
             Standard deviation of the normal distribution of the stat given the loot table values.
-
         Purpose
         -------
         Get stdev_value
@@ -748,12 +734,10 @@ class Ship_Component:
             name of the stat.
             e.g.
             'Mass'
-
         Returns
         -------
         max_value: float
             Maximum possible value given the distribution of the stat and the code. The code only limits it by limiting the precision of floating point numbers for v1, v2, and their propagation.
-
         Purpose
         -------
         Get the maximum possible value to loot for this stat given the avg and modifier and Reverse Engineering Level (avg and modifier are gotten on the loot table and thus reflect a given RE lvl).
@@ -778,13 +762,11 @@ class Ship_Component:
             name of the stat.
             e.g.
             'Mass'
-
         Returns
         -------
         min_value: float
             Minimum possible value given the distribution of the stat and the code. The code only limits it by limiting the precision of floating point numbers for v1, v2, and their propagation. The code doesn't
             allow for negative numbers.
-
         Purpose
         -------
         Get the minimum possible value to loot for this stat given the avg and modifier and Reverse Engineering Level (avg and modifier are gotten on the loot table and thus reflect a given RE lvl).
@@ -818,12 +800,10 @@ class Ship_Component:
             name of the stat.
             e.g.
             'Mass'
-
         Returns
         -------
         cdf_value: flat
             Normal CDF or percentile value of the stat
-
         Purpose
         -------
         From the normal distribution of this component stat as defined in the loot tables (avg, modifier) and the get bell function, calculate the Cumulative Distribution Function (CDF) value (percentile)
@@ -878,7 +858,6 @@ class Ship_Component:
             
         second_indentation_level_col: int
             The leftmost column (pixel) index of a character (in the img_arr matrix). This usually applies to a component stat name.
-
         Purpose
         -------
         Get the stats from a component that is selected in an inventory and visible.
@@ -926,7 +905,6 @@ class Ship_Component:
         ----------
         loot_table_fpath: str
             Path of the loot table tsv file (tab separated).
-
         Purpose
         -------
         The loot tables (one for each component type) have been downloaded from the swg github. This function reads a desired one into self.loot_talbe_df
@@ -1124,10 +1102,8 @@ def item_radial_option(item_coords, radial_option='1'):
     ----------
     item_coords: list of int
         Monitor coordinates [x, y] of the item that is in a container.
-
     radial_option: str
         String of the int that is the radial option number to select.
-
     Purpose
     -------
     Radial an item that is visible (the window is on top) in a container and
@@ -1150,12 +1126,10 @@ def item_is_container(corner_description_idx, first_indentation_level_col,  img_
         
     img_arr : TYPE
         DESCRIPTION.
-
     Returns
     -------
     True: The currently selected item is a container.
     False: O/w
-
     Purpose
     -------
     Determine whether the item currently selected is a container or not.
@@ -1558,11 +1532,9 @@ def put_junk_into_caravan(backpack_coords=None):
     backpack_coords: list of int or None
         [x, y] position on monitor of the backpack item in the inventory.
         If None then it is assumed you are putting junk into another container other than the backpack.
-
     Purpose
     -------
     Put items from the space junk hopper into a caravan container such as backpack, inventory, or pit droid so it can be taken away to the chassis dealer.
-
     Notes
     -----
     1. Inventory must be open before calling this function.
@@ -1612,7 +1584,6 @@ def open_droid_inventory():
     Purpose
     -------
     Look at and radial the droid and select the option to open its inventory.
-
     Notes
     -----
     1. The droid must already be called out.
@@ -2041,7 +2012,6 @@ def calibrate_containers(calibration_desires_dct={
     Returns
     -------
     None.
-
     Purpose
     -------
     Cycle through and calibrate window position of all windows of the types desired.
@@ -2237,7 +2207,6 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
                 'pack': True,
                 'loot_box': True,
                 'good_loot': False})
-
     Notes
     -----
     1. You are already in the POB and in the room with the Loot Container
@@ -2290,13 +2259,14 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
             
             
             found_name = get_name(img_arr, lc, 'POB', lc.second_item_coords)
-            if found_name is None or found_name == 'collection':
+            if found_name == 'collection':
+                # If collection item, this was dealt with in get_name
                 continue
-            if 'crate' not in found_name:
+            if found_name is not None and 'crate' not in found_name:
                 component = component_dct[found_name]
                 component.get_stats(img_arr, lc.corner_description_idx, lc.first_indentation_level_col, lc.second_indentation_level_col)
                 component.get_max_loot_percentile_value_stc()
-            if 'crate' not in found_name and (component.worth_keeping() or (component.component_type == 'droid_interface' and random.random() < keep_DI_frequency)):
+            if found_name is not None and 'crate' not in found_name and (component.worth_keeping() or (component.component_type == 'droid_interface' and random.random() < keep_DI_frequency)):
                 # Open droid inventory
                 # Close out all other windows to open droid
                 close_hopper()
@@ -2390,8 +2360,18 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
                     swg_utils.chat('/open Loot')
                 # Put into pack
                 swg_utils.click_drag(start_coords=lc.second_item_coords, end_coords=into_inventory_coords, num_drags=1, start_delay=0.05, return_delay=0.75)
-            component.update_recorded_stats_df()
-            component.recorded_stats_df.to_csv(component.recorded_stats_fpath, index=False)
+                # Destroy item if it is not a component, nor collection, nor crate
+                if found_name is None:
+                    # Activate pack
+                    swg_utils.click(coords_idx=pc.desired_lower_right_corner_idx, button='left', start_delay=0.1, return_delay=0.1, window=swg_window, region=region)
+                    pc.get_attributes()
+                    item_coords = get_item_coords(pc.corner_description_idx, region, pc.item_count - 1)
+                    swg_utils.destroy_item(item_coords, swg_window, region)
+                    # Activate Loot box
+                    swg_utils.chat('/open Loot')
+            if found_name is not None and 'crate' not in found_name:
+                component.update_recorded_stats_df()
+                component.recorded_stats_df.to_csv(component.recorded_stats_fpath, index=False)
             
         
 def sort_loot_when_in_house(sorting_desires_dct):
@@ -2417,7 +2397,6 @@ def sort_loot_when_in_house(sorting_desires_dct):
     Returns
     -------
     None
-
     Purpose
     -------
     While standing in your house next to all hoppers, sort raw space loot and crates into their appropriate hoppers and then fill the backpack,inventory, and droid inventories with what junk space components you can
@@ -2472,7 +2451,6 @@ sorting_desires_dct: dict
     'droids': bool
     
     Note: if crates is True then inventory must also be True to make sure there is room to unpack crates.
-
 starting_inventory_position: int
     Position in the inventory (0-indexed) of the first space related item (as opposed to other things in the inventory like clothing).
     
@@ -2523,13 +2501,11 @@ num_cols_from_left_side_to_second_indentation_level: int
     This usually applies to a component stat.
     
 width_of_description_pane: The (maximimum) width (number of pixels) of the description pane. The max is when the inventory window is stretched horizontally.
-
 num_inventory_cols: int
     The number of columns of items in the appropriately placed and sized inventory panes. (See notes)
     
 num_hopper_cols: int
     The number of columns of items in the appropriately placed and sized hopper panes. (See notes)
-
 down_arrow_to_start_of_item_count_offset: list of int
     [row_offset, col_offset] to get from down arrow idx to upper left corner of the line arr for getting item count and capacity of a container.
     

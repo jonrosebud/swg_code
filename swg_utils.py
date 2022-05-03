@@ -189,7 +189,7 @@ def find_pixels_on_BGR_arr(img_arr, b=None, g=None, r=None,
             b_lower_bound=0, b_upper_bound=255, g_lower_bound=0, 
             g_upper_bound=255, r_lower_bound=0, r_upper_bound=255, start_row=0,
             end_row=None, start_col=0, end_col=None, return_as_set=False,
-            return_as_rect_arr=False):
+            return_as_rect_arr=False, fail_gracefully=False):
     
     if end_row is None:
         end_row = img_arr[:,:,0].shape[0]
@@ -248,6 +248,11 @@ def find_pixels_on_BGR_arr(img_arr, b=None, g=None, r=None,
                 where_arr = np.where((b_arr == b) &
                                    (g_arr == g) &
                                    (r_arr == r))
+    if len(where_arr[0]) == 0:
+        if fail_gracefully:
+            return None
+        else:
+            raise Exception('Could not find pixels on img_arr.')
     if return_as_set:
         return set(tuple(zip(where_arr[0], where_arr[1])))
     elif return_as_rect_arr:

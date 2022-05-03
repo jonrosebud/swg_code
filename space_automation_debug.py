@@ -221,12 +221,16 @@ class Turret(Space):
             self.vertical_movements_12 = max(self.vertical_movements_12, self.min_vertical_movements - self.vertical_movements_01)
         # if not at the edge, fire
         target_dist = self.get_target_dist(fail_gracefully=True)
-        self.fire = target_dist is not None and target_dist < 600 and not (self.horizontal_movements_12 == self.max_horizontal_movements - self.horizontal_movements_01 or
+        self.fire = target_dist is not None and target_dist < 550 and not (self.horizontal_movements_12 == self.max_horizontal_movements - self.horizontal_movements_01 or
             self.horizontal_movements_12 == self.min_horizontal_movements - self.horizontal_movements_01 or
             self.vertical_movements_12 == self.max_vertical_movements - self.vertical_movements_01 or 
             self.vertical_movements_12 == self.min_vertical_movements - self.vertical_movements_01)
             
     def get_trained_RDU_0(self):
+        ######DEBUG
+        self.RDU_0 = self.RDU_lst[0]
+        return
+        ######DEBUG
         if len(self.RDU_lst) == 1:
             self.RDU_0 = self.RDU_lst[0]
         else:
@@ -235,9 +239,11 @@ class Turret(Space):
 
 
     def move_to_align(self):
+        print('moving')
         pdi.moveRel_fast(xOffset=int(np.sign(self.horizontal_movements_12)), loops=int(np.abs(self.horizontal_movements_12)))
         pdi.moveRel_fast(yOffset=int(np.sign(self.vertical_movements_12)), loops=int(np.abs(self.vertical_movements_12)))
-        time.sleep(0.08)
+        time.sleep(0.05)
+        
         
     def fire_weapon(self):
         if self.fire:
@@ -320,29 +326,20 @@ class Turret(Space):
         Notes
          Remove system messages in options
         '''
-        radius = 118
+        r = 118
         theta = 0
-        b, g, r = [204, 0, 204]
         while theta < 2 * np.pi:
-            y = int(self.green_dot[0] - radius * np.sin(theta))
-            x = int(self.green_dot[1] + radius * np.cos(theta))
-            if img_arr[y, x, 0] == b and img_arr[y, x, 1] == g and img_arr[y, x, 2] == r:
+            y = int(self.green_dot[0] - r * np.sin(theta))
+            x = int(self.green_dot[1] + r * np.cos(theta))
+            if img_arr[y, x, 0] == 204 and img_arr[y, x, 1] == 0 and img_arr[y, x, 2] == 204:
                 # Found it
                 return y, x, theta
             theta += 0.008
-        # Try a general search since reticle may move up or down
-        where_mat = swg_utils.find_pixels_on_BGR_arr(img_arr, b=b, g=g, r=r, return_as_rect_arr=True, fail_gracefully=True)
-        if where_mat is None:
-            return None, None, None
-        avg_idx = where_mat.mean(axis=0)
-        if avg_idx[1] > img_arr[:,:,0].shape[1] / 2:
-            return avg_idx[0], avg_idx[1], 0
-        else:
-            return avg_idx[0], avg_idx[1], np.pi
         return None, None, None
 
 
     def conditional_move(self, left_condition, up_condition):
+        print('--------------conditional_move---------------')
         if left_condition:
             num_horizontal_movements = max(self.min_horizontal_movements - self.horizontal_movements_cum, -self.max_movements)
         else:
@@ -380,12 +377,13 @@ class Turret(Space):
         return img_arr
     
     
-    def hunt_target(self, target_type='crosshairs'):
+    def hunt_target_old(self, target_type='crosshairs'):
         self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
         self.RDU_lst = []
         _ = self.get_target(target_type=target_type)
         if self.target is None:
             return
+        print('self.target first', self.target)
         self.get_RDU_0()
         self.RDU_lst.append(self.RDU_0)
         num_none_target = 0
@@ -402,6 +400,7 @@ class Turret(Space):
             self.vertical_movements_cum += self.vertical_movements_12
             self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
             _ = self.get_target(target_type)
+            print('self.target second', self.target)
             while self.target is None:
                 num_none_target += 1
                 if num_none_target >= self.num_none_target_max:
@@ -417,7 +416,37 @@ class Turret(Space):
                 del self.RDU_lst[0]
             self.get_RDU_0()
             self.RDU_lst.append(self.RDU_0)
+            print('self.target third', self.target)
 
+    def hunt_target(self, target_type='crosshairs'):
+        self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
+        self.RDU_lst = []
+        _ = self.get_target(target_type=target_type)
+        if self.target is None:
+            return
+        print('self.target first', self.target)
+        self.get_RDU_0()
+        self.RDU_lst.append(self.RDU_0)
+        num_none_target = 0
+        hunt_start_time = time.time()
+        while num_none_target < self.num_none_target_max and time.time() - hunt_start_time < 20:
+            self.get_trained_RDU_0()
+            self.get_remaining_gamma_phi()
+            self.get_aligning_movements()
+            self.move_to_align()
+            if self.crosshairs_found:
+                # Later could also fire when brown_avg found if target is within range (which depends on distance and speed and is usually sooner than the crosshairs light up)
+                self.fire_weapon()
+            self.horizontal_movements_cum += self.horizontal_movements_12
+            self.vertical_movements_cum += self.vertical_movements_12
+            self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
+            _ = self.get_target(target_type)
+            print('self.target second', self.target)
+            if self.target is None:
+                return
+            self.get_RDU_0()
+            self.RDU_lst = [self.RDU_0]
+            print('self.target third', self.target)
     
     def operate_turret(self):
         time_of_last_reset = time.time()
@@ -469,7 +498,7 @@ class Duty_Mission_Turret(Turret):
             return img_arr
         
         
-    def get_target(self, target_type):
+    def get_target(self, target_type='crosshairs'):
         self.crosshairs_found = False
         if target_type == 'crosshairs':
             img_arr = self.get_crosshairs()
@@ -481,6 +510,14 @@ class Duty_Mission_Turret(Turret):
                 img_arr = self.find_brown_from_duty_mission_enemy()
             else:
                 self.crosshairs_found = True
+        ########DEBUG
+        #if self.crosshairs_found:
+        #    pdi.press('alt')
+        #    swg_utils.moveTo(start_delay=0.2, return_delay=0.2, move_speed=5, window=self.swg_window, region=self.swg_region, coords_idx=self.target)
+        #    time.sleep(5)
+        #    pdi.press('alt')
+        #    time.sleep(0.5)
+        #######DEBUG
         return img_arr
     
     

@@ -347,7 +347,8 @@ class Turret(Space):
             if target_dist is None or target_dist > 1400:
                 return
             avg_idx = where_arr.mean(axis=0)
-            self.conditional_move(avg_idx[1] < half_length, avg_idx[0] < half_length, self.max_movements)
+            self.conditional_move(avg_idx[1] < half_length, avg_idx[0] < half_length, 100)
+            time.sleep(0.08)
 
     
     def get_target(self, target_type='crosshairs'):

@@ -73,7 +73,7 @@ class Space(SWG):
 
 
 class Turret(Space):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=200, num_none_target_max=25):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=300, num_none_target_max=25):
         super(Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path)
         self.max_movements = max_movements
         self.num_none_target_max = num_none_target_max
@@ -361,18 +361,19 @@ class Turret(Space):
         
 
     def hunt_white_arrow(self):
-        hunt_arrow_start_time = time.time()
-        while time.time() - hunt_arrow_start_time < 5:
-            img_arr = swg_utils.take_screenshot(region=self.swg_region)
-            y, x, theta = self.find_white_arrow(img_arr)
-            if y is None:
-                return
-            pdi.press_key_fast(self.target_closest_enemy_hotkey)
-            time.sleep(0.05)
-            self.get_target(target_type='crosshairs')
-            if self.crosshairs_found:
-                return
-            self.conditional_move(theta > 0.5 * np.pi and theta <= 1.5 * np.pi, theta <= np.pi)
+        img_arr = swg_utils.take_screenshot(region=self.swg_region)
+        y, x, theta = self.find_white_arrow(img_arr)
+        if y is None:
+            return
+        pdi.press_key_fast(self.target_closest_enemy_hotkey)
+        time.sleep(0.08)
+        target_dist = self.get_target_dist(fail_gracefully=True)
+        if target_dist is not None and target_dist > 1400:
+            return
+        self.get_target(target_type='crosshairs')
+        if self.crosshairs_found:
+            return
+        self.conditional_move(theta > 0.5 * np.pi and theta <= 1.5 * np.pi, theta <= np.pi)
 
     
     def get_target(self, target_type='crosshairs'):
@@ -389,7 +390,8 @@ class Turret(Space):
         self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
         self.RDU_lst = []
         _ = self.get_target(target_type=target_type)
-        if self.target is None:
+        target_dist = self.get_target_dist(fail_gracefully=True)
+        if self.target is None or target_dist is None or target_dist > 1200:
             return
         self.get_RDU_0()
         self.RDU_lst.append(self.RDU_0)
@@ -437,7 +439,7 @@ class Turret(Space):
 
         
 class Rear_Turret(Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=200, num_none_target_max=25):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=300, num_none_target_max=25):
         super(Rear_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
         # CONSTANTS
         self.max_horizontal_movements = 507
@@ -447,7 +449,7 @@ class Rear_Turret(Turret):
         
 
 class Deck_Turret(Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=200, num_none_target_max=25):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=300, num_none_target_max=25):
         super(Deck_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
         # CONSTANTS
         self.max_horizontal_movements = np.inf
@@ -457,7 +459,7 @@ class Deck_Turret(Turret):
         
         
 class Duty_Mission_Turret(Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=200, num_none_target_max=25):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=300, num_none_target_max=25):
         super(Duty_Mission_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
         
         
@@ -500,16 +502,17 @@ class Duty_Mission_Turret(Turret):
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
             self.hunt_white_arrow()
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
+            
             #self.hunt_target(target_type='brown_avg')
 
         
 class Duty_Mission_Rear_Turret(Duty_Mission_Turret, Rear_Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=200, num_none_target_max=25):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=300, num_none_target_max=25):
         super(Duty_Mission_Rear_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
         
         
 class Duty_Mission_Deck_Turret(Duty_Mission_Turret, Deck_Turret):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=200, num_none_target_max=25):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=300, num_none_target_max=25):
         super(Duty_Mission_Deck_Turret, self).__init__(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
 
         
@@ -877,14 +880,14 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
             self.autopilot_to_wp('Target_Location')
 
     
-def main_duty_mission_rear_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=200, num_none_target_max=1):
+def main_duty_mission_rear_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=300, num_none_target_max=1):
     turret = Duty_Mission_Rear_Turret(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
     # For now, assume only need to run commands once (which assumes the ship doesn't get destroyed etc)
     turret.run_droid_commands()
     turret.operate_turret()
 
 
-def main_duty_mission_deck_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=200, num_none_target_max=25):
+def main_duty_mission_deck_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), max_movements=300, num_none_target_max=25):
     turret = Duty_Mission_Deck_Turret(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, max_movements=max_movements, num_none_target_max=num_none_target_max)
     # For now, assume only need to run commands once (which assumes the ship doesn't get destroyed etc)
     #turret.run_droid_commands() # Let rear turreter do it.

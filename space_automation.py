@@ -312,68 +312,42 @@ class Turret(Space):
         return img_arr
 
 
-    def find_white_arrow(self, img_arr):
-        '''
-        The white arrow which is on screen when an enemy is targeted but not in 
-        view is somewhere radially around the green dot at a euclidean distance of 
-        approximately 118 pixels to the center of the arrow. The arrow is some shade
-        of grey and thus the B, G, and R values should all be pretty close to 
-        each other.
-        
-        Notes
-         Remove system messages in options
-        '''
-        radius = 118
-        theta = 0
-        b, g, r = [204, 0, 204]
-        while theta < 2 * np.pi:
-            y = int(self.green_dot[0] - radius * np.sin(theta))
-            x = int(self.green_dot[1] + radius * np.cos(theta))
-            if img_arr[y, x, 0] == b and img_arr[y, x, 1] == g and img_arr[y, x, 2] == r:
-                # Found it
-                return y, x, theta
-            theta += 0.008
-        # Try a general search since reticle may move up or down
-        where_mat = swg_utils.find_pixels_on_BGR_arr(img_arr, b=b, g=g, r=r, return_as_rect_arr=True, fail_gracefully=True)
-        if where_mat is None:
-            return None, None, None
-        avg_idx = where_mat.mean(axis=0)
-        if avg_idx[1] > img_arr[:,:,0].shape[1] / 2:
-            return avg_idx[0], avg_idx[1], 0
-        else:
-            return avg_idx[0], avg_idx[1], np.pi
-        return None, None, None
-
-
-    def conditional_move(self, left_condition, up_condition):
+    def conditional_move(self, left_condition, up_condition, max_movements):
         if left_condition:
-            num_horizontal_movements = max(self.min_horizontal_movements - self.horizontal_movements_cum, -self.max_movements)
+            num_horizontal_movements = max(self.min_horizontal_movements - self.horizontal_movements_cum, -max_movements)
         else:
-            num_horizontal_movements = min(self.max_horizontal_movements - self.horizontal_movements_cum, self.max_movements)
+            num_horizontal_movements = min(self.max_horizontal_movements - self.horizontal_movements_cum, max_movements)
         pdi.moveRel_fast(xOffset=int(np.sign(num_horizontal_movements)), loops=int(abs(num_horizontal_movements)))
         self.horizontal_movements_cum += num_horizontal_movements
         if up_condition:
-            num_vertical_movements = max(self.min_vertical_movements - self.vertical_movements_cum, -self.max_movements)
+            num_vertical_movements = max(self.min_vertical_movements - self.vertical_movements_cum, -max_movements)
         else:
-            num_vertical_movements = min(self.max_vertical_movements - self.vertical_movements_cum, self.max_movements)
+            num_vertical_movements = min(self.max_vertical_movements - self.vertical_movements_cum, max_movements)
         pdi.moveRel_fast(yOffset=int(np.sign(num_vertical_movements)), loops=int(abs(num_vertical_movements)))
         self.vertical_movements_cum += num_vertical_movements
         
 
-    def hunt_white_arrow(self):
-        img_arr = swg_utils.take_screenshot(region=self.swg_region)
-        y, x, theta = self.find_white_arrow(img_arr)
-        if y is None:
-            return
-        pdi.press_key_fast(self.target_closest_enemy_hotkey)
-        time.sleep(0.08)
-        target_dist = self.get_target_dist(fail_gracefully=True)
-        if target_dist is not None and target_dist > 1400:
-            return
-        self.get_target(target_type='crosshairs')
-        if self.crosshairs_found:
-            return
-        self.conditional_move(theta > 0.5 * np.pi and theta <= 1.5 * np.pi, theta <= np.pi)
+    def hunt_target_arrow(self):
+        b, g, r = [204, 0, 204]
+        square_length_containing_arrow = 255
+        half_length = int(255/2)
+        hunt_target_arrow_start_time = time.time()
+        while time.time() - hunt_target_arrow_start_time < 5:
+            img_arr = swg_utils.take_screenshot(region=self.swg_region)
+            where_arr = swg_utils.find_pixels_on_BGR_arr(img_arr, b=b, g=g, r=r, 
+            start_row=self.green_dot[0] - half_length,
+            end_row=self.green_dot[0] + half_length, 
+            start_col=self.green_dot[1] - half_length, 
+            end_col=self.green_dot[1] + half_length,
+            return_as_rect_arr=True, fail_gracefully=True)
+            
+            if where_arr is None or len(where_arr) == 0:
+                return
+            target_dist = self.get_target_dist(fail_gracefully=True)
+            if target_dist is None or target_dist > 1400:
+                return
+            avg_idx = where_arr.mean(axis=0)
+            self.conditional_move(avg_idx[1] < half_length, avg_idx[0] < half_length, self.max_movements)
 
     
     def get_target(self, target_type='crosshairs'):
@@ -435,7 +409,7 @@ class Turret(Space):
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
             self.hunt_target(target_type='crosshairs')
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
-            self.hunt_white_arrow()
+            self.hunt_target_arrow()
 
         
 class Rear_Turret(Turret):
@@ -500,7 +474,7 @@ class Duty_Mission_Turret(Turret):
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
             self.hunt_target(target_type='crosshairs')
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
-            self.hunt_white_arrow()
+            self.hunt_target_arrow()
             pdi.press_key_fast(self.target_closest_enemy_hotkey)
             
             #self.hunt_target(target_type='brown_avg')

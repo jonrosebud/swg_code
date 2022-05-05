@@ -2259,6 +2259,14 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
             
             
             found_name = get_name(img_arr, lc, 'POB', lc.second_item_coords)
+            if found_name is None:
+                # Try getting name again due to the description disappearing when another loot items pops into the Loot box
+                # Get screenshot
+                img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen_threshold=130,
+                        scale_to=255, sharpen=True, set_focus=False)
+                
+                
+                found_name = get_name(img_arr, lc, 'POB', lc.second_item_coords)
             if found_name == 'collection':
                 # If collection item, this was dealt with in get_name
                 continue

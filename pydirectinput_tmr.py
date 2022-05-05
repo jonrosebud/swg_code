@@ -502,6 +502,8 @@ def moveRel_fast(xOffset=0, yOffset=0, loops=1):
     # obtain and set these values using the SystemParametersInfo function." 
     # https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-mouseinput
     # https://stackoverflow.com/questions/50601200/pyhon-directinput-mouse-relative-moving-act-not-as-expected
+    if loops < 1:
+        return
     extra = ctypes.c_ulong(0)
     ii_ = Input_I()
     ii_.mi = MouseInput(xOffset, yOffset, 0, MOUSEEVENTF_MOVE, 0, ctypes.pointer(extra))

@@ -59,7 +59,7 @@ class Space(SWG):
     def get_target_dist(self, fail_gracefully=False):
         if self.target_dist_idx is None:
             # Target group leader to ensure something is within range to target. Group leader should be pilot.
-            swg_utils.chat('/ui action OddBodkins')
+            swg_utils.chat('/tar OddBodkins')
             target_dist_right_arr = swg_utils.get_search_arr('target_dist_right_parenthesis', dir_path=self.dir_path, mask_int=0)
             target_right_parenthesis_idx, img_arr = swg_utils.find_arr_on_region(target_dist_right_arr, region=self.swg_region, fail_gracefully=False, sharpen_threshold=255)
             target_dist_left_arr = swg_utils.get_search_arr('target_dist_left_parenthesis', dir_path=self.dir_path, mask_int=0)
@@ -115,7 +115,7 @@ class Turret(Space):
         
     def run_droid_commands(self):
         pdi.press('esc')
-        #swg_utils.chat('/macro dcs')
+        swg_utils.chat('/macro dcs')
         
         
     def get_RDU_1(self):
@@ -236,7 +236,7 @@ class Turret(Space):
     def move_to_align(self):
         pdi.moveRel_fast(xOffset=int(np.sign(self.horizontal_movements_12)), loops=int(np.abs(self.horizontal_movements_12)))
         pdi.moveRel_fast(yOffset=int(np.sign(self.vertical_movements_12)), loops=int(np.abs(self.vertical_movements_12)))
-        time.sleep(0.08)
+        time.sleep(0.1)
         
     def fire_weapon(self):
         if self.fire:
@@ -312,24 +312,19 @@ class Turret(Space):
 
 
     def conditional_move(self, max_left_movements=0, max_right_movements=0, max_up_movements=0, max_down_movements=0):
-        num_left_movements = max(self.min_horizontal_movements - self.horizontal_movements_cum, -max_left_movements)
-        if num_left_movements > 0:
-            pdi.moveRel_fast(xOffset=int(np.sign(num_left_movements)), loops=int(abs(num_left_movements)))
-            self.horizontal_movements_cum += num_left_movements
-        else:
-            num_right_movements = min(self.max_horizontal_movements - self.horizontal_movements_cum, max_right_movements)
-            if num_right_movements > 0:
-                pdi.moveRel_fast(xOffset=int(np.sign(num_right_movements)), loops=int(abs(num_right_movements)))
-                self.horizontal_movements_cum += num_right_movements
-        num_up_movements = max(self.min_vertical_movements - self.vertical_movements_cum, -max_up_movements)
-        if num_up_movements > 0:
-            pdi.moveRel_fast(xOffset=int(np.sign(num_up_movements)), loops=int(abs(num_up_movements)))
-            self.vertical_movements_cum += num_up_movements
-        else:
-            num_down_movements = min(self.max_vertical_movements - self.vertical_movements_cum, max_down_movements)
-            if num_down_movements > 0:
-                pdi.moveRel_fast(xOffset=int(np.sign(num_down_movements)), loops=int(abs(num_down_movements)))
-                self.vertical_movements_cum += num_down_movements
+        num_left_movements = int(abs(max(self.min_horizontal_movements - self.horizontal_movements_cum, -max_left_movements)))
+        pdi.moveRel_fast(xOffset=-1, loops=num_left_movements)
+        self.horizontal_movements_cum -= num_left_movements
+        num_right_movements = int(abs(min(self.max_horizontal_movements - self.horizontal_movements_cum, max_right_movements)))
+        pdi.moveRel_fast(xOffset=1, loops=num_right_movements)
+        self.horizontal_movements_cum += num_right_movements
+        num_up_movements = int(abs(max(self.min_vertical_movements - self.vertical_movements_cum, -max_up_movements)))
+        pdi.moveRel_fast(yOffset=-1, loops=num_up_movements)
+        self.vertical_movements_cum -= num_up_movements
+        num_down_movements = int(abs(min(self.max_vertical_movements - self.vertical_movements_cum, max_down_movements)))
+        pdi.moveRel_fast(yOffset=1, loops=num_down_movements)
+        self.vertical_movements_cum += num_down_movements
+        time.sleep(0.1)
         
 
     def hunt_target_arrow(self):
@@ -400,8 +395,8 @@ class Turret(Space):
             if self.crosshairs_found:
                 # Later could also fire when brown_avg found if target is within range (which depends on distance and speed and is usually sooner than the crosshairs light up)
                 self.fire_weapon()
-            self.horizontal_movements_cum += self.horizontal_movements_12
-            self.vertical_movements_cum += self.vertical_movements_12
+            self.horizontal_movements_cum += int(self.horizontal_movements_12)
+            self.vertical_movements_cum += int(self.vertical_movements_12)
             self.gamma_01, self.phi_01 = self.convert_movements_to_angles(self.horizontal_movements_cum, self.vertical_movements_cum)
             _ = self.get_target(target_type)
             while self.target is None:

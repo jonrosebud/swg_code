@@ -7,8 +7,16 @@
 			MaximumSize='256,256'
 			MinimumSize='128,128'
 			Name='radar'
-			OnDisable='compass.enabled=truealtRadarFg.enabled=falseradarwidget.enabled=false'
-			OnEnable='compass.enabled=falsealtRadarFg.enabled=trueradarwidget.enabled=true'
+			OnDisable='compass.enabled=true'
+
+altRadarFg.enabled='false'
+
+radarwidget.enabled='false'
+			OnEnable='compass.enabled=false'
+
+altRadarFg.enabled='true'
+
+radarwidget.enabled='true'
 			PackLocation='cfc,fff'
 			PackSize='a,a'
 			radarwidget.enabled='true'
@@ -16,9 +24,12 @@
 			Size='128,142'
 			SizeIncrementLocked='true'
 			TextOpacityRelativeApply='true'
-			TextOpacityRelativeMin='0.80'
+			TextOpacityRelativeMin='1.0'
 			UserMovable='true'
 			UserResizable='true'
+			BackgroundColor='#000000'
+			BackgroundOpacity='1.0'
+			BackgroundTint='#000000'
 		>
 			<Data
 				autoLevel='altRadarFg.stations.autolevel'
@@ -355,8 +366,16 @@
 					MaximumSize='256,256'
 					MinimumSize='128,128'
 					Name='radarSpherical'
-					OnDisable='compass.enabled=truealtRadarFg.enabled=falseradarwidget.enabled=false'
-					OnEnable='compass.enabled=falsealtRadarFg.enabled=trueradarwidget.enabled=true'
+					OnDisable='compass.enabled=true
+
+altRadarFg.enabled=false
+
+radarwidget.enabled=false'
+					OnEnable='compass.enabled=false
+
+altRadarFg.enabled=true
+
+radarwidget.enabled=true'
 					PackLocation='cfc,cfc'
 					PackSize='a,a'
 					radarwidget.enabled='true'
@@ -419,8 +438,8 @@
 								Name='blips'
 								OpacityRelativeMin='1.00'
 								PackSize='a,a'
-								ScrollExtent='128,128'
-								Size='128,128'
+								ScrollExtent='0,0'
+								Size='0,0'
 								Visible='false'
 							>
 								<Image
@@ -530,14 +549,14 @@
 								Color='#1CFFFF'
 								Enabled='false'
 								GetsInput='true'
-								MinimumScrollExtent='133,123'
+								MinimumScrollExtent='0,0'
 								Name='radarGlow'
 								PackLocation='cfc,cfc'
 								PackSize='p,p'
 								PalColor='line1'
-								ScrollExtent='133,128'
-								Size='128,128'
-								SourceRect='0,0,128,128'
+								ScrollExtent='0,0'
+								Size='0,0'
+								SourceRect='0,0,0,0'
 								SourceResource='ui_shader_add:ui_space_radar_horizontal_small'
 							/>
 							<Image
@@ -545,15 +564,15 @@
 								Color='#00D6FB'
 								Enabled='false'
 								GetsInput='true'
-								MinimumScrollExtent='133,123'
+								MinimumScrollExtent='0,0'
 								Name='radarGlow'
-								Opacity='0.40'
+								Opacity='0.0'
 								PackLocation='cfc,cfc'
 								PackSize='p,p'
 								PalColor='back1'
-								ScrollExtent='133,128'
-								Size='128,128'
-								SourceRect='0,0,128,128'
+								ScrollExtent='0,0'
+								Size='0,0'
+								SourceRect='0,0,0,0'
 								SourceResource='ui_shader_add:ui_space_radar_horizontal_small'
 							/>
 							<Image
@@ -600,8 +619,8 @@
 									ArcBegin='0.01'
 									ArcEnd='0.25'
 									CircleSegments='256'
-									Color='#FF0000'
-									InnerRadiusColor='#E75701'
+									Color='#FFFFFF'
+									InnerRadiusColor='#FFFFFF'
 									InnerRadiusOpacity='1.0'
 									Location='-1,1'
 									Name='RBshield'
@@ -619,8 +638,8 @@
 									ArcBegin='0.49'
 									ArcEnd='0.25'
 									CircleSegments='256'
-									Color='#FF0000'
-									InnerRadiusColor='#E75701'
+									Color='#FFFFFF'
+									InnerRadiusColor='#FFFFFF'
 									InnerRadiusOpacity='1.0'
 									Location='-1,1'
 									Name='LBshield'
@@ -638,8 +657,8 @@
 									ArcBegin='0.99'
 									ArcEnd='0.75'
 									CircleSegments='256'
-									Color='#FF0000'
-									InnerRadiusColor='#E75701'
+									Color='#FFFFFF'
+									InnerRadiusColor='#FFFFFF'
 									InnerRadiusOpacity='1.0'
 									Location='-1,0'
 									Name='RTshield'
@@ -657,8 +676,8 @@
 									ArcBegin='0.50'
 									ArcEnd='0.75'
 									CircleSegments='256'
-									Color='#FF0000'
-									InnerRadiusColor='#E75701'
+									Color='#FFFFFF'
+									InnerRadiusColor='#FFFFFF'
 									InnerRadiusOpacity='1.0'
 									Location='-1,0'
 									Name='LTshield'
@@ -686,8 +705,8 @@
 									ArcBegin='0.45'
 									ArcEnd='0.25'
 									CircleSegments='256'
-									Color='#2DBBFF'
-									InnerRadiusColor='#00B1F4'
+									Color='#FFFFFF'
+									InnerRadiusColor='#FFFFFF'
 									InnerRadiusOpacity='1.0'
 									Name='LBshield'
 									OpacityRelativeMin='1.0'
@@ -704,8 +723,8 @@
 									ArcBegin='0.05'
 									ArcEnd='0.25'
 									CircleSegments='256'
-									Color='#2DBBFF'
-									InnerRadiusColor='#00B1F4'
+									Color='#FFFFFF'
+									InnerRadiusColor='#FFFFFF'
 									InnerRadiusOpacity='1.0'
 									Name='RBshield'
 									OpacityRelativeMin='1.0'
@@ -722,8 +741,8 @@
 									ArcBegin='0.95'
 									ArcEnd='0.75'
 									CircleSegments='256'
-									Color='#2DBBFF'
-									InnerRadiusColor='#00B1F4'
+									Color='#FFFFFF'
+									InnerRadiusColor='#FFFFFF'
 									InnerRadiusOpacity='1.0'
 									Location='0,1'
 									Name='RTshield'
@@ -741,8 +760,8 @@
 									ArcBegin='0.55'
 									ArcEnd='0.75'
 									CircleSegments='256'
-									Color='#2DBBFF'
-									InnerRadiusColor='#00B1F4'
+									Color='#FFFFFF'
+									InnerRadiusColor='#FFFFFF'
 									InnerRadiusOpacity='1.0'
 									Name='LTshield'
 									OpacityRelativeMin='1.0'
@@ -760,7 +779,7 @@
 								Cycling='true'
 								Name='shieldOverDrive'
 								Speed='0.10'
-								TargetColor='#00B1F4'
+								TargetColor='#FFFFFF'
 								TargetColor2='#FFFFFF'
 							/>
 						</Page>
@@ -837,8 +856,16 @@
 					MaximumSize='256,256'
 					MinimumSize='128,128'
 					Name='radarSpherical2'
-					OnDisable='compass.enabled=truealtRadarFg.enabled=falseradarwidget.enabled=false'
-					OnEnable='compass.enabled=falsealtRadarFg.enabled=trueradarwidget.enabled=true'
+					OnDisable='compass.enabled=true
+
+altRadarFg.enabled=false
+
+radarwidget.enabled=false'
+					OnEnable='compass.enabled=false
+
+altRadarFg.enabled=true
+
+radarwidget.enabled=true'
 					PackLocation='cfc,cfc'
 					PackSize='a,a'
 					radarwidget.enabled='true'
@@ -1296,14 +1323,14 @@
 								Color='#1CFFFF'
 								Enabled='false'
 								GetsInput='true'
-								MinimumScrollExtent='133,123'
+								MinimumScrollExtent='0,0'
 								Name='radarGlow'
 								PackLocation='cfc,cfc'
 								PackSize='p,p'
 								PalColor='line1'
-								ScrollExtent='133,128'
-								Size='128,128'
-								SourceRect='0,0,128,128'
+								ScrollExtent='0,0'
+								Size='0,0'
+								SourceRect='0,0,0,0'
 								SourceResource='ui_shader_add:ui_space_radar_gauge'
 							/>
 							<Image
@@ -1311,15 +1338,15 @@
 								Color='#00D6FB'
 								Enabled='false'
 								GetsInput='true'
-								MinimumScrollExtent='133,123'
+								MinimumScrollExtent='0,0'
 								Name='radarGlow'
-								Opacity='0.40'
+								Opacity='0.0'
 								PackLocation='cfc,cfc'
 								PackSize='p,p'
 								PalColor='back1'
-								ScrollExtent='133,128'
-								Size='128,128'
-								SourceRect='0,0,128,128'
+								ScrollExtent='0,0'
+								Size='0,0'
+								SourceRect='0,0,0,0'
 								SourceResource='ui_shader_add:ui_space_radar_gauge'
 							/>
 							<Image
@@ -1594,8 +1621,16 @@
 					MaximumSize='206,180'
 					MinimumSize='166,137'
 					Name='radar3d'
-					OnDisable='compass.enabled=truealtRadarFg.enabled=falseradarwidget.enabled=false'
-					OnEnable='compass.enabled=falsealtRadarFg.enabled=trueradarwidget.enabled=true'
+					OnDisable='compass.enabled=true
+
+altRadarFg.enabled=false
+
+radarwidget.enabled=false'
+					OnEnable='compass.enabled=false
+
+altRadarFg.enabled=true
+
+radarwidget.enabled=true'
 					PackLocation='cfc,cfc'
 					PackSize='a,a'
 					radarwidget.enabled='true'
@@ -2391,8 +2426,16 @@
 					MaximumSize='256,256'
 					MinimumSize='128,128'
 					Name='radarSpherical_save'
-					OnDisable='compass.enabled=truealtRadarFg.enabled=falseradarwidget.enabled=false'
-					OnEnable='compass.enabled=falsealtRadarFg.enabled=trueradarwidget.enabled=true'
+					OnDisable='compass.enabled=true
+
+altRadarFg.enabled=false
+
+radarwidget.enabled=false'
+					OnEnable='compass.enabled=false
+
+altRadarFg.enabled=true
+
+radarwidget.enabled=true'
 					PackLocation='cfc,cfc'
 					PackSize='a,a'
 					radarwidget.enabled='true'
@@ -2567,14 +2610,14 @@
 								Color='#1CFFFF'
 								Enabled='false'
 								GetsInput='true'
-								MinimumScrollExtent='133,123'
+								MinimumScrollExtent='0,0'
 								Name='radarGlow'
 								PackLocation='cfc,cfc'
 								PackSize='p,p'
 								PalColor='line1'
-								ScrollExtent='133,128'
-								Size='128,128'
-								SourceRect='0,0,128,128'
+								ScrollExtent='0,0'
+								Size='0,0'
+								SourceRect='0,0,0,0'
 								SourceResource='ui_shader_add:ui_space_radar_horizontal_small'
 							/>
 							<Image
@@ -2582,15 +2625,15 @@
 								Color='#00D6FB'
 								Enabled='false'
 								GetsInput='true'
-								MinimumScrollExtent='133,123'
+								MinimumScrollExtent='0,0'
 								Name='radarGlow'
-								Opacity='0.40'
+								Opacity='0.0'
 								PackLocation='cfc,cfc'
 								PackSize='p,p'
 								PalColor='back1'
-								ScrollExtent='133,128'
-								Size='128,128'
-								SourceRect='0,0,128,128'
+								ScrollExtent='0,0'
+								Size='0,0'
+								SourceRect='0,0,0,0'
 								SourceResource='ui_shader_add:ui_space_radar_horizontal_small'
 							/>
 							<Image

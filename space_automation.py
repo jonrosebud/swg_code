@@ -13,7 +13,7 @@ config.get_config_dct()
 import sys
 python_utils_path = config.config_dct['main']['python_utils_path']
 sys.path.append(r"" + python_utils_path)
-from python_utils import file_utils, list_utils
+from python_utils import file_utils, list_utils, pandas_utils
 import time
 import numpy as np
 git_path = config.config_dct['main']['git_path']
@@ -36,6 +36,8 @@ class SWG:
     def __init__(self, swg_window_i=0):
         self.swg_window = swm.swg_windows[swg_window_i]
         self.swg_region = swm.swg_window_regions[swg_window_i]
+        self.ui_dir_path = os.path.join(git_path, 'UI_dir', 'indices_for_ui_items_for_' + socket.gethostname())
+        file_utils.mkdir_if_DNE(self.ui_dir_path)
         # SETUP
         swm.calibrate_window_position(swm.swg_windows)
         self.swg_window.set_focus()
@@ -43,8 +45,22 @@ class SWG:
         
 
 class Space(SWG):
-    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir')):
+    def __init__(self, swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), 
+            ship_loadout={
+            'Front_Shield_Hitpoints': 100, 
+            'Back_Shield_Hitpoints': 100,
+            'Front_Armor_Hitpoints': 100,
+            'Back_Armor_Hitpoints': 100,
+            'Droid_Command_Speed': 8},
+            droid_commands=[
+                'weapcap_powerup_4', 'engine_overload_4', 'weapons_overload_4', 'shield_adjust_rear_4', 'shields_backtofront_1', 'shields_fronttoback_1', 'shield_emergency_rear', 'weapcap_to_shield_1', 'zone_to_kessel'
+                ]
+            ):
+        
         super(Space, self).__init__(swg_window_i=swg_window_i)
+        # CONSTANTS
+        self.droid_command_df = pd.read_csv(os.path.join(git_path, 'constants', 'droid_command_constants.csv'))
+        # PARAMETERS
         self.dir_path = dir_path
         self.target_closest_enemy_hotkey = target_closest_enemy_hotkey
         self.space_target_distance_digits = {digit: swg_utils.get_search_arr('space_target_distance_digit_' + str(digit), dir_path=self.dir_path, mask_int=None) for digit in range(10)}
@@ -52,8 +68,191 @@ class Space(SWG):
         self.target_this_arr = swg_utils.get_search_arr('target_this', dir_path=self.dir_path, mask_int=None)
         self.vertical_triangle_side_arr = swg_utils.get_search_arr('vertical_triangle_side_arr', dir_path=self.dir_path, mask_int=None)
         self.horizontal_triangle_side_arr = swg_utils.get_search_arr('horizontal_triangle_side_arr', dir_path=self.dir_path, mask_int=None)
+        self.radar_arr = swg_utils.get_search_arr('space_radar_bw', dir_path=self.dir_path, mask_int = None)
+        self.shield_front_arr = swg_utils.get_search_arr('shield_full_hp_front', dir_path=self.dir_path, mask_int=0)
+        self.shield_back_arr = swg_utils.get_search_arr('shield_full_hp_back', dir_path=self.dir_path, mask_int=0)
+        self.armor_front_arr = swg_utils.get_search_arr('armor_full_hp_front', dir_path=self.dir_path, mask_int=0)
+        self.armor_back_arr = swg_utils.get_search_arr('armor_full_hp_back', dir_path=self.dir_path, mask_int=0)
+        self.ship_loadout = ship_loadout
+        self.droid_commands = droid_commands
+        # SETUP
+        # FIND UI ITEMS
+        self.find_radar()
         # INITIAL VALUES
+        self.droid_ready_time = time.time()
         self.target_dist_idx = None
+        self.ship_status = {'Front_Shield_Hitpoints': self.ship_loadout['Front_Shield_Hitpoints'], 
+                            'Back_Shield_Hitpoints': self.ship_loadout['Back_Shield_Hitpoints'],
+                            'Front_Armor_Hitpoints': self.ship_loadout['Front_Armor_Hitpoints'],
+                            'Back_Armor_Hitpoints': self.ship_loadout['Back_Armor_Hitpoints']}
+        
+        
+    def dc_val(self, value_col_name):
+        return pandas_utils.get_value_from_row(self.droid_command_df, 'command_id', self.command_id, value_col_name)
+    
+    
+    def droid_command_is_bulk_runnable(self):
+        for bulk_runnable_command_type in ['weapcap_powerup', 'engine_overload', 'reactor_overload', 'weapon_overload', 'shield_adjust']:
+            if bulk_runnable_command_type in self.command_id:
+                return True
+        return False
+    
+    
+    def run_droid_command(self, command_id=None):
+        if command_id is not None:
+            self.command_id = command_id
+        if self.command_id not in self.droid_commands:
+            return
+        # The following line can be used if you dont have your toolbar setup
+        #swg_utils.chat('/droid ' + self.dc_val('command_name'))
+        # The following line is ued if you have your toolbar setup (commands are in the order you provided in the droid_commands list)
+        pdi.press('f' + str(1 + self.droid_commands.index(self.command_id)))
+        self.droid_ready_time = time.time() + self.dc_val('delay') * self.ship_loadout['Droid_Command_Speed']
+        
+    
+    def run_bulk_droid_commands(self):
+        pdi.press('esc')
+        for self.command_id in self.droid_commands:
+            if self.droid_command_is_bulk_runnable():
+                self.run_droid_command()
+            if 'shield_adjust' in self.command_id:
+                self.ship_loadout['Front_Shield_Hitpoints'] = self.ship_loadout['Front_Shield_Hitpoints'] * self.dc_val('front_shield_ratio')
+                self.ship_loadout['Back_Shield_Hitpoints'] = self.ship_loadout['Back_Shield_Hitpoints'] * (2 - self.dc_val('front_shield_ratio'))
+            time.sleep(self.dc_val('delay') * self.ship_loadout['Droid_Command_Speed'])
+            
+            
+    def manage_shields(self):
+        '''
+        Purpose
+        -------
+        Issue shield reinforcement and/or shield shunt droid commands to maintain front and back shield HP without wasting capacitor energy.
+        
+        Method
+        ------
+        0. If the droid is not ready for a new command yet, return and assume that this function is called frequently enough for this to not be an issue.
+        1. Get current front and back shield hp and capacitor energy
+        2. Determine total (front + back) missing hp
+        3. The shunt level to use is the highest one that would yield less than the total missing hp
+        4. If necessary, use reinforce to enable the shunt to not waste energy
+        5. Use the shunt.
+        6. Only do 1 command per call to this function, that way you can continue firing while the droid timer cools down. It is assumed that this function is called frequently enough for this to not be an issue.
+        
+        
+        Info
+        ----
+        1. Only use a shield shunt when no energy would be wasted. i.e. the hp missing in front AND back is enough.
+        2. It is usually better to use reinforce to then enabled the highest level shield shunt command loaded due to the short delay for reinforce and long delay for shunt.
+        
+        Notes
+        -----
+        1. This function does not give a preference to front or rear shields. In other words, e.g. if the front shield is damaged but not the back, this function will reinforce from the back to the front and then shunt. (thus it does not favor the back at the expense of the front or vice versa)
+        2. This function will not do a reinforce nor shunt unless total_hp_missing is >= 25% of current capacitor energy.
+        '''
+        if time.time() < self.droid_ready_time:
+            return
+        self.get_shield_hp()
+        self.get_capacitor_energy()
+        front_hp_missing = self.ship_loadout['Front_Shield_Hitpoints'] - self.ship_status['Front_Shield_Hitpoints']
+        back_hp_missing = self.ship_loadout['Back_Shield_Hitpoints'] - self.ship_status['Back_Shield_Hitpoints']
+        total_hp_missing = front_hp_missing + back_hp_missing
+        capacitor_shuntable_energy = np.array([0, 0.25, 0.5, 0.75, 1]) * self.capacitor_energy
+        # Determine the best shunt level to use
+        hp_vs_available = total_hp_missing - capacitor_shuntable_energy
+        hp_vs_available[np.where(hp_vs_available < 0)] = 1e8
+        shunt_level = hp_vs_available.argmin()
+        if shunt_level == 0:
+            return
+        # Determine which loaded level is at or below best level
+        best_loaded_shunt_level = 0
+        for self.command_id in self.droid_commands:
+            if 'weapcap_to_shield' in self.command_id:
+                current_level = int(self.command_id.split('_')[-1])
+                if current_level <= shunt_level and current_level > best_loaded_shunt_level:
+                    best_loaded_shunt_level = deepcopy(current_level)
+        if best_loaded_shunt_level == 0:
+            return
+        energy_to_each_shield = capacitor_shuntable_energy[best_loaded_shunt_level] / 2
+        if back_hp_missing < energy_to_each_shield:
+            # Determine which level shield reinforce to use
+            front_shield_reinforcable_energy = np.array([0, 0.2, 0.5, 0.8, 1]) * self.ship_status['Front_Shield_Hitpoints']
+            hp_vs_available = back_hp_missing - front_shield_reinforcable_energy
+            hp_vs_available[np.where(hp_vs_available < 0)] = 1e8
+            reinforce_level = hp_vs_available.argmin()
+            if reinforce_level != 0:
+                # Determine which loaded level is at or below the best level
+                best_loaded_reinforce_level = 0
+                for self.command_id in self.droid_commands:
+                    if 'shields_fronttoback' in self.command_id:
+                        current_level = int(self.command_id.split('_')[-1])
+                        if current_level <= reinforce_level and current_level > best_loaded_reinforce_level:
+                            best_loaded_reinforce_level = deepcopy(current_level)
+                if best_loaded_reinforce_level != 0:
+                    self.run_droid_command('shields_fronttoback_' + str(best_loaded_reinforce_level))
+                    return
+        if front_hp_missing < energy_to_each_shield:
+            # Determine which level shield reinforce to use
+            back_shield_reinforcable_energy = np.array([0, 0.2, 0.5, 0.8, 1]) * self.ship_status['Back_Shield_Hitpoints']
+            hp_vs_available = front_hp_missing - back_shield_reinforcable_energy
+            hp_vs_available[np.where(hp_vs_available < 0)] = 1e8
+            reinforce_level = hp_vs_available.argmin()
+            if reinforce_level != 0:
+                # Determine which loaded level is at or below the best level
+                best_loaded_reinforce_level = 0
+                for self.command_id in self.droid_commands:
+                    if 'shields_backtofront' in self.command_id:
+                        current_level = int(self.command_id.split('_')[-1])
+                        if current_level <= reinforce_level and current_level > best_loaded_reinforce_level:
+                            best_loaded_reinforce_level = deepcopy(current_level)
+                if best_loaded_reinforce_level != 0:
+                    self.run_droid_command('shields_backtofront_' + str(best_loaded_reinforce_level))
+                    return
+        self.run_droid_command('weapcap_to_shield_' + str(best_loaded_shunt_level))
+        
+        
+    def find_radar(self):
+        radar_fpath = os.path.join(self.ui_dir_path, 'radar_idx.csv')
+        if os.path.exists(radar_fpath):
+            self.radar_idx = file_utils.read_csv(radar_fpath, dtype=int)[0]
+            return
+        # Because shields or armor might not be there, they are masked
+        self.radar_arr = np.ma.masked_where(self.radar_arr > 70, self.radar_arr)
+        img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, set_focus=False, sharpen=False)
+        maximal_similarity_dct = {'idx':[0,0], 'similarity': 0}
+        for i in range(img_arr.shape[0]):
+            for j in range(img_arr.shape[1]):
+                search_arr = img_arr[i : i + self.radar_arr.shape[0], j : j + self.radar_arr.shape[1]]
+                if search_arr.shape != self.radar_arr.shape:
+                    continue
+                similarity = (search_arr == self.radar_arr).sum()
+                if similarity > maximal_similarity_dct['similarity']:
+                    maximal_similarity_dct['idx'] = [i, j]
+                    maximal_similarity_dct['similarity'] = similarity
+        if maximal_similarity_dct['similarity'] / self.radar_arr.size < 0.4:
+            raise Exception('Could not find radar widget with at least 40% of pixels matching')
+        self.radar_idx = maximal_similarity_dct['idx']
+        file_utils.write_row_to_csv(radar_fpath, list(self.radar_idx), mode='w')
+        
+        
+    def get_shield_hp(self):
+        radar_region = {'top': self.radar_idx[0] + self.swg_region['top'], 'left': self.radar_idx[1] + self.swg_region['left'], 'width': self.shield_front_arr.shape[1], 'height': self.shield_front_arr.shape[0]}
+        current_radar_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=radar_region, set_focus=False, sharpen=False)
+        # Ratio the current pixels that are >= HP full array which will report a little less than actual HP if blips cause brightness of shield arc to decrease, and a little more than actual in the case of white allies.
+        # Overall, probably errs on the side of reporting lesser HP than actual, which is the better of the 2 possible errors.
+        self.ship_status['Front_Shield_Hitpoints'] = self.ship_loadout['Front_Shield_Hitpoints'] * (current_radar_arr >= self.shield_front_arr).sum() / (self.shield_front_arr.size - self.shield_front_arr.mask.sum())
+        self.ship_status['Back_Shield_Hitpoints'] = self.ship_loadout['Back_Shield_Hitpoints'] * (current_radar_arr >= self.shield_back_arr).sum() / (self.shield_back_arr.size - self.shield_back_arr.mask.sum())
+        
+        
+    def get_armor_hp(self):
+        radar_region = {'top': self.radar_idx[0] + self.swg_region['top'], 'left': self.radar_idx[1] + self.swg_region['left'], 'width': self.armor_front_arr.shape[1], 'height': self.armor_front_arr.shape[0]}
+        current_radar_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=radar_region, set_focus=False, sharpen=False)
+        # Ratio the current pixels that are >= HP full array which will report a little less than actual HP if blips cause brightness of armor arc to decrease, and a little more than actual in the case of white allies.
+        # Overall, probably errs on the side of reporting lesser HP than actual, which is the better of the 2 possible errors.
+        self.ship_status['Front_Armor_Hitpoints'] = self.ship_loadout['Front_Armor_Hitpoints'] * (current_radar_arr >= self.armor_front_arr).sum() / (self.armor_front_arr.size - self.armor_front_arr.mask.sum())
+        self.ship_status['Back_Armor_Hitpoints'] = self.ship_loadout['Back_Armor_Hitpoints'] * (current_radar_arr >= self.armor_back_arr).sum() / (self.armor_back_arr.size - self.armor_back_arr.mask.sum())
+        
+        
+    #def get_capacitor_energy(self):
+    #    self.capacitor_energy =
         
         
     def get_target_dist(self, fail_gracefully=False):
@@ -111,11 +310,6 @@ class Turret(Space):
         swg_utils.chat('/ui action radialMenu')
         pdi.press('1')
         time.sleep(4.5)
-        
-        
-    def run_droid_commands(self):
-        pdi.press('esc')
-        swg_utils.chat('/macro dcs')
         
         
     def get_RDU_1(self):
@@ -873,14 +1067,14 @@ class Duty_Mission_POB_Pilot(Duty_Mission_Pilot, POB_Pilot):
 def main_duty_mission_rear_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), num_none_target_max=1):
     turret = Duty_Mission_Rear_Turret(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, num_none_target_max=num_none_target_max)
     # For now, assume only need to run commands once (which assumes the ship doesn't get destroyed etc)
-    turret.run_droid_commands()
+    turret.run_bulk_droid_commands()
     turret.operate_turret()
 
 
 def main_duty_mission_deck_turret(swg_window_i=0, target_closest_enemy_hotkey='j', dir_path=os.path.join(git_path, 'space_ui_dir'), num_none_target_max=25):
     turret = Duty_Mission_Deck_Turret(swg_window_i=swg_window_i, target_closest_enemy_hotkey=target_closest_enemy_hotkey, dir_path=dir_path, num_none_target_max=num_none_target_max)
     # For now, assume only need to run commands once (which assumes the ship doesn't get destroyed etc)
-    #turret.run_droid_commands() # Let rear turreter do it.
+    #turret.run_bulk_droid_commands() # Let rear gunner do it.
     turret.operate_turret()
     
 

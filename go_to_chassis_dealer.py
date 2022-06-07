@@ -21,7 +21,7 @@ import run_waypoint_path as rwp
 import pydirectinput_tmr as pdi
 import swg_window_management as swm
 import swg_utils
-import time
+import time, random
 
 swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
 swg_window = swm.swg_windows[swg_window_i]
@@ -125,14 +125,30 @@ def empty_function():
 
 
 def go_home_via_G9():
-    pdi.press('0')
-    time.sleep(2)
-    pdi.click()
-    time.sleep(4)
-    pdi.press('down')
-    time.sleep(0.1)
-    pdi.press('enter')
-    time.sleep(14)
+    dir_path = os.path.join(git_path, 'land_ui_dir')
+    search_arr = swg_utils.get_search_arr('manage_locations_200', dir_path=dir_path)
+    num_attempts = 30
+    for i in range(num_attempts):
+        pdi.press('0')
+        time.sleep(2)
+        pdi.click()
+        time.sleep(2)
+        manage_locations_idx, img_arr = swg_utils.find_arr_on_region(search_arr, region=region, img_arr=None, start_row=0, start_col=0, end_row=None, end_col=None, fail_gracefully=True, sharpen_threshold=200)
+        if manage_locations_idx is None:
+            pdi.keyDown('w')
+            time.sleep(10)
+            pdi.keyUp('w')
+            direction = ['w','s','q','e'][random.randint(0,3)]
+            pdi.keyDown(direction)
+            time.sleep(random.random() * 10)
+            pdi.keyUp(direction)
+            continue
+        time.sleep(4)
+        pdi.press('down')
+        time.sleep(0.1)
+        pdi.press('enter')
+        time.sleep(14)
+        return
 
 
 def go_to_chassis_dealer(calibrate_to_north=True):

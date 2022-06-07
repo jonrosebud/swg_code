@@ -51,7 +51,8 @@ class Space(SWG):
             'Back_Shield_Hitpoints': 100,
             'Front_Armor_Hitpoints': 100,
             'Back_Armor_Hitpoints': 100,
-            'Droid_Command_Speed': 8},
+            'Droid_Command_Speed': 8,
+            'Capacitor_Energy': 100},
             droid_commands=[
                 'weapcap_powerup_4', 'engine_overload_4', 'weapons_overload_4', 'shield_adjust_rear_4', 'shields_backtofront_1', 'shields_fronttoback_1', 'shield_emergency_rear', 'weapcap_to_shield_1', 'zone_to_kessel'
                 ]
@@ -68,14 +69,20 @@ class Space(SWG):
         self.target_this_arr = swg_utils.get_search_arr('target_this', dir_path=self.dir_path, mask_int=None)
         self.vertical_triangle_side_arr = swg_utils.get_search_arr('vertical_triangle_side_arr', dir_path=self.dir_path, mask_int=None)
         self.horizontal_triangle_side_arr = swg_utils.get_search_arr('horizontal_triangle_side_arr', dir_path=self.dir_path, mask_int=None)
-        self.radar_arr = swg_utils.get_search_arr('space_radar_bw', dir_path=self.dir_path, mask_int = None)
-        self.shield_front_arr = swg_utils.get_search_arr('shield_full_hp_front', dir_path=self.dir_path, mask_int=0)
-        self.shield_back_arr = swg_utils.get_search_arr('shield_full_hp_back', dir_path=self.dir_path, mask_int=0)
-        self.armor_front_arr = swg_utils.get_search_arr('armor_full_hp_front', dir_path=self.dir_path, mask_int=0)
-        self.armor_back_arr = swg_utils.get_search_arr('armor_full_hp_back', dir_path=self.dir_path, mask_int=0)
+        self.radar_arr = swg_utils.get_search_arr('space_radar', dir_path=self.dir_path, mask_int=None)
+        self.front_shield_arr = swg_utils.get_search_arr('front_shields', dir_path=self.dir_path, mask_int=None)
+        self.back_shield_arr = swg_utils.get_search_arr('back_shields', dir_path=self.dir_path, mask_int=None)
+        self.front_armor_arr = swg_utils.get_search_arr('front_armor', dir_path=self.dir_path, mask_int=None)
+        self.back_armor_arr = swg_utils.get_search_arr('back_armor', dir_path=self.dir_path, mask_int=None)
+        self.capacitor_arr = swg_utils.get_search_arr('capacitor', dir_path=self.dir_path, mask_int=None)
         self.ship_loadout = ship_loadout
         self.droid_commands = droid_commands
         # SETUP
+        self.front_shield_arr_count = self.front_shield_arr.sum()
+        self.back_shield_arr_count = self.back_shield_arr.sum()
+        self.front_armor_arr_count = self.front_armor_arr.sum()
+        self.back_armor_arr_count = self.back_armor_arr.sum()
+        self.capacitor_arr_count = self.capacitor_arr.sum()
         # FIND UI ITEMS
         self.find_radar()
         # INITIAL VALUES
@@ -84,7 +91,8 @@ class Space(SWG):
         self.ship_status = {'Front_Shield_Hitpoints': self.ship_loadout['Front_Shield_Hitpoints'], 
                             'Back_Shield_Hitpoints': self.ship_loadout['Back_Shield_Hitpoints'],
                             'Front_Armor_Hitpoints': self.ship_loadout['Front_Armor_Hitpoints'],
-                            'Back_Armor_Hitpoints': self.ship_loadout['Back_Armor_Hitpoints']}
+                            'Back_Armor_Hitpoints': self.ship_loadout['Back_Armor_Hitpoints'],
+                            'Capacitor_Energy': self.ship_loadout['Capacitor_Energy']}
         
         
     def dc_val(self, value_col_name):
@@ -155,7 +163,7 @@ class Space(SWG):
         front_hp_missing = self.ship_loadout['Front_Shield_Hitpoints'] - self.ship_status['Front_Shield_Hitpoints']
         back_hp_missing = self.ship_loadout['Back_Shield_Hitpoints'] - self.ship_status['Back_Shield_Hitpoints']
         total_hp_missing = front_hp_missing + back_hp_missing
-        capacitor_shuntable_energy = np.array([0, 0.25, 0.5, 0.75, 1]) * self.capacitor_energy
+        capacitor_shuntable_energy = np.array([0, 0.25, 0.5, 0.75, 1]) * self.ship_status['Capacitor_Energy']
         # Determine the best shunt level to use
         hp_vs_available = total_hp_missing - capacitor_shuntable_energy
         hp_vs_available[np.where(hp_vs_available < 0)] = 1e8
@@ -214,8 +222,6 @@ class Space(SWG):
         if os.path.exists(radar_fpath):
             self.radar_idx = file_utils.read_csv(radar_fpath, dtype=int)[0]
             return
-        # Because shields or armor might not be there, they are masked
-        self.radar_arr = np.ma.masked_where(self.radar_arr > 70, self.radar_arr)
         img_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=self.swg_region, set_focus=False, sharpen=False)
         maximal_similarity_dct = {'idx':[0,0], 'similarity': 0}
         for i in range(img_arr.shape[0]):
@@ -227,32 +233,34 @@ class Space(SWG):
                 if similarity > maximal_similarity_dct['similarity']:
                     maximal_similarity_dct['idx'] = [i, j]
                     maximal_similarity_dct['similarity'] = similarity
-        if maximal_similarity_dct['similarity'] / self.radar_arr.size < 0.4:
-            raise Exception('Could not find radar widget with at least 40% of pixels matching')
+        if maximal_similarity_dct['similarity'] / self.radar_arr.size < 0.3:
+            raise Exception('Could not find radar widget with at least 30% of pixels matching')
         self.radar_idx = maximal_similarity_dct['idx']
         file_utils.write_row_to_csv(radar_fpath, list(self.radar_idx), mode='w')
         
         
     def get_shield_hp(self):
-        radar_region = {'top': self.radar_idx[0] + self.swg_region['top'], 'left': self.radar_idx[1] + self.swg_region['left'], 'width': self.shield_front_arr.shape[1], 'height': self.shield_front_arr.shape[0]}
-        current_radar_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=radar_region, set_focus=False, sharpen=False)
-        # Ratio the current pixels that are >= HP full array which will report a little less than actual HP if blips cause brightness of shield arc to decrease, and a little more than actual in the case of white allies.
-        # Overall, probably errs on the side of reporting lesser HP than actual, which is the better of the 2 possible errors.
-        self.ship_status['Front_Shield_Hitpoints'] = self.ship_loadout['Front_Shield_Hitpoints'] * (current_radar_arr >= self.shield_front_arr).sum() / (self.shield_front_arr.size - self.shield_front_arr.mask.sum())
-        self.ship_status['Back_Shield_Hitpoints'] = self.ship_loadout['Back_Shield_Hitpoints'] * (current_radar_arr >= self.shield_back_arr).sum() / (self.shield_back_arr.size - self.shield_back_arr.mask.sum())
+        radar_region = {'top': self.radar_idx[0] + self.swg_region['top'], 'left': self.radar_idx[1] + self.swg_region['left'], 'width': self.front_shield_arr.shape[1], 'height': self.front_shield_arr.shape[0]}
+        current_radar_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=radar_region, set_focus=False, sharpen=True, sharpen_threshold=1, scale_to=1)
+        # Ratio the current pixels that are 1 with the array that has full shield hp.
+        self.ship_status['Front_Shield_Hitpoints'] = self.ship_loadout['Front_Shield_Hitpoints'] * (current_radar_arr * self.front_shield_arr).sum() / self.front_shield_arr_count
+        self.ship_status['Back_Shield_Hitpoints'] = self.ship_loadout['Back_Shield_Hitpoints'] * (current_radar_arr * self.back_shield_arr).sum() / self.back_shield_arr_count
         
         
     def get_armor_hp(self):
-        radar_region = {'top': self.radar_idx[0] + self.swg_region['top'], 'left': self.radar_idx[1] + self.swg_region['left'], 'width': self.armor_front_arr.shape[1], 'height': self.armor_front_arr.shape[0]}
+        radar_region = {'top': self.radar_idx[0] + self.swg_region['top'], 'left': self.radar_idx[1] + self.swg_region['left'], 'width': self.front_armor_arr.shape[1], 'height': self.front_armor_arr.shape[0]}
         current_radar_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=radar_region, set_focus=False, sharpen=False)
-        # Ratio the current pixels that are >= HP full array which will report a little less than actual HP if blips cause brightness of armor arc to decrease, and a little more than actual in the case of white allies.
-        # Overall, probably errs on the side of reporting lesser HP than actual, which is the better of the 2 possible errors.
-        self.ship_status['Front_Armor_Hitpoints'] = self.ship_loadout['Front_Armor_Hitpoints'] * (current_radar_arr >= self.armor_front_arr).sum() / (self.armor_front_arr.size - self.armor_front_arr.mask.sum())
-        self.ship_status['Back_Armor_Hitpoints'] = self.ship_loadout['Back_Armor_Hitpoints'] * (current_radar_arr >= self.armor_back_arr).sum() / (self.armor_back_arr.size - self.armor_back_arr.mask.sum())
+        # Ratio the current pixels that are 1 with the array that has full armor hp.
+        self.ship_status['Front_Armor_Hitpoints'] = self.ship_loadout['Front_Armor_Hitpoints'] * (current_radar_arr * self.front_armor_arr).sum() / self.front_armor_arr_count
+        self.ship_status['Back_Armor_Hitpoints'] = self.ship_loadout['Back_Armor_Hitpoints'] * (current_radar_arr * self.back_armor_arr).sum() / self.back_armor_arr_count
         
         
-    #def get_capacitor_energy(self):
-    #    self.capacitor_energy =
+    def get_capacitor_energy(self):
+        radar_region = {'top': self.radar_idx[0] + self.swg_region['top'], 'left': self.radar_idx[1] + self.swg_region['left'], 'width': self.front_armor_arr.shape[1], 'height': self.front_armor_arr.shape[0]}
+        current_radar_arr = swg_utils.take_grayscale_screenshot(window=self.swg_window, region=radar_region, set_focus=False, sharpen=False)
+        # Ratio the current pixels that are 1 with the array that has full capacitor energy.
+        self.ship_status['Capacitor_Energy'] = self.ship_loadout['Capacitor_Energy'] * (current_radar_arr * self.capcitor_arr).sum() / self.capacitor_arr_count
+        
         
         
     def get_target_dist(self, fail_gracefully=False):
@@ -838,7 +846,10 @@ class Pilot(Space):
     def autopilot_to_wp(self, active_wp_name):
         time.sleep(0.2)
         self.get_active_wp_idx(active_wp_name)
-        self.active_wp_clickable_idx = [self.active_wp_dct[active_wp_name]['idx'][0] + 7, self.active_wp_dct[active_wp_name]['idx'][1] + 25]
+        try:
+            self.active_wp_clickable_idx = [self.active_wp_dct[active_wp_name]['idx'][0] + 7, self.active_wp_dct[active_wp_name]['idx'][1] + 25]
+        except:
+            return
         swg_utils.click(button='right', start_delay=0.02, return_delay=0.3, window=self.swg_window, region=self.swg_region, coords_idx=self.active_wp_clickable_idx, activate_window=False)
         if self.active_wp_dct[active_wp_name]['autopilot_to_idx'] is None:
             autopilot_to_arr = swg_utils.get_search_arr('Autopilot_To', dir_path=self.dir_path, mask_int=None)

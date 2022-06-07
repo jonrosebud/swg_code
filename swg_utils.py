@@ -500,6 +500,18 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
                     j : j + search_arr.shape[1]] ==
                     search_arr):
                 
+                # Check to make sure mask isn't completely ruining the search.
+                # e.g. if less than 50% of masked pixels match the data (usually 0), then
+                # it is probably just a white block
+                if hasattr(search_arr, 'mask') and st is not None:
+                    reversed_ma = np.ma.array(search_arr.data, mask=~search_arr.mask)
+                    if (len(np.where(img_arr[i : i + reversed_ma.shape[0], 
+                            j : j + reversed_ma.shape[1]] ==
+                            reversed_ma)[0])
+                            / reversed_ma.mask.sum()
+                            ) < 0.5:
+                        continue
+                
                 if return_as_tuple:
                     return i, j, img_arr
                 elif n_matches is None:

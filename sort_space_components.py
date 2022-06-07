@@ -661,7 +661,11 @@ class Ship_Component:
             else:
                 # The percentile is the highest of these so it's the last element of percentile_arr
                 percentile = percentile_arr[-1]
-            self.max_loot_percentile_value = max(self.max_loot_percentile_value, percentile)
+            if stat_key == 'Armor' and self.component_type != 'armor':
+                if percentile > 0.9999:
+                    self.max_loot_percentile_value = max(self.max_loot_percentile_value, percentile)
+            else:
+                self.max_loot_percentile_value = max(self.max_loot_percentile_value, percentile)
         
         
     def get_mean_value(self, avg, modifier, stat_key):
@@ -1376,8 +1380,10 @@ def sort_backpack(generic_component, component_dct, pack):
             # Put into hopper.
             # (For now don't worry about whether it's full, that's a TODO for later)
             component.store_loot_in_hopper(item_coords, 'good_loot', False, calibrator=calibrator)
+            end_inventory_position -= 1
         elif component.component_type == 'droid_interface':
             component.store_loot_in_hopper(item_coords, 'junk_droid_interface', False, calibrator=calibrator)
+            end_inventory_position -= 1
         else:
             item_inventory_position += 1
         component.update_recorded_stats_df()
@@ -1450,8 +1456,10 @@ def sort_droid_inventory(generic_component, component_dct):
             # Put into hopper.
             # (For now don't worry about whether it's full, that's a TODO for later)
             component.store_loot_in_hopper(item_coords, 'good_loot', False, calibrator=gc)
+            end_inventory_position -= 1
         elif component.component_type == 'droid_interface':
             component.store_loot_in_hopper(item_coords, 'junk_droid_interface', False, calibrator=hc)
+            end_inventory_position -= 1
         else:
             item_inventory_position += 1
         component.update_recorded_stats_df()
@@ -1742,11 +1750,15 @@ def orient(open_inventory=True, zoom_in=True):
     pdi.keyUp('ctrl')
     if zoom_in:
         # Scroll (zoom) all the way in
-        for _ in range(50):
-            pag.scroll(100)
+        for _ in range(40):
+            pag.scroll(80)
     # Get to free-moving mouse mode
-    pdi.press('alt')
-    time.sleep(0.1)
+    # If not in free-moving mouse mode already, press alt
+    non_free_moving_mouse_mode_circle_arr = swg_utils.get_search_arr('non_free_moving_mouse_mode_circle', dir_path=os.path.join(git_path, 'land_ui_dir'), mask_int=0)
+    img_arr = swg_utils.take_grayscale_screenshot(region=region, sharpen=False, set_focus=False)
+    if np.all(non_free_moving_mouse_mode_circle_arr == img_arr[373:373+non_free_moving_mouse_mode_circle_arr.shape[0],504:504+non_free_moving_mouse_mode_circle_arr.shape[1]]):
+        pdi.press('alt')
+        time.sleep(0.1)
 
     swg_utils.moveTo(window=swg_window, region=region, coords_idx=[region['height'] - 1, int(region['width']/2)], return_delay=0.1)
     
@@ -2155,7 +2167,7 @@ def calibrate_containers(calibration_desires_dct={
                     
 def get_name(img_arr, calibrator, sorting_task, item_coords):
     component_type_id_dct = {'Booster_Energy':'booster', 'Capacitor_Energy':'capacitor', 'Droid_Command_Speed':'droid_interface', 'Engine_Top_Speed':'engine', 'Reactor_Generation_Rate':'reactor', 'Shield_Recharge_Rate':'shield', 'Energy_Per_Shot':'weapon', 'Armor': 'armor'}
-    hopper_type_dct = {'collection': 'collection', 'cargo_crate' : 'crate', 'military_crate': 'crate'}
+    hopper_type_dct = {'collection': 'collection', 'cargo_crate' : 'crate', 'military_crate': 'crate', 'crate': 'crate'}
     generic_component = Ship_Component()
     # Find out which type of space component. If it is not a space component, but it is in hopper_type_dct then that will be returned. Else None is returned.
     found_name = None
@@ -2173,6 +2185,8 @@ def get_name(img_arr, calibrator, sorting_task, item_coords):
                 break
         if found_name is None:
             return None
+        if 'crate' in found_name:
+            found_name = 'crate'
         if 'collection' == found_name or ('crate' in found_name and sorting_task != 'POB'):
             generic_component.store_loot_in_hopper(item_coords, hopper_type_dct[found_name], False, calibrator=calibrator)
         return found_name
@@ -2449,6 +2463,32 @@ def sort_loot_when_in_house(sorting_desires_dct):
     print('junk was put into caravan')
     # Close inventory
     pdi.press('esc')
+    
+    
+def get_toon_name():
+    ui_dir = os.path.join(git_path, 'land_ui_dir')
+    ui_dir_fpaths = file_utils.find(ui_dir, '*.csv')
+    possible_names = ['likeCinnamon']
+    toon_fpath = None
+    for possible_name in possible_names:
+        for ui_dir_fpath in ui_dir_fpaths:
+            if possible_name in ui_dir_fpath:
+                toon_fpath = ui_dir_fpath
+                break
+    if toon_fpath is None:
+        toon_name = input('Type toon name:')
+        for ui_dir_fpath in ui_dir_fpaths:
+            if toon_name in ui_dir_fpath:
+                toon_fpath = ui_dir_fpath
+                break
+    if toon_fpath is None:
+        raise Exception('Toon name file not found. Put a (145) sharpened grayscale csv file in Land_ui_dir. e.g. likeCinnamon.csv')
+    search_arr = swg_utils.get_search_arr(file_utils.fname_from_fpath(toon_fpath), dir_path=ui_dir, mask_int=0)
+    found_idx, _ = swg_utils.find_arr_on_region(search_arr, region=region, start_row=0, start_col=0, end_row=100, end_col=300, fail_gracefully=False, sharpen_threshold=145)
+    for possible_name in possible_names:
+        if possible_name in toon_fpath:
+            return possible_name
+    
 # Global vars set by user
 '''
 sorting_desires_dct: dict
@@ -2542,26 +2582,32 @@ Notes
     
 3. The storage hopper windows should be sized and placed such that the height is minimize, the width is maximized, and the top left corner of the description pane is visible.
 '''
-starting_inventory_position = 2
-num_equipped_items = 2
-num_items_in_bulky_containers = 0
-num_pit_droids = 24
-pit_droid_pane = 6
-junk_hopper_i = 0
-crate_hopper_i = 0
+
+
+        
+
+toon_name = get_toon_name()
+starting_inventory_position = config.config_dct[toon_name + '_sort_space_components']['starting_inventory_position']
+num_equipped_items = config.config_dct[toon_name + '_sort_space_components']['num_equipped_items']
+num_items_in_bulky_containers = config.config_dct[toon_name + '_sort_space_components']['num_items_in_bulky_containers']
+num_pit_droids  = config.config_dct[toon_name + '_sort_space_components']['num_pit_droids ']
+pit_droid_pane = config.config_dct[toon_name + '_sort_space_components']['pit_droid_pane']
+junk_hopper_i = config.config_dct[toon_name + '_sort_space_components']['junk_hopper_i']
+crate_hopper_i = config.config_dct[toon_name + '_sort_space_components']['crate_hopper_i']
 # Index of starting droid to investigate. num_droids is still total number of droids including those not wished to be investigated (minus any at the end that don't have space stuff, if any)
-pit_droid_i = 0
-droid_interface_hopper_i = 0
-non_components_hopper_i = 0
-collection_hopper_i = 0
-backpack_inventory_position = 0
+pit_droid_i = config.config_dct[toon_name + '_sort_space_components']['pit_droid_i']
+droid_interface_hopper_i = config.config_dct[toon_name + '_sort_space_components']['droid_interface_hopper_i']
+non_components_hopper_i = config.config_dct[toon_name + '_sort_space_components']['non_components_hopper_i']
+collection_hopper_i = config.config_dct[toon_name + '_sort_space_components']['collection_hopper_i']
+backpack_inventory_position = config.config_dct[toon_name + '_sort_space_components']['backpack_inventory_position']
+num_inventory_cols = config.config_dct[toon_name + '_sort_space_components']['num_inventory_cols']
+num_hopper_cols = config.config_dct[toon_name + '_sort_space_components']['num_hopper_cols']
+
 # Constants
 digit_height = 8
 num_cols_from_left_side_to_first_indentation_level = 7
 num_cols_from_left_side_to_second_indentation_level = 27
 width_of_description_pane = 263
-num_inventory_cols = 9
-num_hopper_cols = 10
 down_arrow_to_start_of_item_count_offset = np.array([23, 75])
 down_arrow_to_lower_right_corner_offset = np.array([83, 16])
 # Coords of where to drag items into a hopper
@@ -2604,7 +2650,7 @@ def main(sorting_task, calibration_desires_dct, sorting_desires_dct):
                 get_value_of_desired_percentile(component_type='droid_interface', re_lvl=str(lvl), stat_key='Droid_Command_Speed', desired_percentile=percentile, iterator_magnitude=0.1, start_value=50)
 
 if __name__ == '__main__':
-    main('POB', {
+    main('house', {
         'inventory': True,
         'backpack': False,
         'droids': False,
@@ -2616,7 +2662,7 @@ if __name__ == '__main__':
         'inventory': True, 
         'backpack': True, 
         'crates': False, 
-        'droids': True
+        'droids': False
         })
     
 '''

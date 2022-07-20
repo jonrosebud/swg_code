@@ -24,6 +24,7 @@ sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils
 os = file_utils.os
 git_path = config.config_dct['main']['git_path']
+onedrive_path = config.config_dct['main']['onedrive_path']
 sys.path.append(r"" + git_path)
 import swg_utils
 import swg_window_management as swm
@@ -515,7 +516,7 @@ class Ship_Component:
             self.recorded_stats_df = None
             
         # Do the same thing for good recorded stats
-        self.good_recorded_stats_fpath = os.path.join(r'C:\Users\trose\OneDrive\swg_good_loot', self.component_type + '_good_recorded_stats.xlsx')
+        self.good_recorded_stats_fpath = os.path.join(onedrive_path, 'swg_good_loot', self.component_type + '_good_recorded_stats.xlsx')
         if os.path.exists(self.good_recorded_stats_fpath):
             self.good_recorded_stats_df = pd.read_excel(self.good_recorded_stats_fpath)
             if len(self.good_recorded_stats_df) > 0:

@@ -6,8 +6,8 @@ Created on Fri Jan 28 14:52:11 2022
 """
 
 from config_utils import Instruct
-import socket
-config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+import socket, os
+config_fpath = os.path.join('..', 'swg_config_file_for_' + socket.gethostname() + '.conf')
 config = Instruct(config_fpath)
 config.get_config_dct()
 import sys
@@ -23,7 +23,6 @@ import run_waypoint_path as rwp
 import swg_utils
 import pandas as pd
 import pydirectinput_tmr as pdi
-os = file_utils.os
 swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
 swg_window = swm.swg_windows[swg_window_i]
 swg_region = swm.swg_window_regions[swg_window_i]

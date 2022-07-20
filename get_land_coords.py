@@ -11,8 +11,8 @@ import numpy as np
 import pandas as pd
 import pywinauto as pwa
 from config_utils import Instruct
-import socket
-config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+import socket, os
+config_fpath = os.path.join('..', 'swg_config_file_for_' + socket.gethostname() + '.conf')
 config = Instruct(config_fpath)
 config.get_config_dct()
 import sys
@@ -20,7 +20,6 @@ python_utils_path = config.config_dct['main']['python_utils_path']
 sys.path.append(r"" + python_utils_path)
 import pydirectinput_tmr as pdi
 from python_utils import windows_process_utils, file_utils
-os = file_utils.os
 from copy import deepcopy
 from PIL import Image
 import swg_window_management as swm
@@ -197,7 +196,7 @@ def determine_region_coords(swg_window_region, region_fpath='region.png',
     df.to_csv(csv_fpath, index=False, index_label=None, header=False)
 
 
-def get_number_from_arr(line_arr):
+def get_number_from_arr(line_arr, fail_gracefully=False):
     '''
     line_arr: 2D np.array
         This matrix must be the same height (number of rows) as the stored
@@ -266,10 +265,16 @@ def get_number_from_arr(line_arr):
                    digits += digit_key
         i += 1
     # Convert the digit string into a number.
-    return int(digits)
+    try:
+        return int(digits)
+    except:
+        if fail_gracefully:
+            return None
+        else:
+            raise Exception('Could not convert digits to int. digits:', digits)
     
         
-def get_land_coords(swg_window_region):
+def get_land_coords(swg_window_region, fail_gracefully=False):
     '''
     swg_window_region: dict
         Defines a rectangular area of the screen corresponding to the swg_window.
@@ -313,8 +318,10 @@ def get_land_coords(swg_window_region):
     # second (y) number.
     y_coord_arr = img_arr[:, 106:144]
     # Parse the matrices for the numbers.
-    x_coord = get_number_from_arr(x_coord_arr)
-    y_coord = get_number_from_arr(y_coord_arr)
+    x_coord = get_number_from_arr(x_coord_arr, fail_gracefully=fail_gracefully)
+    y_coord = get_number_from_arr(y_coord_arr, fail_gracefully=fail_gracefully)
+    if x_coord is None or y_coord is None:
+        return None
     return [x_coord, y_coord]
         
         

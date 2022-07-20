@@ -5,7 +5,7 @@ Created on Tue Oct 26 21:09:28 2021
 @author: trose
 """
 
-import time
+import time, os
 import pyautogui as pag
 import mss
 import cv2
@@ -13,14 +13,13 @@ import numpy as np
 from copy import deepcopy
 from config_utils import Instruct
 import socket
-config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+config_fpath = os.path.join('..','swg_config_file_for_' + socket.gethostname() + '.conf')
 config = Instruct(config_fpath)
 config.get_config_dct()
 import sys
 python_utils_path = config.config_dct['main']['python_utils_path']
 sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils, list_utils
-os = file_utils.os
 import autoit as ait
 git_path = config.config_dct['main']['git_path']
 sys.path.append(r"" + git_path)
@@ -433,7 +432,7 @@ def chat(string, start_delay=0.2, return_delay=0.1, interval_delay=0.1, chatbar_
     time.sleep(return_delay)
     
     
-def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start_col=0, end_row=None, end_col=None, fail_gracefully=False, sharpen_threshold=130, return_as_tuple=False, n_matches=None):
+def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start_col=0, end_row=None, end_col=None, fail_gracefully=False, sharpen_threshold=130, return_as_tuple=False, n_matches=None, abs_diff_tol=0):
     '''
     Parameters
     ----------
@@ -482,6 +481,9 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
         None: default. Return the first match, if any, otherwise, return None
         int: Return the first n_matches number of matches, if any, in a list. If none, return [].
         str: 'all'. This means return all found matches, if any, in a list. If none, return [].
+        
+    abs_diff_tol: int
+        sum of the absolute value of pairwise differences between a potential match arr and the search_arr. If it is <= abs_diff_tol, then count as a match.
         
     Returns
     -------
@@ -536,9 +538,8 @@ def find_arr_on_region(search_arr, region=None, img_arr=None, start_row=0, start
                 (where_mat[:,1] >= start_col) & (where_mat[:,1] <= end_col)),:]
         # We now have a set of valid indices to start our search from.
         for i, j in where_mat:
-            if np.all(img_arr[i : i + search_arr.shape[0], 
-                    j : j + search_arr.shape[1]] ==
-                    search_arr):
+            if (np.sum(np.abs(img_arr[i : i + search_arr.shape[0], j : j + search_arr.shape[1]]
+                - search_arr)) <= abs_diff_tol):
                 
                 # Check to make sure mask isn't completely ruining the search.
                 # e.g. if less than 50% of masked pixels match the data (usually 0), then
@@ -790,7 +791,7 @@ def destroy_item(item_coords, swg_window, region):
 def stealth_is_on(swg_window_i=0):
     search_arr = get_search_arr('stealth_buff_unsharpened', dir_path='land_ui_dir', mask_int=None)
     swg_window_region = swm.swg_window_regions[swg_window_i]
-    found, _ = find_arr_on_region(search_arr, region=swg_window_region, img_arr=None, start_row=20, start_col=20, end_row=80, end_col=80, fail_gracefully=True, sharpen_threshold=None)
+    found, _ = find_arr_on_region(search_arr, region=swg_window_region, img_arr=None, start_row=20, start_col=20, end_row=80, end_col=80, fail_gracefully=True, sharpen_threshold=None, abs_diff_tol=200)
     return found is not None
     
     
@@ -842,6 +843,7 @@ def get_toon_name(region):
         for possible_name in possible_names:
             if possible_name in toon_fpath:
                 return possible_name
+    return 'Default'
             
             
 def click_on_item(region, item_coords=None, coords_idx=None, button='left', sub_region=None):

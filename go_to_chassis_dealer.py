@@ -5,8 +5,8 @@ Created on Tue Oct 26 20:30:53 2021
 @author: trose
 """
 from config_utils import Instruct
-import socket
-config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+import socket, os
+config_fpath = os.path.join('..', 'swg_config_file_for_' + socket.gethostname() + '.conf')
 config = Instruct(config_fpath)
 config.get_config_dct()
 import sys
@@ -22,6 +22,7 @@ import pydirectinput_tmr as pdi
 import swg_window_management as swm
 import swg_utils
 import time, random
+import get_land_coords as gtc
 
 
 def find_travel_button():
@@ -270,19 +271,39 @@ def go_to_first_G9():
             swg_utils.stealth_on()
             time.sleep(3)
             pdi.keyDown('w')
-            time.sleep(10)
+            time.sleep(15)
             pdi.keyUp('w')
             direction = ['w','e'][random.randint(0,1)]
             pdi.keyDown(direction)
-            time.sleep(random.random() * 10)
+            time.sleep(random.random() * 20)
             pdi.keyUp(direction)
             swg_utils.stealth_off()
             time.sleep(0.2)
             continue
         pdi.press('up', presses=4, start_delay=4, return_delay=0.1)
         pdi.press('down', start_delay=0.1, return_delay=0.1)
-        pdi.press('enter', return_delay=14)
-        return
+        pdi.press('enter', return_delay=0)
+        # If land coords do not disappear within 6 seconds then probably we are in combat which necessitates cloaking and running away.
+        start_time = time.time()
+        while time.time() - start_time < 6 and gtc.get_land_coords(region, fail_gracefully=True) is not None:
+            time.sleep(0.5)
+        if time.time() - start_time >= 6:
+            swg_utils.stealth_on()
+            time.sleep(3)
+            pdi.keyDown('w')
+            time.sleep(15)
+            pdi.keyUp('w')
+            direction = ['w','e'][random.randint(0,1)]
+            pdi.keyDown(direction)
+            time.sleep(random.random() * 20)
+            pdi.keyUp(direction)
+            swg_utils.stealth_off()
+            time.sleep(0.2)
+            continue
+        else:
+            time.sleep(max(0, 14 - (time.time() - start_time)))
+            return
+            
     raise Exception('Could not use G9 in', num_attempts, 'attempts.')
     
     

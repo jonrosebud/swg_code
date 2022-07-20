@@ -6,8 +6,8 @@ Created on Tue Jul 27 23:23:19 2021
 """
 
 from config_utils import Instruct
-import socket
-config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+import socket, os
+config_fpath = os.path.join('..', 'swg_config_file_for_' + socket.gethostname() + '.conf')
 config = Instruct(config_fpath)
 config.get_config_dct()
 import sys
@@ -25,7 +25,6 @@ import swg_window_management as swm
 import random
 import string
 import swg_utils
-os = file_utils.os
 
 swg_window_i = config.get_value('main', 'swg_window_i', desired_type=int, required_to_be_in_conf=False, default_value=0)
 swg_window = swm.swg_windows[swg_window_i]

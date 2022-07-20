@@ -6,8 +6,8 @@ Created on Tue Oct 26 20:35:01 2021
 """
 
 from config_utils import Instruct
-import socket
-config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+import socket, os
+config_fpath = os.path.join('..', 'swg_config_file_for_' + socket.gethostname() + '.conf')
 config = Instruct(config_fpath)
 config.get_config_dct()
 import sys

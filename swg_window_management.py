@@ -4,8 +4,8 @@ Created on Thu Jul  1 14:32:22 2021
 @author: trose
 """
 from config_utils import Instruct
-import socket
-config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+import socket, os
+config_fpath = os.path.join('..', 'swg_config_file_for_' + socket.gethostname() + '.conf')
 config = Instruct(config_fpath)
 config.get_config_dct()
 import socket
@@ -17,7 +17,6 @@ try:
 except:
     import pywinauto as pwa
 from python_utils import windows_process_utils, file_utils, list_utils
-os = file_utils.os
 import mss
 from copy import deepcopy
 import numpy as np

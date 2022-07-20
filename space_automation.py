@@ -6,8 +6,8 @@ Created on Wed Jan 26 13:42:59 2022
 """
 
 from config_utils import Instruct
-import socket
-config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+import socket, os
+config_fpath = os.path.join('..', 'swg_config_file_for_' + socket.gethostname() + '.conf')
 config = Instruct(config_fpath)
 config.get_config_dct()
 import sys
@@ -23,7 +23,6 @@ import swg_window_management as swm
 import run_waypoint_path as rwp
 import swg_utils
 import pandas as pd
-os = file_utils.os
 import random
 import sort_space_components as ssc
 from copy import deepcopy

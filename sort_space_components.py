@@ -4,7 +4,7 @@ Created on Tue Aug 24 17:41:08 2021
 @author: trose
 """
 from copy import deepcopy
-import string
+import string, os
 import random
 from pprint import pprint
 import pandas as pd
@@ -15,14 +15,13 @@ import pydirectinput_tmr as pdi
 import time
 from config_utils import Instruct
 import socket
-config_fpath = 'swg_config_file_for_' + socket.gethostname() + '.conf'
+config_fpath = os.path.join('..', 'swg_config_file_for_' + socket.gethostname() + '.conf')
 config = Instruct(config_fpath)
 config.get_config_dct()
 import sys
 python_utils_path = config.config_dct['main']['python_utils_path']
 sys.path.append(r"" + python_utils_path)
 from python_utils import file_utils
-os = file_utils.os
 git_path = config.config_dct['main']['git_path']
 onedrive_path = config.config_dct['main']['onedrive_path']
 sys.path.append(r"" + git_path)
@@ -498,13 +497,13 @@ class Ship_Component:
         self.component_type = self.__class__.__name__.lower()
         if self.component_type != 'ship_component':
             # Use the STC file for now.
-            stc_fpath = os.path.join('STC', self.component_type + '_stc.csv')
+            stc_fpath = os.path.join('..', 'STC', self.component_type + '_stc.csv')
             self.stc_df = pd.read_csv(stc_fpath, dtype=float)
             self.stc_df = self.stc_df.astype({'Reverse_Engineering_Level': int})
         
         # Once enough of my own data has been collected, I'll use my own percentiles.
         # Collect data by keeping track of component stats
-        self.recorded_stats_fpath = os.path.join('STC', self.component_type + '_recorded_stats.csv')
+        self.recorded_stats_fpath = os.path.join('..', 'STC', self.component_type + '_recorded_stats.csv')
         if os.path.exists(self.recorded_stats_fpath):
             self.recorded_stats_df = pd.read_csv(self.recorded_stats_fpath)
             if len(self.recorded_stats_df) > 0:
@@ -512,6 +511,7 @@ class Ship_Component:
                 type_dct['Reverse_Engineering_Level'] = int
                 self.recorded_stats_df = self.recorded_stats_df.astype(type_dct)
         else:
+            file_utils.mkdir_if_DNE(os.path.join('..', 'STC'))
             # The sub-classes will take care of instantiating it.
             self.recorded_stats_df = None
             
@@ -1335,6 +1335,9 @@ def sort_inventory(generic_component, component_dct, sorting_crates=False, will_
             continue
         component = component_dct[found_name]
         component.get_stats(img_arr, corner_description_idx, first_indentation_level_col, second_indentation_level_col)
+        if not component.REable:
+            item_inventory_position += 1
+            continue
         component.get_max_loot_percentile_value_stc()
         if component.worth_keeping():
             # Put into hopper.
@@ -1514,6 +1517,9 @@ def sort_droid_inventory(generic_component, component_dct):
         
         component = component_dct[found_name]
         component.get_stats(img_arr, corner_description_idx, first_indentation_level_col, second_indentation_level_col)
+        if not component.REable:
+            item_inventory_position += 1
+            continue
         component.get_max_loot_percentile_value_stc()
         if component.worth_keeping():
             # Put into hopper.
@@ -1730,7 +1736,7 @@ def deal_with_droids(generic_component, component_dct):
     # Close inventory
     pdi.press('i')
     # Iterate through the droids on the toolbar
-    for d in range(pit_droid_i, num_pit_droids):
+    for d in range(droid_i, num_droids):
         # call the droid
         swg_utils.chat('/ui action toolbarSlot' + str(d).zfill(2))
         time.sleep(2)
@@ -1832,7 +1838,7 @@ def get_value_of_desired_percentile(component=None, stats_dct=None, component_ty
     
 def orient(open_inventory=True, zoom_in=True):
     '''
-    pit_droid_pane: int
+    droid_pane: int
         The toolbar pane that has all your inventory droids placed in the slots in contiguous order.
     
     Returns
@@ -1841,7 +1847,7 @@ def orient(open_inventory=True, zoom_in=True):
     
     Purpose
     -------
-    Scroll all the way in and face the ground so that your cursor will align with the pit droid so you can open up its inventory. This function makes sure the toolbar pane that has the pit droids is active.
+    Scroll all the way in and face the ground so that your cursor will align with the droid so you can open up its inventory. This function makes sure the toolbar pane that has the droids is active.
     
     Notes
     -----
@@ -1851,7 +1857,7 @@ def orient(open_inventory=True, zoom_in=True):
     '''
     # Switch to toolbar pane 6 where the droids are
     pdi.keyDown('ctrl')
-    pdi.press(str(pit_droid_pane))
+    pdi.press(str(droid_pane))
     pdi.keyUp('ctrl')
     if zoom_in:
         # Scroll (zoom) all the way in
@@ -2137,7 +2143,7 @@ def calibrate_containers(calibration_desires_dct={
     For each type in calibration_desires_dct, open each container of the type desired and calibrate its position.
     For inventory, open inventory, calibrate position, close inventory.
     For backpack, use backpack_inventory_position to open backpack, calibrate, close.
-    For droids, orient(), then use pit_droid_pane and num_pit_droids to open/calibrate/close them one at a time.
+    For droids, orient(), then use droid_pane and num_droids to open/calibrate/close them one at a time.
     For hopper, go through Loot_0-Loot9, collections_0-collections_1, DIs_0-DIs_5, non_components_0-non_components_4
     For pack, open inventory, start at the position you would start looking for loot, go through each item. Each item that is a container gets opened, inventory closed, pack calibrated, pack closed, inventory opened.
     For loot_box, (in the gunship) open Loot Box, calibrate, close.
@@ -2187,7 +2193,7 @@ def calibrate_containers(calibration_desires_dct={
             # Close backpack
             pdi.press('esc')
         elif container_type == 'droids':
-            for d in range(pit_droid_i, num_pit_droids):
+            for d in range(droid_i, num_droids):
                 orient(open_inventory=False, zoom_in=False)
                 # call the droid
                 swg_utils.chat('/ui action toolbarSlot' + str(d).zfill(2))
@@ -2298,7 +2304,7 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
     '''
     keep_DI_frequency: float
         Fraction of the time to keep droid interfaces (for use in convoy flight plans). Float between 0 and 1.
-        Setting this as a high value may fill up the pit droids quickly. Set at 0 if you don't want to do convoys.
+        Setting this as a high value may fill up the droids quickly. Set at 0 if you don't want to do convoys.
         
     Returns
     -------
@@ -2330,7 +2336,7 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
     3. Start out with 1 pack in your backpack (which is for space loot).
     4. Start out with no items in packs in your inventory. (Some items can be in the pack in the backpack)
     '''
-    global starting_inventory_position, pit_droid_i
+    global starting_inventory_position, droid_i
     # Set up an object for each component type
     component_dct = {'armor': Armor(), 'booster': Booster(), 'capacitor': Capacitor(), 'droid_interface': Droid_Interface(),
                 'engine': Engine(), 'reactor': Reactor(), 'shield': Shield(), 'weapon': Weapon()}
@@ -2384,6 +2390,9 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
             if found_name is not None and 'crate' not in found_name:
                 component = component_dct[found_name]
                 component.get_stats(img_arr, lc.corner_description_idx, lc.first_indentation_level_col, lc.second_indentation_level_col)
+                if not component.REable:
+                    ic.item_position += 1
+                    continue
                 component.get_max_loot_percentile_value_stc()
             if found_name is not None and (component.worth_keeping() or (component.component_type == 'droid_interface' and random.random() < keep_DI_frequency) or 'crate' in found_name):
                 # Open droid inventory
@@ -2391,9 +2400,9 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
                 close_hopper()
                 pdi.press('esc', presses=8)
                 # Iterate through the droids on the toolbar
-                while pit_droid_i < num_pit_droids:
+                while droid_i < num_droids:
                     # call the droid
-                    swg_utils.chat('/ui action toolbarSlot' + str(pit_droid_i).zfill(2), return_delay=2)
+                    swg_utils.chat('/ui action toolbarSlot' + str(droid_i).zfill(2), return_delay=2)
                     open_droid_inventory()
                     # See if droid full
                     dc.get_attributes()
@@ -2402,11 +2411,11 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
                         # Close droid inventory
                         pdi.press('esc')
                         # Store droid
-                        swg_utils.chat('/ui action toolbarSlot' + str(pit_droid_i).zfill(2), return_delay=2)
-                        pit_droid_i += 1
+                        swg_utils.chat('/ui action toolbarSlot' + str(droid_i).zfill(2), return_delay=2)
+                        droid_i += 1
                         continue
                     break
-                if pit_droid_i >= num_pit_droids:
+                if droid_i >= num_droids:
                     # No more space to put good loot, stop.
                     return False
                 # Activate Loot box
@@ -2414,7 +2423,7 @@ def sort_loot_when_in_POB(keep_DI_frequency=0):
                 # Put item into droid
                 swg_utils.click_drag(start_coords=lc.second_item_coords, end_coords=into_inventory_coords, num_drags=1, start_delay=0.05, return_delay=0.75)
                 # Store droid
-                swg_utils.chat('/ui action toolbarSlot' + str(pit_droid_i).zfill(2), return_delay=2)
+                swg_utils.chat('/ui action toolbarSlot' + str(droid_i).zfill(2), return_delay=2)
                 # Close hopper
                 pdi.press('esc')
                 time.sleep(0.2)
@@ -2508,7 +2517,7 @@ def sort_kash_nunes(component_type='weapon', level=8):
     Purpose
     -------
     Spend all duty mission tokens you have at kash nunes buying a single type of component at a certain level repeatedly.
-    If you obtain a component that passes the check in worth_keeping(), then put it into a pit droid. Else, fill up your 65-pack,
+    If you obtain a component that passes the check in worth_keeping(), then put it into a droid. Else, fill up your 65-pack,
     and then fill up inventory. When both full, take to chassis dealer and sell. Return to Kash for more buying and repeat.
     
     Method
@@ -2559,7 +2568,7 @@ def sort_kash_nunes(component_type='weapon', level=8):
     2. Deal with the possibility that a player is standing on top of me and thus I am unable to access the droid
     2a. Perhaps move to another room to do sorting such that it is low probability that someone is standing there and/or watching.
     '''
-    global pit_droid_i
+    global droid_i
     generic_component = Ship_Component()
     # Set up an object for each component type
     component_dct = {'armor': Armor(), 'booster': Booster(), 'capacitor': Capacitor(), 'droid_interface': Droid_Interface(),
@@ -2632,6 +2641,8 @@ def sort_kash_nunes(component_type='weapon', level=8):
                 if found_name is not None and 'crate' not in found_name:
                     component = component_dct[found_name]
                     component.get_stats(img_arr, ic.corner_description_idx, ic.first_indentation_level_col, ic.second_indentation_level_col)
+                    if not component.REable:
+                        continue
                     component.get_max_loot_percentile_value_stc()
                 if found_name is not None and (component.worth_keeping() or 'crate' in found_name):
                     # Open droid inventory
@@ -2640,9 +2651,9 @@ def sort_kash_nunes(component_type='weapon', level=8):
                     # Move to hidden place
                     rwp.main(swg_window_i, waypoint_csv_path=os.path.join(git_path, 'waypoint_paths', 'Kash_to_bar.csv'), function_list=[gtc.empty_function], calibrate_to_north=True)
                     # Iterate through the droids on the toolbar
-                    while pit_droid_i < num_pit_droids:
+                    while droid_i < num_droids:
                         # call the droid
-                        swg_utils.chat('/ui action toolbarSlot' + str(pit_droid_i).zfill(2), return_delay=2)
+                        swg_utils.chat('/ui action toolbarSlot' + str(droid_i).zfill(2), return_delay=2)
                         said_kash_last = False
                         open_droid_inventory()
                         # See if droid full
@@ -2652,12 +2663,12 @@ def sort_kash_nunes(component_type='weapon', level=8):
                             # Close droid inventory
                             pdi.press('esc')
                             # Store droid
-                            swg_utils.chat('/ui action toolbarSlot' + str(pit_droid_i).zfill(2), return_delay=2)
+                            swg_utils.chat('/ui action toolbarSlot' + str(droid_i).zfill(2), return_delay=2)
                             said_kash_last = False
-                            pit_droid_i += 1
+                            droid_i += 1
                             continue
                         break
-                    if pit_droid_i >= num_pit_droids:
+                    if droid_i >= num_droids:
                         # No more space to put good loot, stop.
                         return False
                     # Activate inventory
@@ -2666,7 +2677,7 @@ def sort_kash_nunes(component_type='weapon', level=8):
                     swg_utils.click_drag(start_coords=item_coords, end_coords=dc.into_coords, num_drags=1, start_delay=0.05, return_delay=0.75)
                     ic.item_count -= 1
                     # Store droid
-                    swg_utils.chat('/ui action toolbarSlot' + str(pit_droid_i).zfill(2), return_delay=2)
+                    swg_utils.chat('/ui action toolbarSlot' + str(droid_i).zfill(2), return_delay=2)
                     said_kash_last = False
                     # Close inventory
                     pdi.press('esc')
@@ -2774,14 +2785,15 @@ def sort_loot_when_in_house(sorting_desires_dct):
         sort_backpack(generic_component, component_dct, False)
         if sorting_desires_dct['crates']:
             sort_crates(generic_component, component_dct, reopen_inventory=True)
-    if sorting_desires_dct['backpack']:
+    if sorting_desires_dct['backpack'] and sorting_desires_dct['crates']:
         # Now, put as much junk loot from the hoppers into the backpack as possible.
         put_items_into_caravan(generic_component.backpack_coords)
     if sorting_desires_dct['droids']:
         # Now, sort droid inventories
         deal_with_droids(generic_component, component_dct)
-    # Put as much junk loot from the hoppers into the inventory as possible
-    put_items_into_caravan()
+    if sorting_desires_dct['crates']:
+        # Put as much junk loot from the hoppers into the inventory as possible
+        put_items_into_caravan()
     # Close inventory
     pdi.press('esc')
     
@@ -2908,21 +2920,21 @@ num_equipped_items: int
 num_items_in_bulky_containers: int
     Number of items inside containers (not including the container itself) that are not equipped 
     
-num_pit_droids: int
-    Number of pit droids. This is 1 plus the maximum value of pit_droid_i. i.e. num_pit_droids is the number of droids used for storage of space loot starting from pit_droid_i = 0.
-    These droids must be on the toolbar in the same order as the toolbarSlot index on toolbarPane pit_droid_pane.
+num_droids: int
+    Number of droids. This is 1 plus the maximum value of droid_i. i.e. num_droids is the number of droids used for storage of space loot starting from droid_i = 0.
+    These droids must be on the toolbar in the same order as the toolbarSlot index on toolbarPane droid_pane.
     
     e.g.
-    You have 30 pit droids, and the starting pit_droid_i you want to use is 2 (meaning the 1st and 2nd droid should be skipped) and the last droid available for storing component loot is the 25th droid.
-    (droids 26-30 are used for storage of something else). Then the max value of pit_droid_i will be 23 so num_pit_droids will be 24. (Even if the skipped ones at the beginning are not used for space loot).
+    You have 30 droids, and the starting droid_i you want to use is 2 (meaning the 1st and 2nd droid should be skipped) and the last droid available for storing component loot is the 25th droid.
+    (droids 26-30 are used for storage of something else). Then the max value of droid_i will be 23 so num_droids will be 24. (Even if the skipped ones at the beginning are not used for space loot).
     
-pit_droid_pane: int
+droid_pane: int
         The toolbar pane that has all your inventory droids placed in the slots in contiguous order.
         
 junk_hopper_i: int
     The lowest junk loot hopper name index (e.g. 0 for Loot_0) that is not full.
     
-pit_droid_i: int
+droid_i: int
     The lowest 0-indexed inventory droid as ordered by toolbarSlot that you want to start from when sorting the inventory droids.
     
 droid_interface_hopper_i: int
@@ -2980,7 +2992,7 @@ extreme_avg_and_modifier_dct: dict
     
 Notes
 -----
-1. starting_inventory_position, junk_hopper_i, pit_droid_i, and non_components_hopper_i are used so that the program doesn't have to start at index 0 and figure out where the first space related item is or which
+1. starting_inventory_position, junk_hopper_i, droid_i, and non_components_hopper_i are used so that the program doesn't have to start at index 0 and figure out where the first space related item is or which
     hopper is not full. (Although it will automatically if starting_inventory_position is set to 0).
     
 2. The inventory should be placed and sized such that the name of the item appears on the top bar, it has num_inventory_cols columns of items (9 is good for default icon size), the number of item contents out
@@ -2997,12 +3009,12 @@ starting_inventory_position = config.config_dct[toon_name + '_sort_space_compone
 duty_token_inventory_position = config.config_dct[toon_name + '_sort_space_components']['duty_token_inventory_position']
 num_equipped_items = config.config_dct[toon_name + '_sort_space_components']['num_equipped_items']
 num_items_in_bulky_containers = config.config_dct[toon_name + '_sort_space_components']['num_items_in_bulky_containers']
-num_pit_droids  = config.config_dct[toon_name + '_sort_space_components']['num_pit_droids']
-pit_droid_pane = config.config_dct[toon_name + '_sort_space_components']['pit_droid_pane']
+num_droids  = config.config_dct[toon_name + '_sort_space_components']['num_droids']
+droid_pane = config.config_dct[toon_name + '_sort_space_components']['droid_pane']
 junk_hopper_i = config.config_dct[toon_name + '_sort_space_components']['junk_hopper_i']
 crate_hopper_i = config.config_dct[toon_name + '_sort_space_components']['crate_hopper_i']
 # Index of starting droid to investigate. num_droids is still total number of droids including those not wished to be investigated (minus any at the end that don't have space stuff, if any)
-pit_droid_i = config.config_dct[toon_name + '_sort_space_components']['pit_droid_i']
+droid_i = config.config_dct[toon_name + '_sort_space_components']['droid_i']
 droid_interface_hopper_i = config.config_dct[toon_name + '_sort_space_components']['droid_interface_hopper_i']
 non_components_hopper_i = config.config_dct[toon_name + '_sort_space_components']['non_components_hopper_i']
 collection_hopper_i = config.config_dct[toon_name + '_sort_space_components']['collection_hopper_i']

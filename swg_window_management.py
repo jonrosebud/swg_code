@@ -196,16 +196,22 @@ def take_screenshot(region):
         # Convert to numpy array
         img_arr = deepcopy(np.asarray(screenshot))
     return img_arr
+
+
+def get_swg_window_regions(swg_windows):
+    swg_window_regions = []
+    for swg_window_i in range(len(swg_windows)):
+        rect = swg_windows[swg_window_i].rectangle()
+        # The screen part to capture
+        region = {'top': rect.top + top_border_height, 'left': rect.left + side_border_width, 'width': rect.width() - 2 * side_border_width, 'height': rect.height() - top_border_height}
+        swg_window_regions.append(region)
+    return swg_window_regions
+
         
 def main():
     calibrate_window_position(swg_windows)
     
 swg_windows = get_swg_windows()
-swg_window_regions = []
-for swg_window_i in range(len(swg_windows)):
-    rect = swg_windows[swg_window_i].rectangle()
-    # The screen part to capture
-    region = {'top': rect.top + top_border_height, 'left': rect.left + side_border_width, 'width': rect.width() - 2 * side_border_width, 'height': rect.height() - top_border_height}
-    swg_window_regions.append(region)
+swg_window_regions = get_swg_window_regions(swg_windows)
 if __name__ == '__main__':
     main()

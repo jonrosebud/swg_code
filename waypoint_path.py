@@ -133,6 +133,8 @@ def move_along(swg_window_region, waypoint_list, planning_mode=False, function_l
         if time.time() - start_time >= stuck_timeout:
             key_df = pd.DataFrame({'should_be_down':[False]*6, 'is_down':[False]*6}, index=['w','s','q','e','a','d'])
             key_df = hold_down_keys(key_df)
+            pdi.press('a')
+            pdi.press('s')
             raise Exception('Toon got stuck, timed out.')
         key_df.loc['w']['should_be_down'] = False
         key_df.loc['s']['should_be_down'] = False

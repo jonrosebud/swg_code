@@ -641,7 +641,8 @@ def keyUp_fast(key):
 # Ignored parameters: logScreenshot
 # nearly identical to PyAutoGUI's implementation
 @_genericPyDirectInputChecks
-def press(keys, presses=1, interval=0.0, logScreenshot=None, _pause=True):
+def press(keys, presses=1, interval=0.0, logScreenshot=None, _pause=True, start_delay=0, return_delay=0):
+    time.sleep(start_delay)
     if type(keys) == str:
         if len(keys) > 1:
             keys = keys.lower()
@@ -671,6 +672,7 @@ def press(keys, presses=1, interval=0.0, logScreenshot=None, _pause=True):
 
         time.sleep(interval)
 
+    time.sleep(return_delay)
     return completedPresses == expectedPresses
 
 

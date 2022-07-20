@@ -298,7 +298,7 @@ def get_land_coords(swg_window_region):
     matrices (see get_number_from_arr docs)
     '''
     # Define the region of the matrix corresponding to the in-game 
-    # coordinates as shown in the minimap.
+    # coordinates as shown in the minimap.a
     top = swg_window_region['top'] + ground_coords_top
     left = swg_window_region['left'] + ground_coords_left
     width = 150

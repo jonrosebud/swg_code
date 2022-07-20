@@ -25,6 +25,7 @@ import autoit as ait
 git_path = config.config_dct['main']['git_path']
 sys.path.append(r"" + git_path)
 import pydirectinput_tmr as pdi
+import swg_window_management as swm
 top_border_height = config.get_value('main', 'top_border_height', desired_type=int, required_to_be_in_conf=False, default_value=26)
 side_border_width = config.get_value('main', 'side_border_width', desired_type=int, required_to_be_in_conf=False, default_value=0)
 
@@ -343,11 +344,11 @@ def moveTo(coords=None, start_delay=0.0, return_delay=0.0, move_speed=5, window=
     time.sleep(return_delay)
     
     
-def press(keys, presses=1, start_delay=0.0, return_delay=0.0):
+def press(keys, presses=1, start_delay=0.0, return_delay=0.0, key_down_delay=0):
     '''
     Parameters
     ----------
-    keys: list of str
+    keys: list of str or list of list of str
         List of keys.
         e.g.
         ['shift', 'a']
@@ -364,17 +365,49 @@ def press(keys, presses=1, start_delay=0.0, return_delay=0.0):
     for _ in range(presses):
         for key in keys:
             pdi.keyDown(key)
+        time.sleep(key_down_delay)
         for key in keys[::-1]:
             pdi.keyUp(key)
     time.sleep(return_delay)
     
     
-def chat(string, start_delay=0.2, return_delay=0.1, interval_delay=0.1):
+def press_sequentially(key_combos, presses=1, start_delay=0, return_delay=0, key_down_delay=0):
+    '''
+    Parameters
+    ----------
+    key_combos: list of list of str
+        Each sublist is a key combination passed into press(). e.g. [['shift','a'], ['b']] presses shift+a and then presses b
+        
+    presses: TYPE, optional
+        DESCRIPTION. The default is 1.
+    start_delay : TYPE, optional
+        DESCRIPTION. The default is 0.
+    return_delay : TYPE, optional
+        DESCRIPTION. The default is 0.
+    key_down_delay : TYPE, optional
+        DESCRIPTION. The default is 0.
+
+    Returns
+    -------
+    None.
+
+    '''
+    time.sleep(start_delay)
+    for combo in key_combos:
+        press(combo, presses=presses, key_down_delay=key_down_delay)
+    time.sleep(return_delay)
+    
+    
+def chat(string, start_delay=0.2, return_delay=0.1, interval_delay=0.1, chatbar_idx=None, region=None):
     '''
     Parameters
     ----------
     string: str
         String to type into the swg chat box.
+        
+    chatbar_idx: list or None
+        [row, col] to click in order to activate chat box.
+        If None, then just press enter to activate chat box
 
     Returns
     -------
@@ -385,11 +418,18 @@ def chat(string, start_delay=0.2, return_delay=0.1, interval_delay=0.1):
     Type a string into the swg chat box and press enter.
     '''
     time.sleep(start_delay)
-    pdi.press('enter')
-    time.sleep(interval_delay)
-    pag.write(string, interval=0.02)
-    time.sleep(interval_delay)
-    pdi.press('enter')
+    if chatbar_idx is None or region is None:
+        pdi.press('enter')
+        time.sleep(interval_delay)
+        pag.write(string, interval=0.02)
+        time.sleep(interval_delay)
+        pdi.press('enter')
+    else:
+        click(return_delay=0.5, region=region, coords_idx=chatbar_idx, activate_window=False)
+        time.sleep(interval_delay)
+        pag.write(string, interval=0.02)
+        time.sleep(interval_delay)
+        pdi.press('enter')
     time.sleep(return_delay)
     
     
@@ -745,3 +785,118 @@ def destroy_item(item_coords, swg_window, region):
         if np.all(img_arr[potential_destroy_idx[0] : potential_destroy_idx[0] + destroy_arr.shape[0], potential_destroy_idx[1] : potential_destroy_idx[1] + destroy_arr.shape[1]] == destroy_arr):
             pdi.press(radial_option)
     time.sleep(0.7)
+    
+    
+def stealth_is_on(swg_window_i=0):
+    search_arr = get_search_arr('stealth_buff_unsharpened', dir_path='land_ui_dir', mask_int=None)
+    swg_window_region = swm.swg_window_regions[swg_window_i]
+    found, _ = find_arr_on_region(search_arr, region=swg_window_region, img_arr=None, start_row=20, start_col=20, end_row=80, end_col=80, fail_gracefully=True, sharpen_threshold=None)
+    return found is not None
+    
+    
+def stealth_on(swg_window_i=0):
+    press(['ctrl', '2'])
+    start_time = time.time()
+    while time.time() - start_time < 15:
+        pdi.press('=', return_delay=2)
+        if stealth_is_on(swg_window_i=swg_window_i):
+            return True
+    return False
+    
+    
+def stealth_off(swg_window_i=0):
+    press(['ctrl', '2'])
+    start_time = time.time()
+    while time.time() - start_time < 15 and stealth_is_on(swg_window_i=swg_window_i):
+        pdi.press('=', return_delay=2)
+    return not stealth_is_on(swg_window_i=swg_window_i)
+
+
+def stealth_run():
+    press(['ctrl', '2'], return_delay=0.2)
+    press('-')
+    
+    
+def get_toon_name(region):
+    ui_dir = os.path.join(git_path, 'land_ui_dir')
+    ui_dir_fpaths = file_utils.find(ui_dir, '*.csv')
+    possible_names = ['likeCinnamon', 'OddBodkins']
+    toon_fpath = None
+    for possible_name in possible_names:
+        for ui_dir_fpath in ui_dir_fpaths:
+            if possible_name in ui_dir_fpath:
+                toon_fpath = ui_dir_fpath
+                break
+        if toon_fpath is None:
+            toon_name = input('Type toon name:')
+            for ui_dir_fpath in ui_dir_fpaths:
+                if toon_name in ui_dir_fpath:
+                    toon_fpath = ui_dir_fpath
+                    break
+        if toon_fpath is None:
+            raise Exception('Toon name file not found. Put a (145) sharpened grayscale csv file in Land_ui_dir. e.g. likeCinnamon.csv')
+        search_arr = get_search_arr(file_utils.fname_from_fpath(toon_fpath), dir_path=ui_dir, mask_int=0)
+        found_idx, _ = find_arr_on_region(search_arr, region=region, start_row=0, start_col=0, end_row=100, end_col=300, fail_gracefully=True, sharpen_threshold=145)
+        if found_idx is None:
+            continue
+        for possible_name in possible_names:
+            if possible_name in toon_fpath:
+                return possible_name
+            
+            
+def click_on_item(region, item_coords=None, coords_idx=None, button='left', sub_region=None):
+    '''
+    Parameters
+    ----------
+    region: dict
+        Keys 'left', 'top', 'width', 'height' define rectangular region of screen to take screenshot
+        
+    item_coords: list of int or None
+        [x, y] coordinates on the screen
+        If None, use coords_idx
+        
+    coords_idx: list of int or None
+        [row, col] index of the location within region
+        If None, use item_coords
+        
+    sub_region: dict
+        Keys 'left', 'top', 'width', 'height' define rectangular region of screen to detect change. When a change has occurred, return from this function.
+        
+    Returns
+    -------
+    img_arr: np.array, shape: (region['height'], region['width'])
+        screenshot pixel matrix
+
+    Purpose
+    -------
+    Click on item and return when the item has registered as clicked by the game or after a set number of seconds (whichever comes first).
+    This enables returning from the click function faster than just waiting a long time to ensure the item click has registered.
+    
+    TODO
+    ----
+    Make it so there's another paramter that is the region to check for pixels changing. Otherwise any random movement or flicker would cause np.all to be false
+    '''
+    if sub_region is None:
+        sub_region = region
+    # Get img_arr before clicking
+    before_img_arr = take_grayscale_screenshot(region=sub_region, sharpen_threshold=130,
+            scale_to=255, sharpen=True, set_focus=False)
+    
+    # Click on item
+    if item_coords is not None:
+        click(coords=item_coords, button=button, start_delay=0.0, return_delay=0.2)
+    else:
+        click(coords=coords_idx, button=button, start_delay=0.0, return_delay=0.2, region=region)
+    start_time = time.time()
+    img_arr = take_grayscale_screenshot(region=sub_region, sharpen_threshold=130, scale_to=255, sharpen=True, set_focus=False)
+    while time.time() - start_time < 1.1 and np.all(before_img_arr == img_arr):
+        img_arr = take_grayscale_screenshot(region=sub_region, sharpen_threshold=130, scale_to=255, sharpen=True, set_focus=False)
+    return take_grayscale_screenshot(region=region, sharpen_threshold=130, scale_to=255, sharpen=True, set_focus=False)
+
+            
+if __name__ == '__main__':
+    swm.swg_windows[0].set_focus()
+    time.sleep(3)
+    chat('hi', chatbar_idx=[738,101], region=swm.swg_window_regions[0])
+    
+    

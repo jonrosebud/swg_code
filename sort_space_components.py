@@ -3086,6 +3086,8 @@ def main(sorting_task, calibration_desires_dct, sorting_desires_dct):
             if all_done and not first_time:
                 break
             first_time = False
+            if not sorting_desires_dct['crates']:
+                break
     elif sorting_task == 'kash':
         sort_kash_nunes()
         return

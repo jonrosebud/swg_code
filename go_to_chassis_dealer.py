@@ -53,7 +53,7 @@ def instant_travel_vehicle():
     pdi.press('i', return_delay=1.5)
     swg_utils.chat('/tar Instant', return_delay=1.5)
     # Click to open the itv window
-    swg_utils.chat('/ui action defaultAction', return_delay=4)
+    swg_utils.chat('/ui action defaultAction', return_delay=6)
     # Close inventory
     pdi.press('i')
     time.sleep(1.5)
@@ -64,7 +64,8 @@ def instant_travel_vehicle():
         # Sometimes the toolbar or chat window is covering up the travel button. Click
         # in the middle of the screen which should either activate the travel window or 
         # it will click on the ITV which will activate the travel window.
-        swg_utils.click(coords_idx=[region['top'] + int(region['height'] / 2), region['left'] + int(region['width'] / 2)], region=region, window=swg_window)
+        swg_utils.click(coords_idx=[region['top'] + int(region['height'] / 2), region['left'] + int(region['width'] / 2)], region=region, window=swg_window, return_delay=0.3)
+    travel_button_idx = find_travel_button()
     starport_idx = [travel_button_idx[0] - 534, travel_button_idx[1] - 58]
     swg_utils.click(button='left', presses=2, start_delay=0, return_delay=14, interval_delay=0, window=None, region=region, coords_idx=starport_idx)
     
@@ -328,19 +329,39 @@ def go_to_second_G9():
             swg_utils.stealth_on()
             time.sleep(3)
             pdi.keyDown('w')
-            time.sleep(10)
+            time.sleep(15)
             pdi.keyUp('w')
-            direction = ['w','e'][random.randint(0,3)]
+            direction = ['w','e'][random.randint(0,1)]
             pdi.keyDown(direction)
-            time.sleep(random.random() * 10)
+            time.sleep(random.random() * 20)
             pdi.keyUp(direction)
             swg_utils.stealth_off()
             time.sleep(0.2)
             continue
         pdi.press('up', presses=4, start_delay=4, return_delay=0.1)
         pdi.press('down', presses=2, start_delay=0.1, return_delay=0.1)
-        pdi.press('enter', return_delay=14)
-        return
+        pdi.press('enter', return_delay=0)
+        # If land coords do not disappear within 6 seconds then probably we are in combat which necessitates cloaking and running away.
+        start_time = time.time()
+        while time.time() - start_time < 6 and gtc.get_land_coords(region, fail_gracefully=True) is not None:
+            time.sleep(0.5)
+        if time.time() - start_time >= 6:
+            swg_utils.stealth_on()
+            time.sleep(3)
+            pdi.keyDown('w')
+            time.sleep(15)
+            pdi.keyUp('w')
+            direction = ['w','e'][random.randint(0,1)]
+            pdi.keyDown(direction)
+            time.sleep(random.random() * 20)
+            pdi.keyUp(direction)
+            swg_utils.stealth_off()
+            time.sleep(0.2)
+            continue
+        else:
+            time.sleep(max(0, 14 - (time.time() - start_time)))
+            return
+            
     raise Exception('Could not use G9 in', num_attempts, 'attempts.')
 
 

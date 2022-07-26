@@ -652,6 +652,8 @@ def click_drag(start_coords=None, end_coords=None, start_idx=None, end_idx=None,
         time.sleep(0.1)
         ait.mouse_move(end_coords[0], end_coords[1], speed=-1)
         ait.mouse_up()
+        if num_drags > 1:
+            time.sleep(0.3)
     time.sleep(return_delay)
     
     
@@ -846,7 +848,7 @@ def get_toon_name(region):
     return 'Default'
             
             
-def click_on_item(region, item_coords=None, coords_idx=None, button='left', sub_region=None):
+def click_on_item(region, item_coords=None, coords_idx=None, button='left', sub_region=None, return_delay=0):
     '''
     Parameters
     ----------
@@ -893,6 +895,7 @@ def click_on_item(region, item_coords=None, coords_idx=None, button='left', sub_
     img_arr = take_grayscale_screenshot(region=sub_region, sharpen_threshold=130, scale_to=255, sharpen=True, set_focus=False)
     while time.time() - start_time < 1.1 and np.all(before_img_arr == img_arr):
         img_arr = take_grayscale_screenshot(region=sub_region, sharpen_threshold=130, scale_to=255, sharpen=True, set_focus=False)
+    time.sleep(return_delay)
     return take_grayscale_screenshot(region=region, sharpen_threshold=130, scale_to=255, sharpen=True, set_focus=False)
 
             
